@@ -7,6 +7,8 @@
 	.global		current_bank
 	.global		bank_base
 	.global		start_level_flag
+	.global		infinite_lives_flag
+	.global		invincible_flag
 	.global		infinite_time_flag
 	.ifndef		RELEASE
 	.endif
@@ -42,7 +44,13 @@ break_at_startup_flag:
 	.skip	1
 start_level_flag:
 	.skip	1
-
+infinite_time_flag:
+	.skip	1
+infinite_lives_flag:
+	.skip	1
+invincible_flag:
+	.skip	1
+	
 
 
 
