@@ -17,12 +17,25 @@
 ;	map(0x3000, 0x3fff).rom().region("maincpu", 0x3000);
 ;	map(0x4000, 0xffff).rw(FUNC(fantasy_state::highmem_r), FUNC(fantasy_state::highmem_w));
 
+; high memory:     
+;	 FFE0  FF FF FF FF FF FF F3 42 A4 0C 3C 64 1B E2 B7 48   ÿ
+;     FFF0  FF FF 5C DA AE EF 44 30 FF FF 00 30 04 30 09 30   ÿ
+
+flipscreen_2103 = $2103
+scroll_x_2200 = $2200
+scroll_y_2300 = $2300
+
+nmi_3000:    ; [global]
 3000: 78       sei
 3001: 4C 0E 32 jmp $320e
+reset_3004:  ; [global]
 3004: 78       sei
 3005: 4C 00 78 jmp $7800
+
 3008: 78       sei
+irq_3009:    ; [global]
 3009: 4C 68 30 jmp $3068
+
 300C: 78       sei
 300D: 4C 5E 4B jmp $4b5e
 3010: 4C 87 3F jmp $3f87
@@ -47,8 +60,8 @@
 3070: F0 02    beq $3074
 3072: C6 BD    dec $bd
 3074: A9 00    lda #$00
-3076: 8D 00 22 sta $2200
-3079: 8D 00 23 sta $2300
+3076: 8D 00 22 sta scroll_x_2200		; no scrolling
+3079: 8D 00 23 sta scroll_y_2300
 307C: A5 FD    lda $fd
 307E: F0 33    beq $30b3
 3080: A0 00    ldy #$00
@@ -289,7 +302,7 @@
 3258: 29 88    and #$88
 325A: 05 17    ora $17
 325C: 85 A8    sta $a8
-325E: 8D 03 21 sta $2103
+325E: 8D 03 21 sta flipscreen_2103
 3261: A5 A5    lda $a5
 3263: 29 EF    and #$ef
 3265: 8D 00 21 sta $2100
@@ -323,7 +336,7 @@
 32A5: A5 A8    lda $a8
 32A7: 29 80    and #$80
 32A9: 85 A8    sta $a8
-32AB: 8D 03 21 sta $2103
+32AB: 8D 03 21 sta flipscreen_2103
 32AE: A5 BC    lda $bc
 32B0: F0 03    beq $32b5
 32B2: 20 DC 38 jsr $38dc
@@ -954,30 +967,7 @@
 38B0: 90 E9    bcc $389b
 38B2: 20 8A 4C jsr $4c8a
 38B5: 60       rts
-38B6: 2B 2C    anc #$2c
-38B8: 30 44    bmi $38fe
-38BA: 2A       rol a
-38BB: 2A       rol a
-38BC: 30 43    bmi $3901
-38BE: 29 29    and #$29
-38C0: 30 42    bmi $3904
-38C2: 28       plp
-38C3: 28       plp
-38C4: 30 41    bmi $3907
-38C6: 20 0A 1F jsr $1f0a
-38C9: 0E 30 30 asl $3030
-38CC: 2B 30    anc #$30
-38CE: 30 44    bmi $3914
-38D0: 2A       rol a
-38D1: 30 30    bmi $3903
-38D3: 43 29    sre ($29, x)
-38D5: 30 30    bmi $3907
-38D7: 42       kil
-38D8: 28       plp
-38D9: 30 30    bmi $390b
-38DB: 41 A9    eor ($a9, x)
-38DD: 47 8D    sre $8d
-38DF: A3 04    lax ($04, x)
+
 38E1: A9 46    lda #$46
 38E3: 8D C3 04 sta $04c3
 38E6: A9 45    lda #$45
@@ -1234,13 +1224,7 @@
 3ADE: 25 18    and $18
 3AE0: F0 0C    beq $3aee
 3AE2: 4C FD 3A jmp $3afd
-3AE5: 10 0C    bpl $3af3
-3AE7: 08       php
-3AE8: 08       php
-3AE9: 08       php
-3AEA: 04 02    nop $02
-3AEC: 00       brk
-3AED: 00       brk
+
 3AEE: A5 FB    lda $fb
 3AF0: C9 02    cmp #$02
 3AF2: 10 31    bpl $3b25
@@ -1669,164 +1653,7 @@
 3E26: A9 00    lda #$00
 3E28: 85 4A    sta $4a
 3E2A: 4C DA 4E jmp $4eda
-3E2D: 3D 3E 49 and $493e, x
-3E30: 3E 55 3E rol $3e55, x
-3E33: 61 3E    adc ($3e, x)
-3E35: 6D 3E 79 adc $793e
-3E38: 3E 85 3E rol $3e85, x
-3E3B: 91 3E    sta ($3e), y
-3E3D: 30 61    bmi $3ea0
-3E3F: 64 30    nop $30
-3E41: 30 62    bmi $3ea5
-3E43: 65 30    adc $30
-3E45: 30 63    bmi $3eaa
-3E47: 3D 30 30 and $3030, x
-3E4A: 64 61    nop $61
-3E4C: 30 30    bmi $3e7e
-3E4E: 65 62    adc $62
-3E50: 30 30    bmi $3e82
-3E52: 3D 63 30 and $3063, x
-3E55: 30 61    bmi $3eb8
-3E57: 3E 30 30 rol $3030, x
-3E5A: 62       kil
-3E5B: 65 30    adc $30
-3E5D: 30 63    bmi $3ec2
-3E5F: 66 30    ror $30
-3E61: 30 3E    bmi $3ea1
-3E63: 61 30    adc ($30, x)
-3E65: 30 65    bmi $3ecc
-3E67: 62       kil
-3E68: 30 30    bmi $3e9a
-3E6A: 66 63    ror $63
-3E6C: 30 30    bmi $3e9e
-3E6E: 30 30    bmi $3ea0
-3E70: 3F 35 36 rla $3635, x
-3E73: 31 32    and ($32), y
-3E75: 33 30    rla ($30), y
-3E77: 30 30    bmi $3ea9
-3E79: 30 30    bmi $3eab
-3E7B: 30 34    bmi $3eb1
-3E7D: 35 40    and $40, x
-3E7F: 31 32    and ($32), y
-3E81: 33 30    rla ($30), y
-3E83: 30 30    bmi $3eb5
-3E85: 30 30    bmi $3eb7
-3E87: 30 31    bmi $3eba
-3E89: 32       kil
-3E8A: 33 3F    rla ($3f), y
-3E8C: 35 36    and $36, x
-3E8E: 30 30    bmi $3ec0
-3E90: 30 30    bmi $3ec2
-3E92: 30 30    bmi $3ec4
-3E94: 31 32    and ($32), y
-3E96: 33 34    rla ($34), y
-3E98: 35 40    and $40, x
-3E9A: 30 30    bmi $3ecc
-3E9C: 30 01    bmi $3e9f
-3E9E: 01 01    ora ($01, x)
-3EA0: 01 01    ora ($01, x)
-3EA2: 01 02    ora ($02, x)
-3EA4: 02       kil
-3EA5: 02       kil
-3EA6: 01 02    ora ($02, x)
-3EA8: 01 01    ora ($01, x)
-3EAA: 01 01    ora ($01, x)
-3EAC: 01 02    ora ($02, x)
-3EAE: 02       kil
-3EAF: 02       kil
-3EB0: 02       kil
-3EB1: 03 03    slo ($03, x)
-3EB3: 03 03    slo ($03, x)
-3EB5: 03 03    slo ($03, x)
-3EB7: 03 03    slo ($03, x)
-3EB9: 02       kil
-3EBA: 02       kil
-3EBB: 02       kil
-3EBC: 02       kil
-3EBD: CD 3E D9 cmp $d93e
-3EC0: 3E E5 3E rol $3ee5, x
-3EC3: F1 3E    sbc ($3e), y
-3EC5: FD 3E 09 sbc $093e, x
-3EC8: 3F 15 3F rla $3f15, x
-3ECB: 21 3F    and ($3f, x)
-3ECD: 61 64    adc ($64, x)
-3ECF: 67 30    rra $30
-3ED1: 62       kil
-3ED2: 65 68    adc $68
-3ED4: 30 63    bmi $3f39
-3ED6: 66 3D    ror $3d
-3ED8: 30 30    bmi $3f0a
-3EDA: 67 64    rra $64
-3EDC: 61 30    adc ($30, x)
-3EDE: 68       pla
-3EDF: 65 62    adc $62
-3EE1: 30 3D    bmi $3f20
-3EE3: 66 63    ror $63
-3EE5: 61 64    adc ($64, x)
-3EE7: 3E 30 62 rol $6230, x
-3EEA: 65 68    adc $68
-3EEC: 30 63    bmi $3f51
-3EEE: 66 69    ror $69
-3EF0: 30 30    bmi $3f22
-3EF2: 3E 64 61 rol $6164, x
-3EF5: 30 68    bmi $3f5f
-3EF7: 65 62    adc $62
-3EF9: 30 69    bmi $3f64
-3EFB: 66 63    ror $63
-3EFD: 30 30    bmi $3f2f
-3EFF: 30 3F    bmi $3f40
-3F01: 38       sec
-3F02: 39 34 35 and $3534, y
-3F05: 36 31    rol $31, x
-3F07: 32       kil
-3F08: 33 30    rla ($30), y
-3F0A: 30 30    bmi $3f3c
-3F0C: 37 38    rla $38, x
-3F0E: 40       rti
-3F0F: 34 35    nop $35, x
-3F11: 36 31    rol $31, x
-3F13: 32       kil
-3F14: 33 31    rla ($31), y
-3F16: 32       kil
-3F17: 33 34    rla ($34), y
-3F19: 35 36    and $36, x
-3F1B: 3F 38 39 rla $3938, x
-3F1E: 30 30    bmi $3f50
-3F20: 30 31    bmi $3f53
-3F22: 32       kil
-3F23: 33 34    rla ($34), y
-3F25: 35 36    and $36, x
-3F27: 37 38    rla $38, x
-3F29: 40       rti
-3F2A: 30 30    bmi $3f5c
-3F2C: 30 80    bmi $3eae
-3F2E: 80 06    nop #$06
-3F30: 04 80    nop $80
-3F32: 80 07    nop #$07
-3F34: 05 01    ora $01
-3F36: 00       brk
-3F37: 80 80    nop #$80
-3F39: 03 02    slo ($02, x)
-3F3B: 80 80    nop #$80
-3F3D: 02       kil
-3F3E: 01 02    ora ($02, x)
-3F40: 01 08    ora ($08, x)
-3F42: 08       php
-3F43: 04 04    nop $04
-3F45: 00       brk
-3F46: 00       brk
-3F47: 00       brk
-3F48: 00       brk
-3F49: 01 00    ora ($00, x)
-3F4B: 00       brk
-3F4C: 00       brk
-3F4D: FF 00 FF isb $ff00, x
-3F50: 01 00    ora ($00, x)
-3F52: 00       brk
-3F53: 00       brk
-3F54: 00       brk
-3F55: 00       brk
-3F56: 00       brk
+
 3F57: A5 53    lda $53
 3F59: C9 01    cmp #$01
 3F5B: F0 0B    beq $3f68
@@ -1873,30 +1700,4 @@
 3FA9: 2D 07 21 and $2107
 3FAC: F0 F1    beq $3f9f
 3FAE: 4C 06 59 jmp $5906
-3FB1: FF FF FF isb $ffff, x
-3FB4: FF FF FF isb $ffff, x
-3FB7: FF FF FF isb $ffff, x
-3FBA: FF FF FF isb $ffff, x
-3FBD: FF FF FF isb $ffff, x
-3FC0: FF FF FF isb $ffff, x
-3FC3: FF FF FF isb $ffff, x
-3FC6: FF FF FF isb $ffff, x
-3FC9: FF FF FF isb $ffff, x
-3FCC: FF FF FF isb $ffff, x
-3FCF: FF FF FF isb $ffff, x
-3FD2: FF FF FF isb $ffff, x
-3FD5: FF FF FF isb $ffff, x
-3FD8: FF FF FF isb $ffff, x
-3FDB: FF FF FF isb $ffff, x
-3FDE: FF FF FF isb $ffff, x
-3FE1: FF FF FF isb $ffff, x
-3FE4: FF FF FF isb $ffff, x
-3FE7: FF FF FF isb $ffff, x
-3FEA: FF FF FF isb $ffff, x
-3FED: FF FF FF isb $ffff, x
-3FF0: FF FF FF isb $ffff, x
-3FF3: FF FF FF isb $ffff, x
-3FF6: FF FF FF isb $ffff, x
-3FF9: FF FF FF isb $ffff, x
-3FFC: FF FF FF isb $ffff, x
-3FFF: FF 85 00 isb $0085, x
+
