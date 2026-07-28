@@ -5,7 +5,9 @@ gamename = "nibbler"
 # game_specific: replace or remove I/O addresses
 # if not done it will write in ROM here!!
 input_dict = {
-
+"flipscreen_2103":"",
+"scroll_x_2200":"",
+"scroll_y_2300":""
 }
 
 single_line_to_cc_protect = set()
@@ -142,7 +144,7 @@ def subt(m):
 
 equates = []
 global_symbols = []
-equates_re = re.compile("(\w+)\s*=\s*(\$?\w+)")
+equates_re = re.compile("(\w+)\s*=\s*\$(\w+)")
 this_dir = pathlib.Path(__file__).absolute().parent
 
 source_dir = this_dir / "../src"
@@ -166,6 +168,7 @@ with open(source_dir / "conv.s") as f:
     for i,line in enumerate(lines):
         m = equates_re.match(line)
         if m:
+            line = f"{m.group(1)} = 0x{m.group(2)}\n"
             equates.append(line)
             line = ""
 
@@ -248,7 +251,7 @@ with open(source_dir / "conv.s") as f:
 
         ###############################################
         # game_specific
-
+        lines[i] = line
         line = game_specific(address,lines,i)
 
 
