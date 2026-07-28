@@ -1,0 +1,48 @@
+
+	.global		ram_start_0000
+	.global		ram_buffer	
+	.global		stack_top
+	.global		vb_ticks_count
+	.global		break_at_startup_flag
+	.global		current_bank
+	.global		bank_base
+	.global		start_level_flag
+	.global		infinite_time_flag
+	.ifndef		RELEASE
+	.endif
+
+* ram also includes video & sprite ram, with ROM and 1 banked ROM
+* (the other is either copied in the bank address or addressed directly)
+ram_buffer:
+	.ifdef	RELEASE
+	.skip	0x10000
+	.else
+	.skip	0x20000
+ram_start_0000:
+	.long	0
+
+	
+	.align	2
+	.endif
+
+
+
+	
+	* 4k for stack should be ok
+	.skip	0x1000
+stack_top:
+bank_base:
+	.skip	4
+current_bank:
+	.skip	1
+vb_ticks_count:
+	.skip	1
+
+break_at_startup_flag:
+	.skip	1
+start_level_flag:
+	.skip	1
+
+
+
+

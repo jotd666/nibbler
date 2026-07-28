@@ -18,8 +18,8 @@
 ;	map(0x4000, 0xffff).rw(FUNC(fantasy_state::highmem_r), FUNC(fantasy_state::highmem_w));
 
 ; high memory:     
-;	 FFE0  FF FF FF FF FF FF F3 42 A4 0C 3C 64 1B E2 B7 48   ÿ
-;     FFF0  FF FF 5C DA AE EF 44 30 FF FF 00 30 04 30 09 30   ÿ
+;	 FFE0  FF FF FF FF FF FF F3 42 A4 0C 3C 64 1B E2 B7 48   
+;    FFF0  FF FF 5C DA AE EF 44 30 FF FF 00 30 04 30 09 30  
 
 flipscreen_2103 = $2103
 scroll_x_2200 = $2200
@@ -171,6 +171,7 @@ irq_3009:    ; [global]
 3153: 58       cli
 3154: 4C 5B 31 jmp $315b
 3157: 58       cli
+
 3158: 4C 5F 30 jmp $305f
 315B: A9 04    lda #$04
 315D: 2D 04 21 and $2104

@@ -22,6 +22,10 @@ store_to_video = re.compile("GET_ADDRESS\s+(0x8\w\w\w|video_ram_d)",flags=re.I) 
 def game_specific(address,lines,i):
     line = lines[i]
     # game_specific
+    if "unsupported return from interrupt" in line:
+        line = change_instruction("rts",lines,i)
+    if "replacing by tst.b" in line:
+        line = remove_error(line)
     return line
 
 
@@ -246,7 +250,7 @@ with open(source_dir / "conv.s") as f:
         # game_specific
 
         line = game_specific(address,lines,i)
- 
+
 
         ###############################################
         if address in remove_error_in_prev_line:
@@ -293,6 +297,8 @@ with open(source_dir / "conv.s") as f:
         if "[global]" in line:
             label = line.split(":")[0]
             global_symbols.append(label)
+            line = f"{label}:\n"
+
 
         lines[i] = line
 
