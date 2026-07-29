@@ -25,13 +25,14 @@ in1_2105 = $2105
 in2_2107 = $2107
 sound_2100 = $2100
 sound_2101 = $2101
+sound_2102 = $2102
 
 nmi_3000:    ; [global]
 3000: 78       sei
 3001: 4C 0E 32 jmp $320e
 reset_3004:  ; [global]
 3004: 78       sei
-3005: 4C 00 78 jmp $7800
+3005: 4C 00 78 jmp boot_7800
 
 3008: 78       sei
 irq_3009:    ; [global]
@@ -3911,7 +3912,7 @@ irq_3009:    ; [global]
 5929: 8D 00 23 sta scroll_y_2300
 592C: 8D 00 21 sta sound_2100
 592F: 8D 01 21 sta sound_2101
-5932: 8D 02 21 sta $2102
+5932: 8D 02 21 sta sound_2102
 5935: 8D 03 21 sta flipscreen_2103
 5938: 85 F3    sta $f3
 593A: 85 FC    sta $fc
@@ -3975,7 +3976,7 @@ irq_3009:    ; [global]
 59F4: 85 B1    sta $b1
 59F6: 8D 00 21 sta sound_2100
 59F9: 8D 01 21 sta sound_2101
-59FC: 8D 02 21 sta $2102
+59FC: 8D 02 21 sta sound_2102
 59FF: 8D 03 21 sta flipscreen_2103
 5A02: A0 05    ldy #$05
 5A04: 46 F2    lsr $f2
@@ -4212,7 +4213,7 @@ irq_3009:    ; [global]
 5BDD: 85 F1    sta $f1
 5BDF: 85 F2    sta $f2
 5BE1: A9 66    lda #$66
-5BE3: 8D 02 21 sta $2102
+5BE3: 8D 02 21 sta sound_2102
 5BE6: 20 99 32 jsr $3299
 5BE9: A9 00    lda #$00
 5BEB: 85 FC    sta $fc
@@ -4688,13 +4689,14 @@ irq_3009:    ; [global]
 5FCE: 85 EE    sta $ee
 5FD0: 60       rts
 
-
+boot_7800:
 7800: A9 00    lda #$00
 7802: 8D 00 21 sta sound_2100
 7805: 8D 01 21 sta sound_2101
 7808: 8D 03 21 sta flipscreen_2103
-780B: 8D 02 21 sta $2102
+780B: 8D 02 21 sta sound_2102
 780E: A2 00    ldx #$00
+; memory test
 7810: A9 55    lda #$55
 7812: 95 00    sta $00, x
 7814: E8       inx
@@ -4749,11 +4751,13 @@ irq_3009:    ; [global]
 7865: E8       inx
 7866: D0 F7    bne $785f
 7868: 4C 78 78 jmp $7878
+; memory error
 786B: A9 66    lda #$66
-786D: 8D 02 21 sta $2102
+786D: 8D 02 21 sta sound_2102
 7870: A9 0C    lda #$0c
 7872: 8D 01 21 sta sound_2101
 7875: 4C 75 78 jmp $7875
+
 7878: A2 00    ldx #$00
 787A: A9 55    lda #$55
 787C: 9D 00 01 sta $0100, x
@@ -4809,11 +4813,13 @@ irq_3009:    ; [global]
 78DB: E8       inx
 78DC: D0 F6    bne $78d4
 78DE: 4C EE 78 jmp $78ee
+; memory error
 78E1: A9 66    lda #$66
-78E3: 8D 02 21 sta $2102
+78E3: 8D 02 21 sta sound_2102
 78E6: A9 0C    lda #$0c
 78E8: 8D 01 21 sta sound_2101
 78EB: 4C EB 78 jmp $78eb
+
 78EE: A2 FF    ldx #$ff		; set high stack
 78F0: 9A       txs
 78F1: D8       cld
@@ -5027,7 +5033,7 @@ irq_3009:    ; [global]
 7A9F: E9 00    sbc #$00
 7AA1: 85 1A    sta $1a
 7AA3: 4C 83 7A jmp $7a83
-
+; power up diagnostics printed
 7ABB: A9 01    lda #$01
 7ABD: 8D E5 0D sta $0de5
 7AC0: 8D C5 0D sta $0dc5
@@ -5219,6 +5225,7 @@ irq_3009:    ; [global]
 7C4A: F0 06    beq $7c52
 7C4C: 20 AB 7E jsr $7eab
 7C4F: 4C 55 7C jmp $7c55
+
 7C52: 20 77 7E jsr $7e77
 7C55: A5 1D    lda $1d
 7C57: 18       clc
@@ -5236,7 +5243,6 @@ irq_3009:    ; [global]
 7C6D: 85 1A    sta $1a
 7C6F: 4C 38 7C jmp $7c38
 
-7C8C: 48       pha
 7C8D: A9 16    lda #$16
 7C8F: 85 31    sta $31
 7C91: A9 7D    lda #$7d
@@ -5298,6 +5304,8 @@ irq_3009:    ; [global]
 7CFF: 20 AB 7E jsr $7eab
 7D02: 4C D5 7C jmp $7cd5
 
+; at this point, system tests are done
+end_of_system_tests_7d26:   ; [global]
 7D26: A9 02    lda #$02
 7D28: 85 18    sta $18
 7D2A: A9 01    lda #$01
@@ -5340,7 +5348,7 @@ irq_3009:    ; [global]
 7D81: A9 40    lda #$40
 7D83: 2D 07 21 and in2_2107
 7D86: F0 EF    beq $7d77
-7D88: 4C 00 78 jmp $7800
+7D88: 4C 00 78 jmp boot_7800
 7D8B: A5 18    lda $18
 7D8D: 18       clc
 7D8E: 69 10    adc #$10
