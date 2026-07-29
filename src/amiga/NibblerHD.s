@@ -9,12 +9,12 @@
 ; including stack, which is very close. Why wasting precious kbs?
 CHIP_BASE = $200
 
-	IFD	CD32_SLAVE
+	IFD	CHIP_ONLY
 EXPMEM = 0
-CHIPSIZE = $1E0000
+CHIPSIZE = $E0000
 	ELSE
-EXPMEM = $1E0000
-CHIPSIZE = $180000
+EXPMEM = $E0000
+CHIPSIZE = $80000
 	ENDC
 
 _base	SLAVE_HEADER					; ws_security + ws_id
@@ -69,8 +69,8 @@ DECL_VERSION:MACRO
 	ENDM
 _data   dc.b    0
 _name	dc.b	"Nibbler"
-	IFD	CD32_SLAVE
-	dc.b	" (CD32)"
+	IFD	CHIP_ONLY
+	dc.b	" (chip)"
 	ENDC
 	dc.b	0
 _copy	dc.b	'2026 JOTD',0
@@ -139,4 +139,4 @@ progstart
     dc.l    0
 exe
 	
-	dc.b	"nibbler",0
+	dc.b	"nibbler_000",0

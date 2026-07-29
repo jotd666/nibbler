@@ -7,7 +7,12 @@ gamename = "nibbler"
 input_dict = {
 "flipscreen_2103":"write_2103",
 "scroll_x_2200":"",
-"scroll_y_2300":""
+"scroll_y_2300":"",
+"crtc_2000":"",
+"crtc_2001":"",
+"sound_2100":"write_sound_2100",
+"sound_2101":"write_sound_2101",
+"sound_2102":"write_sound_2102",
 }
 
 single_line_to_cc_protect = set()
@@ -19,7 +24,7 @@ line_to_pull_cc_protect = set() | single_line_to_cc_protect
 line_to_pull_cc_prev_protect = set()
 
 
-store_to_video = re.compile("GET_ADDRESS\s+(0x8\w\w\w|video_ram_d)",flags=re.I)   # game_specific
+store_to_video = re.compile("GET_ADDRESS\s+(0x0[4-F]\w\w|video_ram_)",flags=re.I)   # game_specific
 
 def game_specific(address,lines,i):
     line = lines[i]
@@ -172,12 +177,9 @@ with open(source_dir / "conv.s") as f:
             equates.append(line)
             line = ""
 
+        if any(x in line for x in ("dsw_2106","in0_2104","in1_2105","in2_2107")):
+            line = line.rstrip() + " [unchecked_address]\n"
 
-##        elif "review stray daa" in line:
-##            line = """\tCLR_XC_FLAGS
-##\tmove.b\t(a0),d6
-##\tabcd\td6,d0
-##"""
         address = get_line_address(line)
 
 
@@ -212,11 +214,7 @@ with open(source_dir / "conv.s") as f:
         m = store_to_video.search(line)
         if m:
             g = m.group(1)
-            okay = True
-            if g.startswith("0x"):
-                target_address = int(g,16)  # not used
-                if "ix," not in line and "iy," not in line:
-                    line = line.rstrip() + " [video_address]\n"
+            line = line.rstrip() + " [video_address]\n"
 
         if "[video_address" in line or "[unchecked_address" in line:
             if (",a2" in line or ",a3" in line) and "GET_ADDRESS" not in line:

@@ -16,7 +16,7 @@
 ;	map(0x3000, 0xffff).rom().region("maincpu", 0x3000);
 
 
-flipscreen_2103 = $2103
+flipscreen_2103 = $2103	
 scroll_x_2200 = $2200
 scroll_y_2300 = $2300
 dsw_2106 = $2106
@@ -26,6 +26,8 @@ in2_2107 = $2107
 sound_2100 = $2100
 sound_2101 = $2101
 sound_2102 = $2102
+crtc_2000 = $2000
+crtc_2001 = $2001
 
 nmi_3000:    ; [global]
 3000: 78       sei
@@ -356,7 +358,7 @@ irq_3009:    ; [global]
 32CA: A9 0C    lda #$0c
 32CC: 85 18    sta $18
 32CE: A9 2D    lda #$2d
-32D0: 91 17    sta ($17), y
+32D0: 91 17    sta ($17), y   ; [video_address]
 32D2: 88       dey
 32D3: D0 FB    bne $32d0
 32D5: E6 18    inc $18
@@ -645,7 +647,7 @@ irq_3009:    ; [global]
 362D: 85 18    sta $18
 362F: A0 03    ldy #$03
 3631: B1 19    lda ($19), y
-3633: 91 17    sta ($17), y
+3633: 91 17    sta ($17), y   ; [video_address]
 3635: 88       dey
 3636: 10 F9    bpl $3631
 3638: A5 17    lda $17
@@ -684,7 +686,7 @@ irq_3009:    ; [global]
 3677: 85 18    sta $18
 3679: A2 01    ldx #$01
 367B: A5 16    lda $16
-367D: 91 17    sta ($17), y
+367D: 91 17    sta ($17), y   ; [video_address]
 367F: A5 17    lda $17
 3681: 18       clc
 3682: 69 20    adc #$20
@@ -703,7 +705,7 @@ irq_3009:    ; [global]
 369A: 85 18    sta $18
 369C: A2 01    ldx #$01
 369E: A5 1F    lda $1f
-36A0: 91 17    sta ($17), y
+36A0: 91 17    sta ($17), y   ; [video_address]
 36A2: A5 17    lda $17
 36A4: 18       clc
 36A5: 69 20    adc #$20
@@ -722,7 +724,7 @@ irq_3009:    ; [global]
 36BD: 85 18    sta $18
 36BF: A2 0A    ldx #$0a
 36C1: A5 16    lda $16
-36C3: 91 17    sta ($17), y
+36C3: 91 17    sta ($17), y   ; [video_address]
 36C5: A5 17    lda $17
 36C7: 18       clc
 36C8: 69 20    adc #$20
@@ -741,7 +743,7 @@ irq_3009:    ; [global]
 36E0: 85 18    sta $18
 36E2: A2 03    ldx #$03
 36E4: A5 1F    lda $1f
-36E6: 91 17    sta ($17), y
+36E6: 91 17    sta ($17), y   ; [video_address]
 36E8: A5 17    lda $17
 36EA: 18       clc
 36EB: 69 20    adc #$20
@@ -777,7 +779,7 @@ irq_3009:    ; [global]
 3727: 85 18    sta $18
 3729: A2 03    ldx #$03
 372B: A9 03    lda #$03
-372D: 91 17    sta ($17), y
+372D: 91 17    sta ($17), y   ; [video_address]
 372F: A5 17    lda $17
 3731: 18       clc
 3732: 69 20    adc #$20
@@ -789,7 +791,7 @@ irq_3009:    ; [global]
 373D: 10 EC    bpl $372b
 373F: A2 03    ldx #$03
 3741: A9 05    lda #$05
-3743: 91 17    sta ($17), y
+3743: 91 17    sta ($17), y   ; [video_address]
 3745: A5 17    lda $17
 3747: 18       clc
 3748: 69 20    adc #$20
@@ -808,7 +810,7 @@ irq_3009:    ; [global]
 3760: 85 18    sta $18
 3762: A2 0A    ldx #$0a
 3764: A9 01    lda #$01
-3766: 91 17    sta ($17), y
+3766: 91 17    sta ($17), y   ; [video_address]
 3768: A5 17    lda $17
 376A: 18       clc
 376B: 69 20    adc #$20
@@ -827,7 +829,7 @@ irq_3009:    ; [global]
 3783: 85 18    sta $18
 3785: A2 03    ldx #$03
 3787: A9 06    lda #$06
-3789: 91 17    sta ($17), y
+3789: 91 17    sta ($17), y   ; [video_address]
 378B: A5 17    lda $17
 378D: 18       clc
 378E: 69 20    adc #$20
@@ -957,7 +959,7 @@ irq_3009:    ; [global]
 3897: 85 18    sta $18
 3899: A0 00    ldy #$00
 389B: A9 03    lda #$03
-389D: 91 17    sta ($17), y
+389D: 91 17    sta ($17), y   ; [video_address]
 389F: A5 17    lda $17
 38A1: 18       clc
 38A2: 69 20    adc #$20
@@ -1578,7 +1580,7 @@ irq_3009:    ; [global]
 3D94: 85 1E    sta $1e
 3D96: A4 32    ldy $32
 3D98: B1 1B    lda ($1b), y
-3D9A: 91 17    sta ($17), y
+3D9A: 91 17    sta ($17), y   ; [video_address]
 3D9C: B1 1D    lda ($1d), y
 3D9E: 29 38    and #$38
 3DA0: 09 03    ora #$03
@@ -1800,17 +1802,17 @@ irq_3009:    ; [global]
 40B2: 4C BA 40 jmp $40ba
 40B5: A9 A2    lda #$a2
 40B7: 4C 87 3F jmp $3f87
-40BA: 91 03    sta ($03), y
+40BA: 91 03    sta ($03), y		; [video_address]
 40BC: A5 03    lda $03
 40BE: 85 07    sta $07
 40C0: A5 04    lda $04
 40C2: 18       clc
 40C3: 69 08    adc #$08
 40C5: 85 08    sta $08
-40C7: B1 07    lda ($07), y
+40C7: B1 07    lda ($07), y		; [unchecked_address]
 40C9: 29 F8    and #$f8
 40CB: 05 05    ora $05
-40CD: 91 07    sta ($07), y
+40CD: 91 07    sta ($07), y		; [video_address]
 40CF: A5 01    lda $01
 40D1: 18       clc
 40D2: 69 01    adc #$01
@@ -2155,9 +2157,9 @@ irq_3009:    ; [global]
 4A46: 60       rts
 
 4B07: A0 0D    ldy #$0d
-4B09: 8C 00 20 sty $2000
+4B09: 8C 00 20 sty crtc_2000
 4B0C: B9 16 4B lda $4b16, y
-4B0F: 8D 01 20 sta $2001
+4B0F: 8D 01 20 sta crtc_2001
 4B12: 88       dey
 4B13: 10 F4    bpl $4b09
 4B15: 60       rts
@@ -2167,7 +2169,7 @@ irq_3009:    ; [global]
 4B28: A9 04    lda #$04
 4B2A: 85 11    sta $11
 4B2C: A9 30    lda #$30
-4B2E: 91 10    sta ($10), y
+4B2E: 91 10    sta ($10), y		; [video_address]
 4B30: 88       dey
 4B31: D0 FB    bne $4b2e
 4B33: E6 11    inc $11
@@ -2200,13 +2202,13 @@ irq_3009:    ; [global]
 4B65: 48       pha
 4B66: 4C 6E 4B jmp $4b6e
 4B69: A0 00    ldy #$00
-4B6B: 91 17    sta ($17), y
+4B6B: 91 17    sta ($17), y   ; [video_address]
 4B6D: 60       rts
 4B6E: A0 00    ldy #$00
 4B70: B1 19    lda ($19), y
 4B72: C9 FF    cmp #$ff
 4B74: F0 19    beq $4b8f
-4B76: 91 17    sta ($17), y
+4B76: 91 17    sta ($17), y   ; [video_address]
 4B78: E6 19    inc $19
 4B7A: D0 02    bne $4b7e
 4B7C: E6 1A    inc $1a
@@ -2327,7 +2329,7 @@ irq_3009:    ; [global]
 4C56: A9 0C    lda #$0c
 4C58: 85 18    sta $18
 4C5A: A5 19    lda $19
-4C5C: 91 17    sta ($17), y
+4C5C: 91 17    sta ($17), y   ; [video_address]
 4C5E: C8       iny
 4C5F: D0 FB    bne $4c5c
 4C61: E6 18    inc $18
@@ -2350,12 +2352,12 @@ irq_3009:    ; [global]
 4C9F: 85 1A    sta $1a
 4CA1: A0 06    ldy #$06
 4CA3: B1 19    lda ($19), y
-4CA5: 91 17    sta ($17), y
+4CA5: 91 17    sta ($17), y   ; [video_address]
 4CA7: 88       dey
 4CA8: 10 F9    bpl $4ca3
 4CAA: A0 07    ldy #$07
 4CAC: A5 F5    lda $f5
-4CAE: 91 17    sta ($17), y
+4CAE: 91 17    sta ($17), y   ; [video_address]
 4CB0: A9 0C    lda #$0c
 4CB2: 85 17    sta $17
 4CB4: A9 0C    lda #$0c
@@ -2363,7 +2365,7 @@ irq_3009:    ; [global]
 4CB8: A0 08    ldy #$08
 4CBA: A6 F5    ldx $f5
 4CBC: BD CC 4C lda $4ccc, x
-4CBF: 91 17    sta ($17), y
+4CBF: 91 17    sta ($17), y   ; [video_address]
 4CC1: 88       dey
 4CC2: 10 FB    bpl $4cbf
 4CC4: 60       rts
@@ -2378,7 +2380,7 @@ irq_3009:    ; [global]
 4CE7: 85 1A    sta $1a
 4CE9: A0 08    ldy #$08
 4CEB: B1 19    lda ($19), y
-4CED: 91 17    sta ($17), y
+4CED: 91 17    sta ($17), y   ; [video_address]
 4CEF: 88       dey
 4CF0: 10 F9    bpl $4ceb
 4CF2: A9 02    lda #$02
@@ -2392,11 +2394,11 @@ irq_3009:    ; [global]
 4D0B: 20 26 4E jsr $4e26
 4D0E: A0 01    ldy #$01
 4D10: A9 40    lda #$40
-4D12: 31 E0    and ($e0), y
+4D12: 31 E0    and ($e0), y		; [unchecked_address] (ports)
 4D14: F0 02    beq $4d18
 4D16: C6 DF    dec $df
 4D18: A9 80    lda #$80
-4D1A: 31 E0    and ($e0), y
+4D1A: 31 E0    and ($e0), y		; [unchecked_address] (ports)
 4D1C: F0 02    beq $4d20
 4D1E: E6 DF    inc $df
 4D20: A9 0F    lda #$0f
@@ -2440,7 +2442,7 @@ irq_3009:    ; [global]
 4D68: 4C 4A 4D jmp $4d4a
 4D6B: A0 01    ldy #$01
 4D6D: A9 20    lda #$20
-4D6F: 31 E0    and ($e0), y
+4D6F: 31 E0    and ($e0), y		; [unchecked_address]
 4D71: F0 52    beq $4dc5
 4D73: A9 40    lda #$40
 4D75: 85 17    sta $17
@@ -2502,11 +2504,11 @@ irq_3009:    ; [global]
 4DE9: 85 18    sta $18
 4DEB: A9 30    lda #$30
 4DED: A0 00    ldy #$00
-4DEF: 91 17    sta ($17), y
+4DEF: 91 17    sta ($17), y   ; [video_address]
 4DF1: A9 70    lda #$70
 4DF3: 85 17    sta $17
 4DF5: A9 30    lda #$30
-4DF7: 91 17    sta ($17), y
+4DF7: 91 17    sta ($17), y   ; [video_address]
 4DF9: 60       rts
 4DFA: A9 00    lda #$00
 4DFC: 85 17    sta $17
@@ -2514,7 +2516,7 @@ irq_3009:    ; [global]
 4DFF: A9 0C    lda #$0c
 4E01: 85 18    sta $18
 4E03: A5 EB    lda $eb
-4E05: 91 17    sta ($17), y
+4E05: 91 17    sta ($17), y   ; [video_address]
 4E07: C8       iny
 4E08: D0 FB    bne $4e05
 4E0A: E6 18    inc $18
@@ -2909,7 +2911,7 @@ irq_3009:    ; [global]
 5125: 85 1A    sta $1a
 5127: A0 03    ldy #$03
 5129: B1 19    lda ($19), y
-512B: 91 17    sta ($17), y
+512B: 91 17    sta ($17), y   ; [video_address]
 512D: 88       dey
 512E: 10 F9    bpl $5129
 5130: A9 0A    lda #$0a
@@ -3109,7 +3111,7 @@ irq_3009:    ; [global]
 52C0: 85 18    sta $18
 52C2: A0 01    ldy #$01
 52C4: A9 03    lda #$03
-52C6: 91 17    sta ($17), y
+52C6: 91 17    sta ($17), y   ; [video_address]
 52C8: A5 19    lda $19
 52CA: 38       sec
 52CB: E9 20    sbc #$20
@@ -3147,7 +3149,7 @@ irq_3009:    ; [global]
 5307: 85 18    sta $18
 5309: A0 01    ldy #$01
 530B: A9 03    lda #$03
-530D: 91 17    sta ($17), y
+530D: 91 17    sta ($17), y   ; [video_address]
 530F: A5 19    lda $19
 5311: 18       clc
 5312: 69 20    adc #$20
@@ -3281,7 +3283,7 @@ irq_3009:    ; [global]
 5418: 85 1F    sta $1f
 541A: A0 00    ldy #$00
 541C: B1 19    lda ($19), y
-541E: 91 17    sta ($17), y
+541E: 91 17    sta ($17), y   ; [video_address]
 5420: A5 19    lda $19
 5422: 18       clc
 5423: 69 01    adc #$01
@@ -3297,7 +3299,7 @@ irq_3009:    ; [global]
 5436: E9 00    sbc #$00
 5438: 85 18    sta $18
 543A: B1 19    lda ($19), y
-543C: 91 17    sta ($17), y
+543C: 91 17    sta ($17), y   ; [video_address]
 543E: A5 19    lda $19
 5440: 18       clc
 5441: 69 01    adc #$01
@@ -3313,7 +3315,7 @@ irq_3009:    ; [global]
 5454: E9 00    sbc #$00
 5456: 85 18    sta $18
 5458: B1 19    lda ($19), y
-545A: 91 17    sta ($17), y
+545A: 91 17    sta ($17), y   ; [video_address]
 545C: A5 19    lda $19
 545E: 18       clc
 545F: 69 01    adc #$01
@@ -3942,7 +3944,7 @@ irq_3009:    ; [global]
 596C: 85 1A    sta $1a
 596E: A0 28    ldy #$28
 5970: B1 19    lda ($19), y
-5972: 91 17    sta ($17), y
+5972: 91 17    sta ($17), y   ; [video_address]
 5974: 88       dey
 5975: 10 F9    bpl $5970
 5977: A9 D0    lda #$d0
@@ -3955,7 +3957,7 @@ irq_3009:    ; [global]
 5985: 85 1A    sta $1a
 5987: A0 1E    ldy #$1e
 5989: B1 19    lda ($19), y
-598B: 91 17    sta ($17), y
+598B: 91 17    sta ($17), y   ; [video_address]
 598D: 88       dey
 598E: 10 F9    bpl $5989
 5990: 4C D9 59 jmp $59d9
@@ -4409,12 +4411,12 @@ irq_3009:    ; [global]
 5D58: 85 1D    sta $1d
 5D5A: A0 00    ldy #$00
 5D5C: A5 1D    lda $1d
-5D5E: 91 17    sta ($17), y
+5D5E: 91 17    sta ($17), y   ; [video_address]
 5D60: C8       iny
 5D61: A5 1E    lda $1e
 5D63: 18       clc
 5D64: 69 04    adc #$04
-5D66: 91 17    sta ($17), y
+5D66: 91 17    sta ($17), y   ; [video_address]
 5D68: 18       clc
 5D69: 69 04    adc #$04
 5D6B: 85 1E    sta $1e
@@ -4438,9 +4440,9 @@ irq_3009:    ; [global]
 5D8D: 4C 2A 5D jmp $5d2a
 5D90: A9 FF    lda #$ff
 5D92: A0 00    ldy #$00
-5D94: 91 17    sta ($17), y
+5D94: 91 17    sta ($17), y   ; [video_address]
 5D96: C8       iny
-5D97: 91 17    sta ($17), y
+5D97: 91 17    sta ($17), y   ; [video_address]
 5D99: 60       rts
 
 5DF9: 08       php
@@ -4499,7 +4501,7 @@ irq_3009:    ; [global]
 5E60: B1 17    lda ($17), y
 5E62: 29 F8    and #$f8
 5E64: 05 16    ora $16
-5E66: 91 17    sta ($17), y
+5E66: 91 17    sta ($17), y   ; [video_address]
 5E68: C8       iny
 5E69: D0 F5    bne $5e60
 5E6B: E6 18    inc $18
@@ -4663,7 +4665,7 @@ irq_3009:    ; [global]
 5FA0: A0 02    ldy #$02
 5FA2: A2 02    ldx #$02
 5FA4: B1 19    lda ($19), y
-5FA6: 91 17    sta ($17), y
+5FA6: 91 17    sta ($17), y   ; [video_address]
 5FA8: 88       dey
 5FA9: 10 F9    bpl $5fa4
 5FAB: A5 17    lda $17
@@ -5326,15 +5328,15 @@ end_of_system_tests_7d26:   ; [global]
 7D49: 20 13 7F jsr $7f13
 7D4C: A2 00    ldx #$00
 7D4E: A9 C7    lda #$c7
-7D50: 9D 00 04 sta $0400, x
-7D53: 9D 00 05 sta $0500, x
-7D56: 9D 00 06 sta $0600, x
-7D59: 9D 00 07 sta $0700, x
+7D50: 9D 00 04 sta $0400, x 		; [video_address]
+7D53: 9D 00 05 sta $0500, x 		; [video_address]
+7D56: 9D 00 06 sta $0600, x 		; [video_address]
+7D59: 9D 00 07 sta $0700, x 		; [video_address]
 7D5C: A9 33    lda #$33
-7D5E: 9D 00 0C sta $0c00, x
-7D61: 9D 00 0D sta $0d00, x
-7D64: 9D 00 0E sta $0e00, x
-7D67: 9D 00 0F sta $0f00, x
+7D5E: 9D 00 0C sta $0c00, x    		; [video_address]
+7D61: 9D 00 0D sta $0d00, x    		; [video_address]
+7D64: 9D 00 0E sta $0e00, x    		; [video_address]
+7D67: 9D 00 0F sta $0f00, x    		; [video_address]
 7D6A: E8       inx
 7D6B: D0 E1    bne $7d4e
 7D6D: A9 10    lda #$10
@@ -5377,10 +5379,10 @@ end_of_system_tests_7d26:   ; [global]
 7DB7: 85 16    sta $16
 7DB9: A8       tay
 7DBA: A9 55    lda #$55
-7DBC: 91 17    sta ($17), y
+7DBC: 91 17    sta ($17), y   ; [video_address]
 7DBE: C8       iny
 7DBF: A9 AA    lda #$aa
-7DC1: 91 17    sta ($17), y
+7DC1: 91 17    sta ($17), y   ; [video_address]
 7DC3: C8       iny
 7DC4: D0 F4    bne $7dba
 7DC6: A9 55    lda #$55
@@ -5393,10 +5395,10 @@ end_of_system_tests_7d26:   ; [global]
 7DD3: C8       iny
 7DD4: D0 F0    bne $7dc6
 7DD6: A9 AA    lda #$aa
-7DD8: 91 17    sta ($17), y
+7DD8: 91 17    sta ($17), y   ; [video_address]
 7DDA: C8       iny
 7DDB: A9 55    lda #$55
-7DDD: 91 17    sta ($17), y
+7DDD: 91 17    sta ($17), y   ; [video_address]
 7DDF: C8       iny
 7DE0: D0 F4    bne $7dd6
 7DE2: A9 AA    lda #$aa
@@ -5409,7 +5411,7 @@ end_of_system_tests_7d26:   ; [global]
 7DEF: C8       iny
 7DF0: D0 F0    bne $7de2
 7DF2: 98       tya
-7DF3: 91 17    sta ($17), y
+7DF3: 91 17    sta ($17), y   ; [video_address]
 7DF5: C8       iny
 7DF6: D0 FA    bne $7df2
 7DF8: 98       tya
@@ -5419,7 +5421,7 @@ end_of_system_tests_7d26:   ; [global]
 7DFE: D0 F8    bne $7df8
 7E00: A2 00    ldx #$00
 7E02: 8A       txa
-7E03: 91 17    sta ($17), y
+7E03: 91 17    sta ($17), y   ; [video_address]
 7E05: CA       dex
 7E06: C8       iny
 7E07: D0 F9    bne $7e02
@@ -5447,7 +5449,7 @@ end_of_system_tests_7d26:   ; [global]
 7E2C: A0 00    ldy #$00
 7E2E: 84 16    sty $16
 7E30: 98       tya
-7E31: 91 17    sta ($17), y
+7E31: 91 17    sta ($17), y   ; [video_address]
 7E33: C8       iny
 7E34: D0 FA    bne $7e30
 7E36: 98       tya
@@ -5458,7 +5460,7 @@ end_of_system_tests_7d26:   ; [global]
 7E3E: D0 F6    bne $7e36
 7E40: A2 00    ldx #$00
 7E42: 8A       txa
-7E43: 91 17    sta ($17), y
+7E43: 91 17    sta ($17), y   ; [video_address]
 7E45: CA       dex
 7E46: C8       iny
 7E47: D0 F9    bne $7e42
@@ -5484,22 +5486,22 @@ end_of_system_tests_7d26:   ; [global]
 7E69: 60       rts
 7E6A: A0 00    ldy #$00
 7E6C: A9 0C    lda #$0c
-7E6E: 91 17    sta ($17), y
+7E6E: 91 17    sta ($17), y   ; [video_address]
 7E70: A0 20    ldy #$20
 7E72: A9 12    lda #$12
-7E74: 91 17    sta ($17), y
+7E74: 91 17    sta ($17), y   ; [video_address]
 7E76: 60       rts
 7E77: A0 00    ldy #$00
 7E79: A9 30    lda #$30
-7E7B: 91 17    sta ($17), y
+7E7B: 91 17    sta ($17), y   ; [video_address]
 7E7D: A0 20    ldy #$20
-7E7F: 91 17    sta ($17), y
+7E7F: 91 17    sta ($17), y   ; [video_address]
 7E81: A0 40    ldy #$40
 7E83: A9 14    lda #$14
-7E85: 91 17    sta ($17), y
+7E85: 91 17    sta ($17), y   ; [video_address]
 7E87: A0 60    ldy #$60
 7E89: A9 18    lda #$18
-7E8B: 91 17    sta ($17), y
+7E8B: 91 17    sta ($17), y   ; [video_address]
 7E8D: A5 18    lda $18
 7E8F: 48       pha
 7E90: 18       clc
@@ -5507,28 +5509,28 @@ end_of_system_tests_7d26:   ; [global]
 7E93: 85 18    sta $18
 7E95: A9 05    lda #$05
 7E97: A0 00    ldy #$00
-7E99: 91 17    sta ($17), y
+7E99: 91 17    sta ($17), y   ; [video_address]
 7E9B: A0 20    ldy #$20
-7E9D: 91 17    sta ($17), y
+7E9D: 91 17    sta ($17), y   ; [video_address]
 7E9F: A0 40    ldy #$40
-7EA1: 91 17    sta ($17), y
+7EA1: 91 17    sta ($17), y   ; [video_address]
 7EA3: A0 60    ldy #$60
-7EA5: 91 17    sta ($17), y
+7EA5: 91 17    sta ($17), y   ; [video_address]
 7EA7: 68       pla
 7EA8: 85 18    sta $18
 7EAA: 60       rts
 7EAB: A0 00    ldy #$00
 7EAD: A9 15    lda #$15
-7EAF: 91 17    sta ($17), y
+7EAF: 91 17    sta ($17), y   ; [video_address]
 7EB1: A0 20    ldy #$20
 7EB3: A9 12    lda #$12
-7EB5: 91 17    sta ($17), y
+7EB5: 91 17    sta ($17), y   ; [video_address]
 7EB7: A0 40    ldy #$40
 7EB9: A9 0A    lda #$0a
-7EBB: 91 17    sta ($17), y
+7EBB: 91 17    sta ($17), y   ; [video_address]
 7EBD: A0 60    ldy #$60
 7EBF: A9 0F    lda #$0f
-7EC1: 91 17    sta ($17), y
+7EC1: 91 17    sta ($17), y   ; [video_address]
 7EC3: A5 18    lda $18
 7EC5: 48       pha
 7EC6: 18       clc
@@ -5536,13 +5538,13 @@ end_of_system_tests_7d26:   ; [global]
 7EC9: 85 18    sta $18
 7ECB: A9 06    lda #$06
 7ECD: A0 00    ldy #$00
-7ECF: 91 17    sta ($17), y
+7ECF: 91 17    sta ($17), y   ; [video_address]
 7ED1: A0 20    ldy #$20
-7ED3: 91 17    sta ($17), y
+7ED3: 91 17    sta ($17), y   ; [video_address]
 7ED5: A0 40    ldy #$40
-7ED7: 91 17    sta ($17), y
+7ED7: 91 17    sta ($17), y   ; [video_address]
 7ED9: A0 60    ldy #$60
-7EDB: 91 17    sta ($17), y
+7EDB: 91 17    sta ($17), y   ; [video_address]
 7EDD: 68       pla
 7EDE: 85 18    sta $18
 7EE0: 60       rts
@@ -5556,15 +5558,15 @@ end_of_system_tests_7d26:   ; [global]
 7EE9: 68       pla
 7EEA: 29 0F    and #$0f
 7EEC: A0 00    ldy #$00
-7EEE: 91 17    sta ($17), y
+7EEE: 91 17    sta ($17), y   ; [video_address]
 7EF0: A0 20    ldy #$20
 7EF2: 8A       txa
-7EF3: 91 17    sta ($17), y
+7EF3: 91 17    sta ($17), y   ; [video_address]
 7EF5: 60       rts
 7EF6: A0 0D    ldy #$0d
-7EF8: 8C 00 20 sty $2000
+7EF8: 8C 00 20 sty crtc_2000
 7EFB: B9 05 7F lda $7f05, y
-7EFE: 8D 01 20 sta $2001
+7EFE: 8D 01 20 sta crtc_2001
 7F01: 88       dey
 7F02: 10 F4    bpl $7ef8
 7F04: 60       rts
@@ -5574,7 +5576,7 @@ end_of_system_tests_7d26:   ; [global]
 7F17: A9 04    lda #$04
 7F19: 85 11    sta $11
 7F1B: A9 30    lda #$30
-7F1D: 91 10    sta ($10), y
+7F1D: 91 10    sta ($10), y		; [video_address]
 7F1F: 88       dey
 7F20: D0 FB    bne $7f1d
 7F22: E6 11    inc $11
@@ -7336,7 +7338,7 @@ AF42: 85 1C    sta $1c
 AF44: A2 02    ldx #$02
 AF46: A0 02    ldy #$02
 AF48: B1 1B    lda ($1b), y
-AF4A: 91 17    sta ($17), y
+AF4A: 91 17    sta ($17), y   ; [video_address]
 AF4C: 88       dey
 AF4D: 10 F9    bpl $af48
 AF4F: A9 03    lda #$03

@@ -1,7 +1,7 @@
 *
 *	Amiga-specific portions of Nibbler
 *
-* (c) JOTD 2025
+* (c) JOTD 2026
 *
 
 
@@ -28,11 +28,11 @@ TILE_PLANE_X_SHIFT = 8
 
 FG_TILE_NB_CLUTS_POW = 3
 FG_TILE_NB_CLUTS = 1<<FG_TILE_NB_CLUTS_POW
-FG_TILE_COUNT = 0x200
+FG_TILE_COUNT = 0x100
 
 BG_TILE_NB_CLUTS_POW = 3
 BG_TILE_NB_CLUTS = 1<<BG_TILE_NB_CLUTS_POW
-BG_TILE_COUNT = 0x100
+BG_TILE_COUNT = 0x200  | and only 0 and 0x100-0x1FF are used
 
 
 FG_SCREEN_TILE_ADDRESS = 0x400
@@ -80,22 +80,16 @@ SCREEN_SIZE = SCREEN_PLANE_SIZE*NB_PLAYFIELD_PLANES
 
 
 
-BIT_START_1P = 0
-BIT_START_2P = 1
+BIT_START_1P = 7
+BIT_START_2P = 6
 
-BIT_LEFT = 1
-BIT_RIGHT = 0
-BIT_UP = 2
-BIT_DOWN = 3
-BIT_FIRE = 4
+BIT_LEFT = 7
+BIT_RIGHT = 6
+BIT_UP = 5
+BIT_DOWN = 4
 
-.macro	GET_RAM_START_IN_A6	
-	.ifdef	RELEASE
-	lea		ram_buffer,a6
-	.else
-	move.l		ram_start_0000,a6
-	.endif
-	.endm
+
+
 	
 .macro	WAIT_BLIT
 	.ifndef	RELEASE
@@ -155,12 +149,15 @@ w\@:
 	.global osd_break		| for debug	
 	.global osd_blitz		| for debug
 	.global	osd_sound_command
-	.global	osd_read_inputs
 	.global osd_enable_interrupts
 	.global osd_disable_interrupts
 	.global	osd_video_byte_dirty
 	.global	osd_get_last_known_pc
 	.global	osd_write_2103
+	.global	osd_write_sound_2100
+	.global	osd_write_sound_2101
+	.global	osd_write_sound_2102
+	.global	osd_log_cpu
 	
 	.global	is_game_playing
 		
@@ -327,22 +324,14 @@ _user:
 	bsr		set_bobs_bitplanes
 
 	move.w	#TOTAL_NB_COLORS,d0
-	lea		playfield_palette,a0
+	lea		fg_tile_palette,a0
 	lea		game_colors,a1
 	bsr		load_palette
 	move.w	#TOTAL_NB_COLORS,d0
-	lea		playfield_palette,a0
+	lea		bg_tile_palette,a0
 	lea		background_colors,a1
 	bsr		load_palette
-	move.w	#TOTAL_NB_COLORS,d0
-	lea		playfield_palette,a0
-	lea		sprite_colors,a1
-	bsr		load_palette
-	* load same colors again to be safe
-	move.w	#TOTAL_NB_COLORS,d0
-	lea		playfield_palette,a0	| skip 8 copper writes
-	lea		sprite_colors+32,a1
-	bsr		load_palette
+
 	
 
 	move.l	cheat_flags,d0
@@ -585,19 +574,51 @@ demo_game:
 	* copy ROM at the end. Memory is one big block now
 	lea	rom_base,a0
 	move.l	a6,a1
-	add.l	#0xC000,a1
-	move.w	#0xFFF,d0
+	add.l	#ROM_START,a1
+	move.w	#ROM_SIZE/4-1,d0
 0:
 	move.l	(a0)+,(a1)+
 	dbf		d0,0b
 	
+	GET_MEMORY_START_IN_A6
+	
+	*lea 	(default_hi_score_tbl_016f,a6),a0
+	*jbsr	osd_read_high_scores
+	
+	.ifndef	RELEASE
+	* install dump and quit handler
+	tst.l	_resload
+	jeq		0f
+	pea		dump_and_quit
+	lea		2.W,a0
+	move.l	#0x4AFC4EF9,(a0)+
+	move.l	(a7)+,(a0)+
+	* protect ROM from writing if whdload on
+	move.l	#ROM_SIZE,d0
+	lea		(ROM_START,a6),a0
+	move.l  (_resload,pc),a2
+	jsr     (resload_ProtectWrite,a2)
+
+0:
+	.endif
 	clr.b	charbank_value
 	
 	* enable interrupts. Game doesn't use them
 	* but relies on vbl sync flags
 	jbsr	cpu_init		| zero all registers
-	jmp			end_of_system_tests_7d26					| pass control to the mpatrol core
+	GET_MEMORY_START_IN_A6
+	move.b	#0x0,(dsw_2106,a6)
+	move.b	#0x0,(in0_2104,a6)	| player 1 input
+	move.b	#0x0,(in1_2105,a6)
+	move.b	#0x0,(in2_2107,a6)
+	jmp		end_of_system_tests_7d26					| pass control to the mpatrol core
 		
+
+	.ifndef	RELEASE
+dump_and_quit:
+	jbsr	osd_dump_logs
+	illegal
+	.endif
 	
 * just in case some hardware calls nmi
 _nmi:
@@ -619,6 +640,11 @@ _vblank:
 	move.l	d0,_joypad_state
 	jbsr	update_controls
 	
+	tst.b	insert_coin_requested
+	jeq		0f
+	jbsr	nmi_3000
+	clr.b	insert_coin_requested
+0:
 	move.l	_joypad_state,d0
 	btst	#JPB_BTN_BLU,d0
 	beq.b	0f
@@ -657,7 +683,7 @@ _vblank:
 
 
 	* set base for RAM
-	GET_RAM_START_IN_A6
+	GET_MEMORY_START_IN_A6
 	* declare that we're in interrupt mode so osd_disable_interrupts/osd_enable_interrupts
 	* is level 1 interrupt set? that would mean that mid-screen interrupt
 	* is the source of the interrupt
@@ -697,13 +723,8 @@ _vblank:
 	
 23:
 	.ifne	OPT_ENABLE_LOGGING
-	move.b	charbank_value,d0
-	move.w	d0,-(a7)
-	clr.b	charbank_value
+
 	jbsr	log_used_fg_tiles
-	move.w	(a7)+,d0
-	move.b	d0,charbank_value
-	
 	jbsr	log_used_bg_tiles
 	.endif
 
@@ -726,7 +747,24 @@ log_used_fg_tiles:
 	move	#FG_TILE_NB_CLUTS-1,d4		| clut mask
 	move	#FG_TILE_NB_CLUTS_POW,d5		| nb clut pow
 	
-	jra		log_any_tiles
+	move.w	#0x400-1,d7
+0:
+	moveq	#0,d1
+	moveq	#0,d0
+	move.b	(a5,d7.w),d0	| tile code
+	move.b	(a4,d7.w),d1	| tile attribute
+
+	moveq	#0,d2
+	moveq	#0,d3
+	move.b	d0,d2	| code
+	and.w	d4,d3	| clut masked
+	
+	lsl.l	d5,d2			| tile code * NB_CLUTS (long!)
+	add.l	d3,d2			| add clut
+	st.b	(a0,d2.l)
+20:
+	dbf		d7,0b
+	rts
 	
 log_used_bg_tiles:
 	* scan the whole screen, see what was updated
@@ -739,11 +777,6 @@ log_used_bg_tiles:
 	move	#(BG_TILE_NB_CLUTS/4)-1,d4		| clut mask (banks)
 	move	#BG_TILE_NB_CLUTS_POW,d5		| nb clut pow times 4
 	
-* both layers are of the same logical size
-* fg layer is 256x256 with 8x8 tiles
-* bg layer is the same
-
-log_any_tiles:
 	move.w	#0x400-1,d7
 	lea		bank_table,a1
 	moveq	#0,d6
@@ -755,23 +788,17 @@ log_any_tiles:
 	moveq	#0,d0
 	move.b	(a5,d7.w),d0	| tile code
 	move.b	(a4,d7.w),d1	| tile attribute
-
+	and.b	#0x38,d1
+	lsr.b	#3,d1   | color = (m_colorram[tile_index] & 0x38) >> 3;
 
 	moveq	#0,d2
 	moveq	#0,d3
 	move.b	d0,d2	| code
-	move.b	d1,d3	| attribute + tile msbits
-	and.w	#0x80,d3
-	lsl.w	#1,d3
-	add.w	d3,d2	| extended tile code
-	move.b	d1,d3	| attribute + tile msbits
-	and.w	d4,d3	| clut masked
 
-	add.w	(a1,d6.w),d3	| add bank offset
+	add.w	(a1,d6.w),d2	| add bank offset
 	
-	| remove flip/mirror
 	lsl.l	d5,d2			| tile code * NB_CLUTS (long!)
-	add.l	d3,d2			| add clut
+	add.l	d1,d2			| add clut
 	st.b	(a0,d2.l)
 20:
 	dbf		d7,0b
@@ -781,9 +808,9 @@ log_any_tiles:
 	
 bank_table:
 	.word	0
-	.word	0x20
-	.word	0x40
-	.word	0x60
+	.word	0x100
+	.word	0x200
+	.word	0x300
 
 	.endif
 	
@@ -849,7 +876,11 @@ osd_wait:
 	bne.b	2b
 	rts
 
-
+osd_write_sound_2100:
+osd_write_sound_2101:
+osd_write_sound_2102:
+	rts
+	
 osd_write_2103:
 	move.l	d7,-(a7)
 	* bits 0-2 select background color
@@ -868,7 +899,7 @@ osd_write_2103:
 	and.b	#1,d7
 	cmp.b	charbank_value,d7
 	jeq		0f
-	BREAKPOINT	"charbank change"
+
 	move.b	d7,charbank_value
 0:
 	move.l	(a7)+,d7
@@ -883,7 +914,7 @@ osd_write_2103:
 * Z: set if playing
 is_game_playing:
 	move.l	a6,-(a7)
-	GET_RAM_START_IN_A6
+	GET_MEMORY_START_IN_A6
 	* both flags are at 1 when actual game is playing (not demo)
 	*cmp.w	#0x0101,(actual_game_04,a6)
 	movem.l	(a7)+,a6
@@ -891,7 +922,7 @@ is_game_playing:
 	
 lose_all_lives:
 	move.l	a6,-(a7)
-	GET_RAM_START_IN_A6
+	GET_MEMORY_START_IN_A6
 	*st.b	(nb_lives_current_player_2d,a6)		| no more lives
 	*bset.b	#2,(player_state_3b,a6)		| died
 	move.l	(a7)+,a6
@@ -899,14 +930,14 @@ lose_all_lives:
 
 skip_level:
 	move.l	a6,-(a7)
-	GET_RAM_START_IN_A6
+	GET_MEMORY_START_IN_A6
 	*st.b	(player_state_3b,a6)		| found by mistake :)
 	move.l	(a7)+,a6
 	rts
 
 add_10000_points:
 	move.l	a6,-(a7)
-	GET_RAM_START_IN_A6
+	GET_MEMORY_START_IN_A6
 	movem.w	d0/d7,-(a7)
 	sub.b	d0,d0   | clear X
 	*move.b	(0x33,a6),d0
@@ -1213,14 +1244,6 @@ start_process_1_plane:
 	GEN_MINTERM_TABLE_2	cookie_cut_mask_blit,0x0BCA
 
 
-* 2 words: first shift (as bplcon value), then
-* offset in bytes
-
-hw_sprite_allocated_frames:
-	.skip	0x80
-current_hw_sprite:
-	.word	0
-
 	
 	
 	.ifne	OPT_ENABLE_DOUBLE_BUFFERING
@@ -1417,13 +1440,6 @@ platform_init:
 	move.l	a0,cop1lc(a5)
 
 	
-	* set sprite registers in copperlist
-	
-	* attached sprites for main character & car
-	lea		game_sprites,a0
-	*bsr		init_game_sprite_bank
-	
-
 
 
 	* wait 300 lines
@@ -1839,59 +1855,48 @@ osd_video_control:
 
 * < D1: previous state
 update_controls:
-	moveq	#-1,d0
+	moveq	#0,d0
 
 
 	lea		keyboard_table(pc),a0
 
 	tst.b	(0x4C,a0)		| "up" key
 	beq.b	0f
-	bclr	#BIT_UP,d0
+	bset	#BIT_UP,d0
 0:
 	tst.b	(0x4D,a0)		| "down" key
 	beq.b	0f
-	bclr	#BIT_DOWN,d0
+	bset	#BIT_DOWN,d0
 0:
 	tst.b	(0x4F,a0)		| "<-" key
 	beq.b	0f
-	bclr	#BIT_LEFT,d0
+	bset	#BIT_LEFT,d0
 0:
 	tst.b	(0x4E,a0)		| "->" key
 	beq.b	0f
-	bclr	#BIT_RIGHT,d0
+	bset	#BIT_RIGHT,d0
 0:
-	tst.b	(0x63,a0)		| "ctrl" key
-	beq.b	0f
-	bclr	#BIT_FIRE,d0
-0:
-*	tst.b	(0x64,a0)		| left "alt" key
-*	beq.b	0f
-*	bclr	#BIT_JUMP,d0
-*0:
 
 	* directions + fire
 	move.l	_joypad_state(pc),d1
 	btst	#JPB_BTN_UP,d1
 	beq.b	0f
-	bclr	#BIT_UP,d0
+	bset	#BIT_UP,d0
 0:
 	btst	#JPB_BTN_DOWN,d1
 	beq.b	0f
-	bclr	#BIT_DOWN,d0
+	bset	#BIT_DOWN,d0
 0:
 	btst	#JPB_BTN_LEFT,d1
 	beq.b	0f
-	bclr	#BIT_LEFT,d0
+	bset	#BIT_LEFT,d0
 0:
 	btst	#JPB_BTN_RIGHT,d1
 	beq.b	0f
-	bclr	#BIT_RIGHT,d0
+	bset	#BIT_RIGHT,d0
 0:
-	btst	#JPB_BTN_RED,d1
-	beq.b	0f
-	bclr	#BIT_FIRE,d0
-0:
-	*move.b	d0,player_1_controls
+
+	move.b	d0,(in0_2104,a6)
 
 	jbsr		is_game_playing
 	jeq	0f
@@ -1910,23 +1915,18 @@ direction_table:
 
 
 
-osd_read_dsw1:
-	* actual dipswitches
-	not.b	d0		| active low
-	move.b	#0xBF,d0	| what MAME returns
-	rts
-	
+
 osd_read_system:
-	move.b	#0x3F,d0
+	moveq	#0,d0
 	movem.l	a0/d1,-(a7)
 	lea		keyboard_table(pc),a0
 	tst.b	(1,a0)		| "1" key like in MAME
 	beq.b	0f
-	bclr	#BIT_START_1P,d0
+	bset	#BIT_START_1P,d0
 0:
 	tst.b	(2,a0)		| "2" key like in MAME
 	beq.b	0f
-	bclr	#BIT_START_2P,d0
+	bset	#BIT_START_2P,d0
 0:	
 
 	jbsr		is_game_playing
@@ -1935,27 +1935,21 @@ osd_read_system:
 	* game not playing, we can start with joypad
 	btst	#JPB_BTN_UP,d1		| "1" key like in MAME
 	beq.b	0f
-	bclr	#BIT_START_1P,d0
+	bset	#BIT_START_1P,d0
 0:
 	btst	#JPB_BTN_DOWN,d1		| "2" key like in MAME
 	beq.b	0f
-	bclr	#BIT_START_2P,d0
+	bset	#BIT_START_2P,d0
 0:	
 1:	
 	movem.l	(a7)+,a0/d1
-	or.b	dsw0_value_high_bit,d0
 	rts
 
 	
-osd_read_dsw2:
-	* actual dipswitches
-	move.b	dip_switches_2(pc),d0
-	
-	rts
 
 insert_coin:
 	movem.l	d0-a6,-(a7)
-	GET_RAM_START_IN_A6
+	GET_MEMORY_START_IN_A6
 	jbsr 	cpu_init
 
 	jbsr	nmi_3000
@@ -2014,7 +2008,7 @@ handle_keyboard:
 	bne.b	0f
 	move.w	#0x0FF,_custom+color
 	movem.l	d0-a6,-(a7)
-	GET_RAM_START_IN_A6
+	GET_MEMORY_START_IN_A6
 	*move.b	#0x89,(nb_pellets_picked_37,a6)	| set the number of pellets: opens exit
 	movem.l (a7)+,d0-a6
 
@@ -2101,7 +2095,7 @@ toggle_pause:
 * < A0: buffer
 osd_read_high_scores:
 	movem.l	d0-d7/a0-a6,-(a7)
-	GET_RAM_START_IN_A6
+	GET_MEMORY_START_IN_A6
 	*lea		(high_score_table_0294,a6),a1
 	move.l	_resload,d0
 	beq.b	0f
@@ -2142,7 +2136,7 @@ osd_write_high_scores:
 	tst.b	cheat_used		| don't save score if cheat on
 	bne.b	2f
 	.endif
-	GET_RAM_START_IN_A6
+	GET_MEMORY_START_IN_A6
 	*lea		(high_score_table_0294,a6),a0
 
 	move.l	_resload,d0
@@ -2358,6 +2352,7 @@ osd_cpu_logging_control:
 osd_log_cpu:
 
 	move.w	(6,a7),last_known_m6502_pc
+	move.w	(6,a7),0x100
 
 	move.l	a6,-(a7)
 	* check if cpu log is enabled
@@ -2388,7 +2383,18 @@ osd_dump_logs:
 	movem.l	d0-a6,-(a7)
 	
 	jbsr	save_cpu_log
+
+	move.l	_resload,a2
+	lea		fg_tile_log_table,a1
+	lea		fg_tile_log_name(pc),a0
+	move.l	#FG_TILE_LOG_LENGTH,d0
+	jbsr	resload_SaveFile(a2)
 	
+	lea		bg_tile_log_table,a1
+	lea		bg_tile_log_name(pc),a0
+	move.l	#BG_TILE_LOG_LENGTH,d0
+	jbsr	resload_SaveFile(a2)
+
     movem.l (a7)+,d0-a6
 	move.w	(a7)+,SR
 	rts
@@ -2412,6 +2418,10 @@ save_cpu_log:
 
 cpu_log_name:
 	.asciz	"cpu_log"
+fg_tile_log_name:
+	.asciz	"fg_used_tiles"
+bg_tile_log_name:
+	.asciz	"bg_used_tiles"
 	.align	2
 	.endif	
 	
@@ -2595,7 +2605,6 @@ _end_of_ng_code:
 
 
 
-playfield_palette:
 	.include "palette.68k"
 
 	.ifndef	RELEASE
@@ -2744,8 +2753,6 @@ background_colors:
 game_colors:
 	DECL_COLORS	8,8
 	
-sprite_colors:
-	DECL_COLORS	16,16
 	.word	0x0801,0xFFFE
 game_sprites:
 	DECL_SPRITES
