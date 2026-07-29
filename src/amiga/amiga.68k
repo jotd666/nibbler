@@ -157,9 +157,6 @@ w\@:
 
 * exports
 
-	.global		_user
-	.global		_player_start
-	.global		_demo_end
 	.global		_resload
 	.global		_dosbase
 	.global		cheat_used
@@ -171,9 +168,8 @@ w\@:
 	.global osd_enable_interrupts
 	.global osd_disable_interrupts
 	.global	osd_video_byte_dirty
-	.global	osd_set_charbank
-	.global	osd_read_system
-
+	.global	osd_write_2103
+	
 	.global	is_game_playing
 		
 	.include	"ReadJoypad.i"
@@ -778,7 +774,31 @@ osd_wait:
 	rts
 
 
-
+osd_write_2103:
+	move.l	d7,-(a7)
+	* bits 0-2 select background color
+	move.b	d0,d7
+	and.b	#7,d7
+	cmp.b	current_background_value,d7
+	jeq		0f
+	* background value changes TODO change color0
+	move.b	d7,current_background_value
+	BREAKPOINT	"bg change"
+0:
+	* bit 3 selects char bank
+	move.b	d0,d7
+	not.b	d7
+	lsr.b	#3,d7
+	and.b	#1,d7
+	cmp.b	charbank_value,d7
+	jeq		0f
+	BREAKPOINT	"charbank change"
+	move.b	d7,charbank_value
+0:
+	move.l	(a7)+,d7
+	
+	rts
+	
 	
 	
 
@@ -1493,9 +1513,6 @@ mirrored_videoram:
 	add.w	d7,a0
 	rts
 	
-osd_set_charbank:
-	move.b	d0,charbank_value
-	rts
 	
 * a0=screen address (preserved)
 * a6=ram base
@@ -1637,7 +1654,7 @@ update_bg_tile:
 	
 	bsr		compute_tile_xy
 	
-	lea		character_table,a0
+	lea		bg_character_table,a0
 
 	
 	* updating bitplanes
@@ -1799,10 +1816,6 @@ osd_debug_hook:
 osd_video_control:
 	rts
 	
-osd_read_inputs:
-	move.b	player_1_controls,d0
-	rts
-	
 
 * < D1: previous state
 update_controls:
@@ -1858,7 +1871,7 @@ update_controls:
 	beq.b	0f
 	bclr	#BIT_FIRE,d0
 0:
-	move.b	d0,player_1_controls
+	*move.b	d0,player_1_controls
 
 	jbsr		is_game_playing
 	jeq	0f

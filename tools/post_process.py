@@ -5,7 +5,7 @@ gamename = "nibbler"
 # game_specific: replace or remove I/O addresses
 # if not done it will write in ROM here!!
 input_dict = {
-"flipscreen_2103":"",
+"flipscreen_2103":"write_2103",
 "scroll_x_2200":"",
 "scroll_y_2300":""
 }

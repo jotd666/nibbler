@@ -4,12 +4,12 @@
 	.global		stack_top
 	.global		vb_ticks_count
 	.global		break_at_startup_flag
-	.global		current_bank
-	.global		bank_base
+	.global		charbank_value
 	.global		start_level_flag
 	.global		infinite_lives_flag
 	.global		invincible_flag
 	.global		infinite_time_flag
+	.global		current_background_value
 	.ifndef		RELEASE
 	.endif
 
@@ -29,14 +29,6 @@ ram_start_0000:
 
 
 
-	
-	* 4k for stack should be ok
-	.skip	0x1000
-stack_top:
-bank_base:
-	.skip	4
-current_bank:
-	.skip	1
 vb_ticks_count:
 	.skip	1
 
@@ -49,6 +41,12 @@ infinite_time_flag:
 infinite_lives_flag:
 	.skip	1
 invincible_flag:
+	.skip	1
+	
+current_background_value:
+	.skip	1
+
+charbank_value:
 	.skip	1
 	
 
