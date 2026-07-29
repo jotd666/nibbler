@@ -3944,7 +3944,7 @@ irq_3009:    ; [global]
 596C: 85 1A    sta $1a
 596E: A0 28    ldy #$28
 5970: B1 19    lda ($19), y
-5972: 91 17    sta ($17), y   ; [video_address]
+5972: 91 17    sta ($17), y
 5974: 88       dey
 5975: 10 F9    bpl $5970
 5977: A9 D0    lda #$d0
@@ -3957,7 +3957,7 @@ irq_3009:    ; [global]
 5985: 85 1A    sta $1a
 5987: A0 1E    ldy #$1e
 5989: B1 19    lda ($19), y
-598B: 91 17    sta ($17), y   ; [video_address]
+598B: 91 17    sta ($17), y
 598D: 88       dey
 598E: 10 F9    bpl $5989
 5990: 4C D9 59 jmp $59d9

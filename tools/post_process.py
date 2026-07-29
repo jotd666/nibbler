@@ -215,33 +215,26 @@ with open(source_dir / "conv.s") as f:
         if m:
             g = m.group(1)
             line = line.rstrip() + " [video_address]\n"
-
         if "[video_address" in line or "[unchecked_address" in line:
-            if (",a2" in line or ",a3" in line) and "GET_ADDRESS" not in line:
-                    # using indexed ix/iy: parse code to insert the proper dirty macro
-                    toks = line.split()
-                    toks = toks[1].split(",")
-                    destreg = toks[2].strip("()")
-                    destz = "IX" if destreg=="a2" else "IY"
-                    offset = toks[1].strip("()")
-                    line += f"\tVIDEO_BYTE_DIRTY_{destz}\t{offset}\n"
-            else:
-                # give me the original instruction
-                line = line.replace("_ADDRESS","_UNCHECKED_ADDRESS")
-                if "MAKE" in line:
-                    line = re.sub(r"(MAKE_AR)",r"\1_UNCHECKED",line)
-                    line = re.sub(r"(MAKE_[HDB]\w)",r"\1_UNCHECKED",line)
-                elif "MAKE" in lines[i-1] and "UNCHECKED" not in lines[i-1]:
-                    lines[i-1] = re.sub(r"(MAKE_AR)",r"\1_UNCHECKED",lines[i-1])
-                    lines[i-1] = re.sub(r"(MAKE_[HDB]\w)",r"\1_UNCHECKED",lines[i-1])
+            line = line.replace("_ADDRESS","_UNCHECKED_ADDRESS")
 
-                if "ldir" in line:
-                    line = line.replace("ldir","ldir_video" if "[video_address" in line else "ldir_unchecked")
-                elif "[video_address" in line:
-                    if ",(a0)" in line or ("(a0)" in line and "clr.b" in line):
-                        line += "\tVIDEO_BYTE_DIRTY | [...]\n"
-                    elif (",(a0)" in lines[i+1] or ("(a0)" in  lines[i+1]  and "clr.b" in lines[i+1] )):
-                        lines[i+1]  += "\tVIDEO_BYTE_DIRTY | [...]\n"
+            if "[video_address" in line:
+                vbd_macro =  "MAYBE_VIDEO_BYTE_DIRTY" if "[video_address_maybe]" in line else "VIDEO_BYTE_DIRTY"
+
+                # if it's a write, insert a "VIDEO_DIRTY" macro after the write
+                for j in range(i+1,len(lines)):
+                    next_line = lines[j]
+                    if "[...]" not in next_line:
+                        break
+                    if ",(a0)" in next_line or "clr" in next_line:
+                        lines[j] = next_line+f"\t{vbd_macro} | [...]\n"
+                        break
+                    elif ",(a0,d2.w)" in next_line:
+                        lines[j] = next_line+f"\tadd.w\td2,a0 | [...]\n\t{vbd_macro} | [...]\n"
+                        break
+                    elif ",(a0,d1.w)" in next_line:
+                        lines[j] = next_line+f"\tadd.w\td1,a0 | [...]\n\t{vbd_macro} | [...]\n"
+                        break
         if "[pop_stack]" in line:
             line = change_instruction("addq\t#4,sp",lines,i)
 

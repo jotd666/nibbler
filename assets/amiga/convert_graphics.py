@@ -306,8 +306,8 @@ for atc in alphanum_tile_codes:
     if cluts:
         used_cluts.update(cluts)
 # now set cluts for all alphanum tiles
-##for atc in alphanum_tile_codes:
-##    fg_tile_cluts[atc] = sorted(used_cluts)
+for atc in alphanum_tile_codes:
+    fg_tile_cluts[atc] = sorted(used_cluts)
 
 
 plane_orientations = [("standard",lambda x:x),

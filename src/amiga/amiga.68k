@@ -43,6 +43,8 @@ BG_SCREEN_COLOR_ADDRESS = FG_SCREEN_COLOR_ADDRESS
 FG_TILE_LOG_LENGTH = FG_TILE_NB_CLUTS*FG_TILE_COUNT
 BG_TILE_LOG_LENGTH = BG_TILE_NB_CLUTS*BG_TILE_COUNT
 
+
+	
 * start displaying earlier in ntsc mode, allowing
 * full display
 NTSC_Y_SHIFT = 12
@@ -65,8 +67,9 @@ _custom = 0xDFF000
 
 OPT_ENABLE_MULTIPLEXED_SPRITES = 0
 
-NB_PLAYFIELD_PLANES = 3
-TOTAL_NB_COLORS = 1<<NB_PLAYFIELD_PLANES
+NB_FG_PLANES = 3
+NB_BG_PLANES = NB_FG_PLANES
+TOTAL_NB_COLORS = 1<<NB_FG_PLANES
 NB_BYTES_PER_ROW = 40
 
 
@@ -76,9 +79,14 @@ NB_PLAYFIELD_LINES = NB_LINES
 
 SCREEN_PLANE_SIZE = NB_BYTES_PER_ROW*NB_PLAYFIELD_LINES
 
-SCREEN_SIZE = SCREEN_PLANE_SIZE*NB_PLAYFIELD_PLANES
+SCREEN_SIZE = SCREEN_PLANE_SIZE*NB_FG_PLANES
+BG_SCREEN_SIZE = SCREEN_SIZE
+FG_SCREEN_SIZE = SCREEN_SIZE
 
-
+BG_SCREEN_PLANE_SIZE = SCREEN_PLANE_SIZE
+FG_SCREEN_PLANE_SIZE = SCREEN_PLANE_SIZE
+BG_NB_BYTES_PER_ROW = NB_BYTES_PER_ROW
+FG_NB_BYTES_PER_ROW = NB_BYTES_PER_ROW
 
 BIT_START_1P = 7
 BIT_START_2P = 6
@@ -91,7 +99,7 @@ BIT_DOWN = 4
 
 
 	
-.macro	WAIT_BLIT
+	.macro	WAIT_BLIT
 	.ifndef	RELEASE
 	cmp.l	#_custom,a5
 	jeq		0f
@@ -105,7 +113,7 @@ wait\@:
 	move.w	#0x0400,(dmacon,a5)		| blitter normal priority
 .endm
 
-.macro MUL_TABLE value,len
+	.macro MUL_TABLE value,len
 mul\value\()_table:
 	.set    mulv,0
 	.rept	\len
@@ -290,7 +298,7 @@ _user:
 	lea		bobs_screen_buffer_1,a0
 	addq	#2,a0	| leave 16 bits hidden for left side clipping
 	move.l	a0,playfield_screen_data_1
-	move.l	a0,playfield_drawed_screen_ptr
+	move.l	a0,playfield_drawn_screen_ptr
 	move.l	a0,playfield_displayed_screen_ptr
 
 	lea		bg_screen_buffer,a0
@@ -965,7 +973,7 @@ blit_background:
 	lea		_custom,a5
 	* adjust offset X: X//8
 	lsr.w	#3,d0
-	lea		mulNB_BYTES_PER_ROW_table(pc),a4
+	lea		mulFG_NB_BYTES_PER_ROW_table(pc),a4
 	add.w	d1,d1
 	* add Y offset: Y*40
 	add.w	(a4,d1.w),d0
@@ -975,7 +983,7 @@ blit_background:
 	
 
     move.l  #0x09f00000,d3    | A->D copy, ascending mode	
-	move.w	#NB_BYTES_PER_ROW,d1		| blit modulo
+	move.w	#FG_NB_BYTES_PER_ROW,d1		| blit modulo
 
     sub.w   d2,d1       | blit modulo
     lsl.w   #6,d4
@@ -998,9 +1006,9 @@ blit_background:
 	move.l a1,bltdpt(a5)	|destination top (bottom) left corner
 	move.w  d4,bltsize(a5)	|rectangle size, starts blit
 	
-	.rept	NB_PLAYFIELD_PLANES-1
-	lea	(SCREEN_PLANE_SIZE,a0),a0
-	lea	(SCREEN_PLANE_SIZE,a1),a1
+	.rept	NB_FG_PLANES-1
+	lea	(FG_SCREEN_PLANE_SIZE,a0),a0
+	lea	(FG_SCREEN_PLANE_SIZE,a1),a1
 	WAIT_BLIT
 	* second bitplane
 	move.l a0,bltapt(a5)	|source graphic top left corner
@@ -1039,7 +1047,7 @@ clear_planes_any_blitter_internal:
 	* null or negative height after clipping: out
 	rts
 0:
-    lea mulNB_BYTES_PER_ROW_table(pc),a2
+    lea mulFG_NB_BYTES_PER_ROW_table(pc),a2
     add.w   d1,d1
     move.w  (a2,d1.w),d1
 1:
@@ -1098,7 +1106,7 @@ blit_planes_cookie_cut_16x:
     lea _custom,A5
 	move.w	d2,d5
 	move.w	d3,d4
-	moveq	#NB_PLAYFIELD_PLANES,d3		| 4 planes
+	moveq	#NB_FG_PLANES,d3		| 4 planes
     moveq  #4,d2       | 16 pixels + 2 shift bytes
 * < A5: custom
 * < D0.W,D1.W: x,y
@@ -1123,7 +1131,7 @@ blit_planes_any_internal_cookie_cut:
 1:	
 	tst	d1
     beq.b   2f    | optim
-    lea		mulNB_BYTES_PER_ROW_table(pc),a4
+    lea		mulFG_NB_BYTES_PER_ROW_table(pc),a4
 	.ifdef	NO68020
 	add.w	d1,d1
     move.w  (a4,d1.w),d1	| y times 40
@@ -1252,7 +1260,7 @@ switch_screen_buffers:
 	* let's switch screen buffers, background (chars)
 	* toggle fg planes (double buffering)
 	* also toggle previous sprite positions
-	lea		playfield_drawed_screen_ptr(pc),a0
+	lea		playfield_drawn_screen_ptr(pc),a0
 	move.l	playfield_screen_data_1,a1
 	move.l	playfield_screen_data_2,a5
 	* also switch previous state memory
@@ -1411,7 +1419,7 @@ platform_init:
 
  	*         VVHH
     move.w #0x2489,d0
-    move.w #0x2479,d1
+    move.w #0x2489,d1
 	cmp.l	#NTSC_MONITOR_ID,monitor
 	jne		0f
 	sub.w	#NTSC_Y_SHIFT<<8,d0
@@ -1515,14 +1523,12 @@ compute_fg_tile_xy:
 	move.b	d7,d0
 	
 	and.b	#0x1F,d0	| x
-	neg.b	d0
-	add.b	#0x1F,d0
 	move.w	d7,d1
 	lsr.w	#5,d1		| Y
+	neg.b	d1
 	and.b	#0x1F,d1	| Y
 	
 	exg		d0,d1
-	lsl.w	#3,d1		| times 8
 	rts
 
 	
@@ -1613,13 +1619,55 @@ sound_indirection_table:
 	
 
 osd_video_byte_dirty:
-	movem.l	d0-d7/a0-a2,-(a7)
+	movem.l	d0-d7/a0-a3/a5,-(a7)
+	move.l	a0,d7		| save address
 	sub.l	a6,d7
+	jmi		osd_w_videoram_out
 
-osd_w_videoram_out:
-	movem.l	(a7)+,d0-d7/a0-a2
-	rts	
+	* we now suppose that we're in 0400-1000
+	* check that in debug mode
+	.ifndef		RELEASE
+	cmp.w	#FG_SCREEN_TILE_ADDRESS+0xC00,d7
+	jcs		0f
+1:
+	BREAKPOINT	"write videoram out of range (D7 too high)"
+	jra	osd_w_videoram_out	
+0:
+	.endif
 	
+	sub.w	#FG_SCREEN_TILE_ADDRESS,d7
+	.ifndef	RELEASE
+	jpl		0f
+	add.w	#FG_SCREEN_TILE_ADDRESS,d7
+	BREAKPOINT	"write videoram out of range (D7 too low)"
+	jra		osd_w_videoram_out
+0:
+	.endif
+	
+	cmp.w	#BG_SCREEN_TILE_ADDRESS-FG_SCREEN_TILE_ADDRESS,d7
+	jcc		bg_tile
+	and.w	#0x3FF,d7
+	move.l	a6,a1
+
+	lea		(FG_SCREEN_TILE_ADDRESS,a1),a0
+	move.b	(a0,d7.w),d0
+	lea		(FG_SCREEN_COLOR_ADDRESS,a1),a0
+	move.b	(a0,d7.w),d1
+
+	jbsr	update_fg_tile
+	jra		osd_w_videoram_out
+	
+bg_tile:
+osd_w_videoram_out:
+	movem.l	(a7)+,d0-d7/a0-a3/a5
+	rts		
+	
+	* for bg tiles
+	
+	.macro	TILE8_NEXT_PLANE
+	add.w	d5,a1
+	.endm
+
 	.macro	COPY_TILE8_PLANE_ROW
 	move.b	d0,(offset,a1)  | buffer
 	.endm
@@ -1628,26 +1676,161 @@ osd_w_videoram_out:
 	.set	offset,0
 	.rept	8
 	clr.b	(offset,a1)
-	.set	offset,offset+NB_BYTES_PER_ROW
+	.set	offset,offset+BG_NB_BYTES_PER_ROW
 	.endr	
-	.endm
-	
-	.macro	TILE8_NEXT_PLANE
-	add.w	d5,a1
 	.endm
 
+	* for fg tiles
 	
-	.macro	COPY_TILE16_PLANE_ROW
-	move.w	d0,(offset,a1)  | buffer
+	.macro	TILE8_FG_NEXT_PLANE
+	add.w	d5,a1
+	add.w	d5,a3
+	.ifne	OPT_ENABLE_DOUBLE_BUFFERING
+	add.w	d5,a4
+	.endif
+	.endm
+
+	.macro	COPY_FG_TILE8_PLANE_ROW
+	move.b	d0,(offset,a1)  | buffer
+	move.b	d0,(offset,a3)  | buffer
+	.ifne	OPT_ENABLE_DOUBLE_BUFFERING
+	move.b	d0,(offset,a4)  | buffer
+	.endif
 	.endm
 	
-	.macro	CLEAR_TILE16_PLANE
+	.macro	CLEAR_FG_TILE8_PLANE
 	.set	offset,0
-	.rept	16
-	clr.w	(offset,a1)
-	.set	offset,offset+NB_BYTES_PER_ROW
+	.rept	8
+	clr.b	(offset,a1)
+	clr.b	(offset,a3)
+	.ifne	OPT_ENABLE_DOUBLE_BUFFERING
+	clr.b	(offset,a4)
+	.endif
+	.set	offset,offset+FG_NB_BYTES_PER_ROW
 	.endr	
 	.endm
+
+* < D7: 0-0x400 address
+* < D0: tile code
+* < D1: color code
+* uses x_offset computed from scrolling current params
+
+update_fg_tile:
+	
+	moveq	#0,d2			| mask up to 255
+	move.b	d0,d2			| tile code
+	moveq	#0,d3
+	move.b	d1,d3			| CLUT & tile code & flags
+	
+
+	* compute address
+	lea		fg_tile_address_table,a1
+	.ifdef	NO68020
+	add.w	d7,d7
+	move.w	(a1,d7.w),d0
+	.else
+	move.w	(a1,d7.w*2),d0
+	.endif
+	moveq	#0,d1
+	move.b	d0,d1		| d1 is in chars not in pixels (times 8 is needed)
+	lsr.w	#8,d0
+	
+	* updating bitplanes
+	move.w	#FG_SCREEN_PLANE_SIZE,d5
+	
+	
+	move.l		playfield_drawn_screen_ptr,a1
+	.ifeq	OPT_ENABLE_DOUBLE_BUFFERING
+	.else 
+	* double buffering
+	move.l		playfield_displayed_screen_ptr,a4
+	.endif
+	
+	move.w	#NB_FG_PLANES-1,d4   | needed even if no tile
+	lea		mulFG_NB_BYTES_PER_ROW_table,A2
+	.ifdef	NO68020
+	add.w	d1,d1
+	move.w	(a2,d1.w),d1
+	.else
+	move.w	(a2,d1.w*2),d1
+	.endif
+	lsl.w	#3,d1	| 8 pixels
+	add.w	d1,d0
+	swap	d0
+	clr.w	d0
+	swap	d0
+	add.w	d0,a1
+	.ifeq	OPT_ENABLE_DOUBLE_BUFFERING
+	.else 
+	* double buffering
+	add.w	d0,a4
+	.endif
+
+	lea		background_restore_buffer,a3
+	add.w	d0,a3
+
+
+	lea		fg_character_table,a0
+	.ifdef	NO68020
+	add.w	d2,d2
+	add.w	d2,d2	
+	move.l	(a0,d2.w),d0		| tile pointer
+	.else
+	move.l	(a0,d2.w*4),d0		| tile pointer
+	.endif
+	.ifdef	RELEASE
+	jeq		11f					| clear tile, no error (release)
+	.else
+	jne		12f
+	move.w	d7,-(a7)
+	add.w	#FG_SCREEN_TILE_ADDRESS,d7
+	.ifdef	NO68020
+	lsr.w	#2,d2
+	.endif
+	move.w	(a7)+,d7
+	jra		11f
+12:
+	.endif
+	move.l	d0,a2
+	
+	and.w	#FG_TILE_NB_CLUTS-1,d3
+
+	
+	.ifdef	NO68020
+	add.w	d3,d3
+	add.w	d3,d3
+	move.l	(a2,d3.w),d0			| pointer on tile bitplanes for that CLUT
+	.else
+	move.l	(a2,d3.w*4),d0			| pointer on tile bitplanes for that CLUT	
+	.endif
+	jeq		11f						| not necessarily a problem
+12:
+	move.l	d0,a2					| pointer on bitplanes
+
+	
+	move.w	#NB_FG_PLANES-1,d4
+
+	* just copy
+
+4:
+	move.l	(a2)+,d0		| next plane
+	jeq		5f
+	move.l	d0,a0
+	.set	offset,0
+	.rept	8
+	move.b	(a0)+,d0
+	COPY_FG_TILE8_PLANE_ROW
+	.set	offset,offset+FG_NB_BYTES_PER_ROW
+	.endr
+41:
+	TILE8_FG_NEXT_PLANE
+	dbf		d4,4b
+	
+100:
+	rts
+5:
+	CLEAR_FG_TILE8_PLANE
+	jra		41b
 
 
 * < D7: 0-0x400
@@ -1694,19 +1877,29 @@ update_bg_tile:
 
 	
 	* updating bitplanes
-	move.l	#SCREEN_PLANE_SIZE,d5
-	move.w	#NB_PLAYFIELD_PLANES-1,d4
+	move.l	#BG_SCREEN_PLANE_SIZE,d5
+	move.w	#NB_BG_PLANES-1,d4
 	move.l	background_screen_ptr,a1
 
 
-	lea		mulNB_BYTES_PER_ROW_table,A2
+	lea		mulBG_NB_BYTES_PER_ROW_table,A2
 	add.w	d1,d1
 	move.w	(a2,d1.w),d1
 	add.w	d1,d0
 	add.w	d0,a1
-	
+
+	lea		bank_table,a0
+	moveq	#0,d0
+	move.b	charbank_value,d0
+
+	.ifdef	NO68020
+	add.b	d0,d0
+	add.w	(a0,d0.w),d2
+	.else
+	add.w	(a0,d0.w*2),d2
+	.endif
+
 	add.w	d2,d2
-	jeq		11f				| optimize
 	add.w	d2,d2	
 	move.l	(a0,d2.w),d0		| tile pointer
 	
@@ -1735,7 +1928,7 @@ standard_tile:
 	.rept	8
 	move.b	(a0)+,d0
 	COPY_TILE8_PLANE_ROW
-	.set	offset,offset+NB_BYTES_PER_ROW
+	.set	offset,offset+BG_NB_BYTES_PER_ROW
 	.endr
 41:
 	TILE8_NEXT_PLANE
@@ -1823,14 +2016,14 @@ set_background_bitplanes:
 	movem.l	a0-a1/d0-d2,-(a7)
 	move.l	background_screen_ptr,d0
 	lea	background_bitplanes+2,a0
-    moveq #NB_PLAYFIELD_PLANES-1,d1
+    moveq #NB_FG_PLANES-1,d1
  	move.l	#SCREEN_PLANE_SIZE,d2
  	jra		set_bitplanes
 
 set_bobs_bitplanes:
 	movem.l	a0-a1/d0-d2,-(a7)
  	lea	bobs_bitplanes+2,a0
-    moveq #NB_PLAYFIELD_PLANES-1,d1
+    moveq #NB_FG_PLANES-1,d1
  	move.l	#SCREEN_PLANE_SIZE,d2
     move.l	playfield_displayed_screen_ptr(pc),d0
 set_bitplanes:
@@ -2440,7 +2633,8 @@ beamdelay:
 	rts
 
 	
-	MUL_TABLE	NB_BYTES_PER_ROW,NB_LINES*2
+	MUL_TABLE	FG_NB_BYTES_PER_ROW,NB_LINES
+	MUL_TABLE	BG_NB_BYTES_PER_ROW,NB_LINES
 
 	.align	4		| leave this long word alignment
 program_args:	ds.l	64,0
@@ -2565,7 +2759,7 @@ playfield_screen_data_2:
 	
 background_screen_ptr:
 	.long	0
-playfield_drawed_screen_ptr:
+playfield_drawn_screen_ptr:
 	.long	0
 playfield_displayed_screen_ptr:
 	.long	0
@@ -2788,18 +2982,20 @@ pal_wait:
 		
 
 bg_screen_buffer:
-	.skip	SCREEN_SIZE
+	.skip	BG_SCREEN_SIZE
 	.skip	8
 	.skip	8	
 
+background_restore_buffer:
+	.skip	FG_SCREEN_SIZE
 		
 bobs_screen_buffer_1:
-	.skip	SCREEN_SIZE
-	*.skip	NB_BYTES_PER_ROW*12*3
+	.skip	FG_SCREEN_SIZE
+	*.skip	FG_NB_BYTES_PER_ROW*12*3
 	.ifne	OPT_ENABLE_DOUBLE_BUFFERING
 bobs_screen_buffer_2:
-	.skip	SCREEN_SIZE
-	.skip	NB_BYTES_PER_ROW*12*3
+	.skip	FG_SCREEN_SIZE
+	.skip	FG_NB_BYTES_PER_ROW*12*3
 	.endif
 
 
