@@ -34,7 +34,7 @@ WHDASM = vasmm68k_mot -DDATETIME -I$(HDBASE)/amiga39_JFF_OS/include -I$(WHDBASE)
 
 
 # leave START_OBJ first
-OBJS = $(START_OBJ) amiga_shared.o sounds.o ram.o graphics.o rom.o vbr.o ReadJoyPad.o ptplayer.o 
+OBJS = $(START_OBJ) sounds.o ram.o graphics.o rom.o vbr.o ReadJoyPad.o ptplayer.o 
 
 all : $(MAIN_000) $(AMIGA_SHELL) $(WHDLOADER) $(WHDLOADER_CHIP) $(AMIGASRC)/graphics.68k $(AMIGASRC)/sounds.68k 
 
@@ -73,8 +73,7 @@ $(PROGNAME)_020.o: $(PROGNAME).68k $(PROGNAME).inc
 	
 amiga.o: $(AMIGASRC)/amiga.68k $(PROGNAME).inc $(AMIGASRC)/ReadJoyPad.i $(AMIGASRC)/palette.68k $(AMIGASRC)/sound_entries.68k options.inc
 	$(ASM) -Iamiga $(AMIGASRC)/amiga.68k -o amiga.o
-amiga_shared.o: $(AMIGASRC)/amiga_shared.68k $(AMIGASRC)/sound_entries.68k $(PROGNAME).inc $(AMIGASRC)/ReadJoyPad.i data.inc
-	$(ASM) -Iamiga $(AMIGASRC)/amiga_shared.68k -o amiga_shared.o
+
 vbr.o: $(AMIGASRC)/vbr.68k
 	$(ASM_020) -Iamiga $(AMIGASRC)/vbr.68k -o vbr.o
 ptplayer.o: $(AMIGASRC)/ptplayer.68k

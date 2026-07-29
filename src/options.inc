@@ -40,9 +40,9 @@ next\@:
 	
 	.macro	GET_MEMORY_START_IN_A6
 	.ifeq	OPT_ALIGNED_MEMORY
-	lea		rom_buffer,a6
+	lea		ram_buffer,a6
 	.else
-	move.l		rom_start_0000,a6
+	move.l		ram_start_0000,a6
 
 	.endif
 	.endm
