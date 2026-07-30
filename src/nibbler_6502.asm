@@ -1,3 +1,7 @@
+; nibbler (version 9)
+; commented disassembly by JOTD
+; with bits taken from Frank Rizzo disassembly exerpt
+
 ;	map(0x0000, 0x03ff).ram();
 ;	map(0x0400, 0x07ff).ram().w(FUNC(fantasy_state::videoram2_w)).share("videoram2");
 ;	map(0x0800, 0x0bff).ram().w(FUNC(fantasy_state::videoram_w)).share("videoram");
@@ -15,7 +19,76 @@
 ;	map(0x2300, 0x2300).w(FUNC(fantasy_state::scrolly_w));
 ;	map(0x3000, 0xffff).rom().region("maincpu", 0x3000);
 
+;	// Rock-Ola documentation recommends a "4 Way Joystick - Heavy Duty" (RMC #G-6477-A).
+;	PORT_START("IN0")
+;	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN) PORT_4WAY
+;	PORT_BIT( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP) PORT_4WAY
+;	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_4WAY
+;	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_4WAY
+;
+;	PORT_START("IN1")
+;	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_4WAY PORT_COCKTAIL
+;	PORT_BIT( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_4WAY PORT_COCKTAIL
+;	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_4WAY PORT_COCKTAIL
+;	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_4WAY PORT_COCKTAIL
+;
+;	PORT_START("IN2")
+;	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_COIN2 ) PORT_IMPULSE(1) PORT_CHANGED_MEMBER(DEVICE_SELF, snk6502_state,coin_inserted, 0)
+;	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_COIN1 ) PORT_IMPULSE(1) PORT_CHANGED_MEMBER(DEVICE_SELF, snk6502_state,coin_inserted, 0)
+;	PORT_BIT( 0x3c, IP_ACTIVE_HIGH, IPT_UNKNOWN )
+;	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_START2 )
+;	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_START1 )
+;
+;	PORT_START("DSW")
+;	PORT_DIPNAME( 0x03, 0x00, DEF_STR( Lives ) ) PORT_DIPLOCATION("SW1:!1,!2")
+;	PORT_DIPSETTING(    0x00, "3" )
+;	PORT_DIPSETTING(    0x01, "4" )
+;	PORT_DIPSETTING(    0x02, "5" )
+;	PORT_DIPSETTING(    0x03, "6" )
+;	PORT_DIPNAME( 0x04, 0x00, DEF_STR( Difficulty ) ) PORT_DIPLOCATION("SW1:!3")
+;	PORT_DIPSETTING(    0x00, DEF_STR( Easy ) )
+;	PORT_DIPSETTING(    0x04, DEF_STR( Hard ) )
+;	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Cabinet ) ) PORT_DIPLOCATION("SW1:!4")
+;	PORT_DIPSETTING(    0x00, DEF_STR( Upright ) )
+;	PORT_DIPSETTING(    0x08, DEF_STR( Cocktail ) )
+;	PORT_DIPNAME( 0x10, 0x00, DEF_STR( Service_Mode ) ) PORT_DIPLOCATION("SW1:!5")
+;	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
+;	PORT_DIPSETTING(    0x10, DEF_STR( On ) )
+;	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Free_Play ) ) PORT_DIPLOCATION("SW1:!6")
+;	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
+;	PORT_DIPSETTING(    0x20, DEF_STR( On ) )
+;	PORT_DIPNAME( 0xc0, 0x00, DEF_STR( Coinage ) ) PORT_DIPLOCATION("SW1:!7,!8")
+;	PORT_DIPSETTING(    0x40, DEF_STR( 2C_1C ) )
+;	PORT_DIPSETTING(    0xc0, "2 Coins/1 Credit 4/3" )
+;	PORT_DIPSETTING(    0x00, DEF_STR( 1C_1C ) )
+;	PORT_DIPSETTING(    0x80, "1 Coin/1 Credit 2/3" )
+;
+;	/* There are no buttons on a real "Nibbler" cabinet, but I guess that the game was tested
+;	   with a "Vanguard" cabinet so they have been mapped with debug features. */
+;	PORT_START("DEBUG")
+;	PORT_CONFNAME( 0x01, 0x00, "Enable Debug Inputs" )
+;	PORT_CONFSETTING(    0x00, DEF_STR( No ) )
+;	PORT_CONFSETTING(    0x01, DEF_STR( Yes ) )
+;
+;	PORT_MODIFY("IN0")
+;	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x01) PORT_NAME("Debug 0") PORT_CODE(KEYCODE_Z) // slow down
+;	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_SERVICE ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x01) PORT_NAME("Debug 1") PORT_CODE(KEYCODE_X)
+;	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_SERVICE ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x01) PORT_NAME("Debug 2") PORT_CODE(KEYCODE_C)
+;	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_SERVICE ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x01) PORT_NAME("Debug 3") PORT_CODE(KEYCODE_V)
+;	PORT_BIT( 0x0f, IP_ACTIVE_HIGH, IPT_UNKNOWN ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x00)
+;
+;	PORT_MODIFY("IN1")
+;	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x01) PORT_NAME("Debug 4") PORT_CODE(KEYCODE_B) // pause
+;	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_SERVICE ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x01) PORT_NAME("Debug 5") PORT_CODE(KEYCODE_N) // unpause
+;	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_SERVICE ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x01) PORT_NAME("Debug 6") PORT_CODE(KEYCODE_M) // end game
+;	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_SERVICE ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x01) PORT_NAME("Debug 7") PORT_CODE(KEYCODE_COMMA)
+;	PORT_BIT( 0x0f, IP_ACTIVE_HIGH, IPT_UNKNOWN ) PORT_CONDITION("DEBUG", 0x01, EQUALS, 0x00)
+
+; game state: 0: game running, $FF: not running
+game_state_fc = $fc
+fruits_left_ba = $ba
 countdown_timer_bd = $bd
+fast_counter_f3 = $f3
 flipscreen_2103 = $2103	
 scroll_x_2200 = $2200
 scroll_y_2300 = $2300
@@ -28,15 +101,22 @@ sound_2101 = $2101
 sound_2102 = $2102
 crtc_2000 = $2000
 crtc_2001 = $2001
+move_to_row_3b = $3b
+snake_row_51 = $51
+move_slot_ptr_e2 = $e2
+head_x_value_17 = $17
+tail_ptr_58 = $58
+head_ptr_57 = $57
 
 nmi_3000:    ; [global]
 3000: 78       sei
-3001: 4C 0E 32 jmp $320e
+3001: 4C 0E 32 jmp nmi_continue_320e
 reset_3004:  ; [global]
 3004: 78       sei
 3005: 4C 00 78 jmp boot_7800
 
 3008: 78       sei
+; irq 60Hz
 irq_3009:    ; [global]
 3009: 4C 68 30 jmp irq_continue_3068
 
@@ -48,15 +128,13 @@ irq_3009:    ; [global]
 3019: 4C F4 5B jmp $5bf4
 301C: 4C 06 59 jmp $5906
 
-; cpu wait loop in mainloop
-; during that time, interrupts can occur
-
-mainloop_305f:
-305F: E6 F3    inc $f3
+infinite_loop_305f:
+305F: E6 F3    inc fast_counter_f3
+; loop is very fast: 6.6e-05 seconds = 1/15000 seconds
 3061: A0 11    ldy #$11
 3063: 88       dey
 3064: D0 FD    bne $3063
-3066: F0 F7    beq mainloop_305f
+3066: F0 F7    beq infinite_loop_305f	; beq after bne = bra
 
 irq_continue_3068:
 3068: 78       sei		; no interrupts
@@ -140,6 +218,7 @@ irq_continue_3068:
 310B: A9 10    lda #$10
 310D: 85 BE    sta $be
 310F: 4C 2A 31 jmp $312a
+
 3112: A9 40    lda #$40
 3114: 2D 07 21 and in2_2107
 3117: F0 19    beq $3132
@@ -152,18 +231,20 @@ irq_continue_3068:
 3126: A9 20    lda #$20
 3128: 85 BE    sta $be
 312A: A9 FF    lda #$ff
-312C: 85 FC    sta $fc
+312C: 85 FC    sta game_state_fc
 312E: 58       cli
-312F: 4C 61 5B jmp $5b61
-3132: A5 FC    lda $fc
+312F: 4C 61 5B jmp exit_irq_5b61
+
+3132: A5 FC    lda game_state_fc
 3134: F0 06    beq $313c
+; normal return from interrupt
 3136: 68       pla
 3137: A8       tay
 3138: 68       pla
 3139: AA       tax
 313A: 68       pla
 313B: 40       rti			; [return_from_interrupt]
-
+; pop A,X,Y,P & return address (manual return from interrupt)
 313C: 68       pla
 313D: 68       pla
 313E: 68       pla
@@ -177,12 +258,15 @@ irq_continue_3068:
 314B: 25 F0    and $f0
 314D: D0 08    bne $3157
 314F: A9 FF    lda #$ff
-3151: 85 FC    sta $fc
+3151: 85 FC    sta game_state_fc
 3153: 58       cli
-3154: 4C 5B 31 jmp $315b
+; divert to another part of the code (escapes from infinite loop)
+3154: 4C 5B 31 jmp l_315b
+; jump back to infinite loop after all
 3157: 58       cli
-3158: 4C 5F 30 jmp mainloop_305f
+3158: 4C 5F 30 jmp infinite_loop_305f
 
+l_315b:		; [global]
 315B: A9 04    lda #$04
 315D: 2D 04 21 and in0_2104
 3160: F0 03    beq $3165
@@ -217,7 +301,7 @@ irq_continue_3068:
 31A2: 20 16 55 jsr $5516
 31A5: 20 32 35 jsr $3532
 31A8: 20 72 39 jsr $3972
-31AB: A5 BA    lda $ba
+31AB: A5 BA    lda fruits_left_ba
 31AD: D0 03    bne $31b2
 31AF: 20 99 32 jsr $3299
 31B2: A4 BC    ldy $bc
@@ -255,19 +339,21 @@ irq_continue_3068:
 31F5: 2D 05 21 and in1_2105
 31F8: F0 11    beq $320b
 31FA: A9 BF    lda #$bf
-31FC: 85 17    sta $17
+31FC: 85 17    sta head_x_value_17
 31FE: A9 04    lda #$04
 3200: 85 18    sta $18
-3202: A5 F3    lda $f3
+3202: A5 F3    lda fast_counter_f3
 3204: A0 00    ldy #$00
-3206: 84 F3    sty $f3
+3206: 84 F3    sty fast_counter_f3
 3208: 20 00 4C jsr $4c00
 320B: 4C A7 39 jmp $39a7
+
+nmi_continue_320e:
 320E: 48       pha
 320F: A5 BD    lda countdown_timer_bd
 3211: F0 02    beq $3215
 3213: 68       pla
-3214: 40       rti			; [return_from_interrupt]
+3214: 40       rti			; [return_from_interrupt] (NMI)
 
 3215: A9 0A    lda #$0a
 3217: 85 BD    sta countdown_timer_bd
@@ -275,7 +361,7 @@ irq_continue_3068:
 321A: 48       pha
 321B: 98       tya
 321C: 48       pha
-321D: A5 17    lda $17
+321D: A5 17    lda head_x_value_17
 321F: 48       pha
 3220: A5 18    lda $18
 3222: 48       pha
@@ -286,7 +372,7 @@ irq_continue_3068:
 3229: E6 F4    inc $f4
 322B: A9 03    lda #$03
 322D: 25 F4    and $f4
-322F: 85 17    sta $17
+322F: 85 17    sta head_x_value_17
 3231: A9 C0    lda #$c0
 3233: 2D 06 21 and dsw_2106
 3236: 4A       lsr a
@@ -294,7 +380,7 @@ irq_continue_3068:
 3238: 4A       lsr a
 3239: 4A       lsr a
 323A: 18       clc
-323B: 65 17    adc $17
+323B: 65 17    adc head_x_value_17
 323D: AA       tax
 323E: BD 89 32 lda $3289, x
 3241: 18       clc
@@ -309,10 +395,10 @@ irq_continue_3068:
 3251: 0A       asl a
 3252: 0A       asl a
 3253: 0A       asl a
-3254: 85 17    sta $17
+3254: 85 17    sta head_x_value_17
 3256: A5 A8    lda $a8
 3258: 29 88    and #$88
-325A: 05 17    ora $17
+325A: 05 17    ora head_x_value_17
 325C: 85 A8    sta $a8
 325E: 8D 03 21 sta flipscreen_2103
 3261: A5 A5    lda $a5
@@ -331,7 +417,7 @@ irq_continue_3068:
 327C: 68       pla
 327D: 85 18    sta $18
 327F: 68       pla
-3280: 85 17    sta $17
+3280: 85 17    sta head_x_value_17
 3282: 68       pla
 3283: A8       tay
 3284: 68       pla
@@ -361,11 +447,11 @@ irq_continue_3068:
 32C2: 85 BC    sta $bc
 32C4: A0 00    ldy #$00
 32C6: A9 00    lda #$00
-32C8: 85 17    sta $17
+32C8: 85 17    sta head_x_value_17
 32CA: A9 0C    lda #$0c
 32CC: 85 18    sta $18
 32CE: A9 2D    lda #$2d
-32D0: 91 17    sta ($17), y   ; [video_address]
+32D0: 91 17    sta (head_x_value_17), y   ; [video_address]
 32D2: 88       dey
 32D3: D0 FB    bne $32d0
 32D5: E6 18    inc $18
@@ -425,7 +511,7 @@ irq_continue_3068:
 334C: A9 00    lda #$00
 334E: 85 28    sta $28
 3350: 85 29    sta $29
-3352: 20 AB 49 jsr $49ab
+3352: 20 AB 49 jsr draw_fruits_49ab
 3355: 20 00 AA jsr $aa00
 3358: A5 BE    lda $be
 335A: C9 10    cmp #$10
@@ -437,7 +523,7 @@ irq_continue_3068:
 3367: 2D 04 21 and in0_2104
 336A: D0 04    bne $3370
 336C: A9 00    lda #$00
-336E: 85 BA    sta $ba
+336E: 85 BA    sta fruits_left_ba
 3370: 60       rts
 
 3422: A9 08    lda #$08
@@ -490,11 +576,11 @@ irq_continue_3068:
 347E: 69 00    adc #$00
 3480: 85 B5    sta $b5
 3482: D8       cld
-3483: A5 BA    lda $ba
+3483: A5 BA    lda fruits_left_ba
 3485: D0 05    bne $348c
 3487: A9 9D    lda #$9d
 3489: 4C 87 3F jmp $3f87
-348C: C6 BA    dec $ba
+348C: C6 BA    dec fruits_left_ba
 348E: 28       plp
 348F: 60       rts
 
@@ -521,12 +607,12 @@ irq_continue_3068:
 3519: 69 00    adc #$00
 351B: 85 B5    sta $b5
 351D: D8       cld
-351E: C6 BA    dec $ba
+351E: C6 BA    dec fruits_left_ba
 3520: A0 00    ldy #$00
 3522: A9 30    lda #$30
 3524: 91 2D    sta ($2d), y
-3526: A5 57    lda $57
-3528: C5 58    cmp $58
+3526: A5 57    lda head_ptr_57
+3528: C5 58    cmp tail_ptr_58
 352A: F0 04    beq $3530
 352C: A9 FF    lda #$ff
 352E: 85 BF    sta $bf
@@ -537,19 +623,19 @@ irq_continue_3068:
 3536: A9 00    lda #$00
 3538: 85 CA    sta $ca
 353A: A5 B2    lda $b2
-353C: 20 90 4B jsr $4b90
+353C: 20 90 4B jsr split_a_digits_4b90
 353F: 86 C9    stx $c9
 3541: 85 C8    sta $c8
 3543: A5 B3    lda $b3
-3545: 20 90 4B jsr $4b90
+3545: 20 90 4B jsr split_a_digits_4b90
 3548: 86 C6    stx $c6
 354A: 85 C5    sta $c5
 354C: A5 B4    lda $b4
-354E: 20 90 4B jsr $4b90
+354E: 20 90 4B jsr split_a_digits_4b90
 3551: 86 C4    stx $c4
 3553: 85 C2    sta $c2
 3555: A5 B5    lda $b5
-3557: 20 90 4B jsr $4b90
+3557: 20 90 4B jsr split_a_digits_4b90
 355A: 86 C1    stx $c1
 355C: 85 C0    sta $c0
 355E: A9 27    lda #$27
@@ -566,7 +652,7 @@ irq_continue_3068:
 3573: E0 0A    cpx #$0a
 3575: D0 EF    bne $3566
 3577: A9 C0    lda #$c0
-3579: 85 17    sta $17
+3579: 85 17    sta head_x_value_17
 357B: A9 06    lda #$06
 357D: 85 18    sta $18
 357F: A9 C0    lda #$c0
@@ -585,19 +671,19 @@ irq_continue_3068:
 3599: A9 00    lda #$00
 359B: 85 CA    sta $ca
 359D: A5 B6    lda $b6
-359F: 20 90 4B jsr $4b90
+359F: 20 90 4B jsr split_a_digits_4b90
 35A2: 86 C9    stx $c9
 35A4: 85 C8    sta $c8
 35A6: A5 B7    lda $b7
-35A8: 20 90 4B jsr $4b90
+35A8: 20 90 4B jsr split_a_digits_4b90
 35AB: 86 C6    stx $c6
 35AD: 85 C5    sta $c5
 35AF: A5 B8    lda $b8
-35B1: 20 90 4B jsr $4b90
+35B1: 20 90 4B jsr split_a_digits_4b90
 35B4: 86 C4    stx $c4
 35B6: 85 C2    sta $c2
 35B8: A5 B9    lda $b9
-35BA: 20 90 4B jsr $4b90
+35BA: 20 90 4B jsr split_a_digits_4b90
 35BD: 86 C1    stx $c1
 35BF: 85 C0    sta $c0
 35C1: A9 27    lda #$27
@@ -614,7 +700,7 @@ irq_continue_3068:
 35D6: E0 0A    cpx #$0a
 35D8: D0 EF    bne $35c9
 35DA: A9 C1    lda #$c1
-35DC: 85 17    sta $17
+35DC: 85 17    sta head_x_value_17
 35DE: A9 06    lda #$06
 35E0: 85 18    sta $18
 35E2: A9 C0    lda #$c0
@@ -649,18 +735,18 @@ irq_continue_3068:
 3623: 85 1A    sta $1a
 3625: A2 03    ldx #$03
 3627: A9 00    lda #$00
-3629: 85 17    sta $17
+3629: 85 17    sta head_x_value_17
 362B: A9 07    lda #$07
 362D: 85 18    sta $18
 362F: A0 03    ldy #$03
 3631: B1 19    lda ($19), y
-3633: 91 17    sta ($17), y   ; [video_address]
+3633: 91 17    sta (head_x_value_17), y   ; [video_address]
 3635: 88       dey
 3636: 10 F9    bpl $3631
-3638: A5 17    lda $17
+3638: A5 17    lda head_x_value_17
 363A: 18       clc
 363B: 69 20    adc #$20
-363D: 85 17    sta $17
+363D: 85 17    sta head_x_value_17
 363F: A5 18    lda $18
 3641: 69 00    adc #$00
 3643: 85 18    sta $18
@@ -688,73 +774,73 @@ irq_continue_3068:
 366D: A9 02    lda #$02
 366F: 85 1F    sta $1f
 3671: A9 20    lda #$20
-3673: 85 17    sta $17
+3673: 85 17    sta head_x_value_17
 3675: A9 0C    lda #$0c
 3677: 85 18    sta $18
 3679: A2 01    ldx #$01
 367B: A5 16    lda $16
-367D: 91 17    sta ($17), y   ; [video_address]
-367F: A5 17    lda $17
+367D: 91 17    sta (head_x_value_17), y   ; [video_address]
+367F: A5 17    lda head_x_value_17
 3681: 18       clc
 3682: 69 20    adc #$20
-3684: 85 17    sta $17
+3684: 85 17    sta head_x_value_17
 3686: A5 18    lda $18
 3688: 69 00    adc #$00
 368A: 85 18    sta $18
 368C: CA       dex
 368D: 10 EC    bpl $367b
-368F: A5 17    lda $17
+368F: A5 17    lda head_x_value_17
 3691: 18       clc
 3692: 69 20    adc #$20
-3694: 85 17    sta $17
+3694: 85 17    sta head_x_value_17
 3696: A5 18    lda $18
 3698: 69 00    adc #$00
 369A: 85 18    sta $18
 369C: A2 01    ldx #$01
 369E: A5 1F    lda $1f
-36A0: 91 17    sta ($17), y   ; [video_address]
-36A2: A5 17    lda $17
+36A0: 91 17    sta (head_x_value_17), y   ; [video_address]
+36A2: A5 17    lda head_x_value_17
 36A4: 18       clc
 36A5: 69 20    adc #$20
-36A7: 85 17    sta $17
+36A7: 85 17    sta head_x_value_17
 36A9: A5 18    lda $18
 36AB: 69 00    adc #$00
 36AD: 85 18    sta $18
 36AF: CA       dex
 36B0: 10 EC    bpl $369e
-36B2: A5 17    lda $17
+36B2: A5 17    lda head_x_value_17
 36B4: 18       clc
 36B5: 69 C0    adc #$c0
-36B7: 85 17    sta $17
+36B7: 85 17    sta head_x_value_17
 36B9: A5 18    lda $18
 36BB: 69 00    adc #$00
 36BD: 85 18    sta $18
 36BF: A2 0A    ldx #$0a
 36C1: A5 16    lda $16
-36C3: 91 17    sta ($17), y   ; [video_address]
-36C5: A5 17    lda $17
+36C3: 91 17    sta (head_x_value_17), y   ; [video_address]
+36C5: A5 17    lda head_x_value_17
 36C7: 18       clc
 36C8: 69 20    adc #$20
-36CA: 85 17    sta $17
+36CA: 85 17    sta head_x_value_17
 36CC: A5 18    lda $18
 36CE: 69 00    adc #$00
 36D0: 85 18    sta $18
 36D2: CA       dex
 36D3: 10 EC    bpl $36c1
-36D5: A5 17    lda $17
+36D5: A5 17    lda head_x_value_17
 36D7: 18       clc
 36D8: 69 20    adc #$20
-36DA: 85 17    sta $17
+36DA: 85 17    sta head_x_value_17
 36DC: A5 18    lda $18
 36DE: 69 00    adc #$00
 36E0: 85 18    sta $18
 36E2: A2 03    ldx #$03
 36E4: A5 1F    lda $1f
-36E6: 91 17    sta ($17), y   ; [video_address]
-36E8: A5 17    lda $17
+36E6: 91 17    sta (head_x_value_17), y   ; [video_address]
+36E8: A5 17    lda head_x_value_17
 36EA: 18       clc
 36EB: 69 20    adc #$20
-36ED: 85 17    sta $17
+36ED: 85 17    sta head_x_value_17
 36EF: A5 18    lda $18
 36F1: 69 00    adc #$00
 36F3: 85 18    sta $18
@@ -781,16 +867,16 @@ irq_continue_3068:
 371C: 4C 71 36 jmp $3671
 371F: A0 00    ldy #$00
 3721: A9 23    lda #$23
-3723: 85 17    sta $17
+3723: 85 17    sta head_x_value_17
 3725: A9 0C    lda #$0c
 3727: 85 18    sta $18
 3729: A2 03    ldx #$03
 372B: A9 03    lda #$03
-372D: 91 17    sta ($17), y   ; [video_address]
-372F: A5 17    lda $17
+372D: 91 17    sta (head_x_value_17), y   ; [video_address]
+372F: A5 17    lda head_x_value_17
 3731: 18       clc
 3732: 69 20    adc #$20
-3734: 85 17    sta $17
+3734: 85 17    sta head_x_value_17
 3736: A5 18    lda $18
 3738: 69 00    adc #$00
 373A: 85 18    sta $18
@@ -798,49 +884,49 @@ irq_continue_3068:
 373D: 10 EC    bpl $372b
 373F: A2 03    ldx #$03
 3741: A9 05    lda #$05
-3743: 91 17    sta ($17), y   ; [video_address]
-3745: A5 17    lda $17
+3743: 91 17    sta (head_x_value_17), y   ; [video_address]
+3745: A5 17    lda head_x_value_17
 3747: 18       clc
 3748: 69 20    adc #$20
-374A: 85 17    sta $17
+374A: 85 17    sta head_x_value_17
 374C: A5 18    lda $18
 374E: 69 00    adc #$00
 3750: 85 18    sta $18
 3752: CA       dex
 3753: 10 EC    bpl $3741
-3755: A5 17    lda $17
+3755: A5 17    lda head_x_value_17
 3757: 18       clc
 3758: 69 60    adc #$60
-375A: 85 17    sta $17
+375A: 85 17    sta head_x_value_17
 375C: A5 18    lda $18
 375E: 69 00    adc #$00
 3760: 85 18    sta $18
 3762: A2 0A    ldx #$0a
 3764: A9 01    lda #$01
-3766: 91 17    sta ($17), y   ; [video_address]
-3768: A5 17    lda $17
+3766: 91 17    sta (head_x_value_17), y   ; [video_address]
+3768: A5 17    lda head_x_value_17
 376A: 18       clc
 376B: 69 20    adc #$20
-376D: 85 17    sta $17
+376D: 85 17    sta head_x_value_17
 376F: A5 18    lda $18
 3771: 69 00    adc #$00
 3773: 85 18    sta $18
 3775: CA       dex
 3776: 10 EC    bpl $3764
-3778: A5 17    lda $17
+3778: A5 17    lda head_x_value_17
 377A: 18       clc
 377B: 69 20    adc #$20
-377D: 85 17    sta $17
+377D: 85 17    sta head_x_value_17
 377F: A5 18    lda $18
 3781: 69 00    adc #$00
 3783: 85 18    sta $18
 3785: A2 03    ldx #$03
 3787: A9 06    lda #$06
-3789: 91 17    sta ($17), y   ; [video_address]
-378B: A5 17    lda $17
+3789: 91 17    sta (head_x_value_17), y   ; [video_address]
+378B: A5 17    lda head_x_value_17
 378D: 18       clc
 378E: 69 20    adc #$20
-3790: 85 17    sta $17
+3790: 85 17    sta head_x_value_17
 3792: A5 18    lda $18
 3794: 69 00    adc #$00
 3796: 85 18    sta $18
@@ -859,19 +945,19 @@ irq_continue_3068:
 37B3: A9 00    lda #$00
 37B5: 85 CA    sta $ca
 37B7: AD 90 02 lda $0290
-37BA: 20 90 4B jsr $4b90
+37BA: 20 90 4B jsr split_a_digits_4b90
 37BD: 86 C9    stx $c9
 37BF: 85 C8    sta $c8
 37C1: AD 91 02 lda $0291
-37C4: 20 90 4B jsr $4b90
+37C4: 20 90 4B jsr split_a_digits_4b90
 37C7: 86 C6    stx $c6
 37C9: 85 C5    sta $c5
 37CB: AD 92 02 lda $0292
-37CE: 20 90 4B jsr $4b90
+37CE: 20 90 4B jsr split_a_digits_4b90
 37D1: 86 C4    stx $c4
 37D3: 85 C2    sta $c2
 37D5: AD 93 02 lda $0293
-37D8: 20 90 4B jsr $4b90
+37D8: 20 90 4B jsr split_a_digits_4b90
 37DB: 86 C1    stx $c1
 37DD: 85 C0    sta $c0
 37DF: A9 27    lda #$27
@@ -888,7 +974,7 @@ irq_continue_3068:
 37F4: E0 0A    cpx #$0a
 37F6: D0 EF    bne $37e7
 37F8: A9 C3    lda #$c3
-37FA: 85 17    sta $17
+37FA: 85 17    sta head_x_value_17
 37FC: A9 06    lda #$06
 37FE: 85 18    sta $18
 3800: A9 C0    lda #$c0
@@ -897,7 +983,7 @@ irq_continue_3068:
 3806: 85 1A    sta $1a
 3808: 20 6E 4B jsr write_text_4b6e
 380B: A9 40    lda #$40
-380D: 85 17    sta $17
+380D: 85 17    sta head_x_value_17
 380F: A9 04    lda #$04
 3811: 85 18    sta $18
 3813: A4 B0    ldy $b0
@@ -909,7 +995,7 @@ irq_continue_3068:
 3821: C9 20    cmp #$20
 3823: 30 10    bmi $3835
 3825: A9 41    lda #$41
-3827: 85 17    sta $17
+3827: 85 17    sta head_x_value_17
 3829: A9 04    lda #$04
 382B: 85 18    sta $18
 382D: A4 B1    ldy $b1
@@ -943,7 +1029,7 @@ irq_continue_3068:
 3866: 85 C5    sta $c5
 3868: A4 16    ldy $16
 386A: B9 90 34 lda $3490, y
-386D: 20 90 4B jsr $4b90
+386D: 20 90 4B jsr split_a_digits_4b90
 3870: 85 C6    sta $c6
 3872: 86 C7    stx $c7
 3874: A9 FF    lda #$ff
@@ -956,22 +1042,22 @@ irq_continue_3068:
 3882: A9 30    lda #$30
 3884: 85 C6    sta $c6
 3886: A9 3F    lda #$3f
-3888: 85 17    sta $17
+3888: 85 17    sta head_x_value_17
 388A: A9 06    lda #$06
 388C: 85 18    sta $18
 ; write "WAVE" plus wave number
 388E: 20 6E 4B jsr write_text_4b6e
 3891: A9 1F    lda #$1f
-3893: 85 17    sta $17
+3893: 85 17    sta head_x_value_17
 3895: A9 0C    lda #$0c
 3897: 85 18    sta $18
 3899: A0 00    ldy #$00
 389B: A9 03    lda #$03
-389D: 91 17    sta ($17), y   ; [video_address]
-389F: A5 17    lda $17
+389D: 91 17    sta (head_x_value_17), y   ; [video_address]
+389F: A5 17    lda head_x_value_17
 38A1: 18       clc
 38A2: 69 20    adc #$20
-38A4: 85 17    sta $17
+38A4: 85 17    sta head_x_value_17
 38A6: A5 18    lda $18
 38A8: 69 00    adc #$00
 38AA: 85 18    sta $18
@@ -1039,11 +1125,11 @@ irq_continue_3068:
 3953: A9 01    lda #$01
 3955: 85 18    sta $18
 3957: A9 20    lda #$20
-3959: 85 17    sta $17
+3959: 85 17    sta head_x_value_17
 395B: A2 00    ldx #$00		; [cpu_loop]
 395D: CA       dex
 395E: D0 FD    bne $395d
-3960: C6 17    dec $17
+3960: C6 17    dec head_x_value_17
 3962: D0 F9    bne $395d
 3964: C6 18    dec $18
 3966: D0 F5    bne $395d
@@ -1058,7 +1144,7 @@ irq_continue_3068:
 3978: 85 C2    sta $c2
 397A: A4 A3    ldy $a3
 397C: B9 90 34 lda $3490, y
-397F: 20 90 4B jsr $4b90
+397F: 20 90 4B jsr split_a_digits_4b90
 3982: 86 C1    stx $c1
 3984: 85 C0    sta $c0
 3986: C9 00    cmp #$00
@@ -1069,7 +1155,7 @@ irq_continue_3068:
 3990: D0 02    bne $3994
 3992: 85 C1    sta $c1
 3994: A9 63    lda #$63
-3996: 85 17    sta $17
+3996: 85 17    sta head_x_value_17
 3998: A9 04    lda #$04
 399A: 85 18    sta $18
 399C: A9 C0    lda #$c0
@@ -1121,7 +1207,7 @@ irq_continue_3068:
 39FC: 8D 01 21 sta sound_2101
 39FF: A9 1B    lda #$1b
 3A01: 38       sec
-3A02: E5 51    sbc $51
+3A02: E5 51    sbc snake_row_51
 3A04: 18       clc
 3A05: 2A       rol a
 3A06: 2A       rol a
@@ -1161,7 +1247,7 @@ irq_continue_3068:
 3A42: A2 00    ldx #$00
 3A44: A9 0F    lda #$0f
 3A46: 21 5C    and ($5c, x)
-3A48: 85 17    sta $17
+3A48: 85 17    sta head_x_value_17
 3A4A: A5 53    lda $53
 3A4C: A2 0D    ldx #$0d
 3A4E: A0 00    ldy #$00
@@ -1179,7 +1265,7 @@ irq_continue_3068:
 3A66: A0 03    ldy #$03
 3A68: 86 18    stx $18
 3A6A: 84 1B    sty $1b
-3A6C: A5 17    lda $17
+3A6C: A5 17    lda head_x_value_17
 3A6E: 25 18    and $18
 3A70: 85 18    sta $18
 3A72: 85 4B    sta $4b
@@ -1187,11 +1273,11 @@ irq_continue_3068:
 3A76: A5 31    lda $31
 3A78: 85 D2    sta $d2
 3A7A: 25 18    and $18
-3A7C: 85 17    sta $17
+3A7C: 85 17    sta head_x_value_17
 3A7E: 85 D3    sta $d3
 3A80: A5 5E    lda $5e
 3A82: D0 4B    bne $3acf
-3A84: A5 17    lda $17
+3A84: A5 17    lda head_x_value_17
 3A86: F0 03    beq $3a8b
 3A88: 4C 66 3B jmp $3b66
 3A8B: A5 53    lda $53
@@ -1200,7 +1286,7 @@ irq_continue_3068:
 3A91: 25 48    and $48
 3A93: 85 D4    sta $d4
 3A95: F0 38    beq $3acf
-3A97: 85 17    sta $17
+3A97: 85 17    sta head_x_value_17
 3A99: A9 0A    lda #$0a
 3A9B: 85 4A    sta $4a
 3A9D: A5 10    lda $10
@@ -1264,7 +1350,7 @@ irq_continue_3068:
 3B18: 85 A5    sta $a5
 3B1A: 8D 00 21 sta sound_2100
 3B1D: A9 54    lda #$54
-3B1F: 20 4D 7F jsr $7f4d
+3B1F: 20 4D 7F jsr save_debug_values_7f4d
 3B22: 4C DA 4E jmp $4eda
 3B25: A9 00    lda #$00
 3B27: 85 BB    sta $bb
@@ -1281,7 +1367,7 @@ irq_continue_3068:
 3B3E: 30 0A    bmi $3b4a
 3B40: C6 4C    dec $4c
 3B42: A9 44    lda #$44
-3B44: 20 4D 7F jsr $7f4d
+3B44: 20 4D 7F jsr save_debug_values_7f4d
 3B47: 4C DB 4F jmp $4fdb
 3B4A: A5 4B    lda $4b
 3B4C: C9 01    cmp #$01
@@ -1293,31 +1379,31 @@ irq_continue_3068:
 3B58: C9 08    cmp #$08
 3B5A: F0 08    beq $3b64
 3B5C: A9 51    lda #$51
-3B5E: 20 4D 7F jsr $7f4d
+3B5E: 20 4D 7F jsr save_debug_values_7f4d
 3B61: 4C DB 4F jmp $4fdb
-3B64: 85 17    sta $17
+3B64: 85 17    sta head_x_value_17
 3B66: A5 18    lda $18
 3B68: 85 48    sta $48
 3B6A: C9 10    cmp #$10
 3B6C: 90 05    bcc $3b73
 3B6E: A9 B5    lda #$b5
 3B70: 4C 87 3F jmp $3f87
-3B73: A5 17    lda $17
+3B73: A5 17    lda head_x_value_17
 3B75: 25 53    and $53
 3B77: F0 0C    beq $3b85
-3B79: A5 17    lda $17
+3B79: A5 17    lda head_x_value_17
 3B7B: 38       sec
 3B7C: E5 53    sbc $53
-3B7E: 85 17    sta $17
+3B7E: 85 17    sta head_x_value_17
 3B80: D0 03    bne $3b85
 3B82: 4C FD 3A jmp $3afd
-3B85: A5 17    lda $17
+3B85: A5 17    lda head_x_value_17
 3B87: 20 71 3F jsr $3f71
 3B8A: A9 00    lda #$00
 3B8C: 85 48    sta $48
 3B8E: A5 5A    lda $5a
 3B90: F0 0F    beq $3ba1
-3B92: A5 17    lda $17
+3B92: A5 17    lda head_x_value_17
 3B94: 48       pha
 3B95: A5 1B    lda $1b
 3B97: 48       pha
@@ -1325,8 +1411,8 @@ irq_continue_3068:
 3B9B: 68       pla
 3B9C: 85 1B    sta $1b
 3B9E: 68       pla
-3B9F: 85 17    sta $17
-3BA1: A5 17    lda $17
+3B9F: 85 17    sta head_x_value_17
+3BA1: A5 17    lda head_x_value_17
 3BA3: A0 00    ldy #$00
 3BA5: C9 01    cmp #$01
 3BA7: F0 17    beq $3bc0
@@ -1351,43 +1437,46 @@ irq_continue_3068:
 3BCA: B9 2D 3F lda $3f2d, y
 3BCD: 85 3D    sta $3d
 3BCF: 85 19    sta $19
-3BD1: A5 17    lda $17
+3BD1: A5 17    lda head_x_value_17
 3BD3: 85 53    sta $53
 3BD5: A5 53    lda $53
 3BD7: C9 03    cmp #$03
 3BD9: 10 07    bpl $3be2
-3BDB: A5 51    lda $51
-3BDD: 85 17    sta $17
+3BDB: A5 51    lda snake_row_51
+3BDD: 85 17    sta head_x_value_17
 3BDF: 4C E6 3B jmp $3be6
 3BE2: A5 52    lda $52
-3BE4: 85 17    sta $17
-3BE6: A5 17    lda $17
-3BE8: A4 57    ldy $57
+3BE4: 85 17    sta head_x_value_17
+3BE6: A5 17    lda head_x_value_17
+3BE8: A4 57    ldy head_ptr_57
 3BEA: 91 E2    sta ($e2), y
 3BEC: C8       iny
 3BED: A5 19    lda $19
 3BEF: 91 E2    sta ($e2), y
 3BF1: C8       iny
-3BF2: 84 57    sty $57
+3BF2: 84 57    sty head_ptr_57
 3BF4: A9 3F    lda #$3f
-3BF6: 25 57    and $57
-3BF8: 85 57    sta $57
-3BFA: C5 58    cmp $58
-3BFC: D0 0C    bne $3c0a
+3BF6: 25 57    and head_ptr_57
+3BF8: 85 57    sta head_ptr_57
+; If headPtr == tailPtr, BAD JUJU!
+3BFA: C5 58    cmp tail_ptr_58
+3BFC: D0 0C    bne circular_buffer_ok_3c0a
+; Just end the level to prevent circular buffer overflow
 3BFE: A9 00    lda #$00
-3C00: 85 BA    sta $ba
+3C00: 85 BA    sta fruits_left_ba
 3C02: A9 09    lda #$09
-3C04: 20 4D 7F jsr $7f4d
+3C04: 20 4D 7F jsr save_debug_values_7f4d
 3C07: 4C DB 4F jmp $4fdb
+circular_buffer_ok_3c0a:
 3C0A: A9 0F    lda #$0f
 3C0C: 85 5E    sta $5e
 3C0E: 85 5A    sta $5a
-3C10: A5 51    lda $51
-3C12: 85 3B    sta $3b
+3C10: A5 51    lda snake_row_51
+3C12: 85 3B    sta move_to_row_3b
 3C14: A5 52    lda $52
 3C16: 85 3C    sta $3c
 3C18: A9 10    lda #$10
-3C1A: 20 4D 7F jsr $7f4d
+3C1A: 20 4D 7F jsr save_debug_values_7f4d
 3C1D: A9 03    lda #$03
 3C1F: 8D 01 21 sta sound_2101
 3C22: A9 0B    lda #$0b
@@ -1404,7 +1493,7 @@ irq_continue_3068:
 3C39: A9 11    lda #$11
 3C3B: 85 1C    sta $1c
 3C3D: A9 C0    lda #$c0
-3C3F: 85 17    sta $17
+3C3F: 85 17    sta head_x_value_17
 3C41: A9 60    lda #$60
 3C43: 85 18    sta $18
 3C45: A9 10    lda #$10
@@ -1413,7 +1502,7 @@ irq_continue_3068:
 3C4B: 85 1A    sta $1a
 3C4D: 4C 7B 3C jmp $3c7b
 3C50: A9 00    lda #$00
-3C52: 85 17    sta $17
+3C52: 85 17    sta head_x_value_17
 3C54: A9 6A    lda #$6a
 3C56: 85 18    sta $18
 3C58: A9 50    lda #$50
@@ -1422,7 +1511,7 @@ irq_continue_3068:
 3C5E: 85 1A    sta $1a
 3C60: 4C 73 3C jmp $3c73
 3C63: A9 60    lda #$60
-3C65: 85 17    sta $17
+3C65: 85 17    sta head_x_value_17
 3C67: A9 65    lda #$65
 3C69: 85 18    sta $18
 3C6B: A9 B0    lda #$b0
@@ -1438,12 +1527,12 @@ irq_continue_3068:
 3C7F: A5 E9    lda $e9
 3C81: 0A       asl a
 3C82: A8       tay
-3C83: B1 17    lda ($17), y
+3C83: B1 17    lda (head_x_value_17), y
 3C85: 85 31    sta $31
 3C87: B1 19    lda ($19), y
 3C89: 85 33    sta $33
 3C8B: C8       iny
-3C8C: B1 17    lda ($17), y
+3C8C: B1 17    lda (head_x_value_17), y
 3C8E: 85 32    sta $32
 3C90: B1 19    lda ($19), y
 3C92: 85 34    sta $34
@@ -1504,31 +1593,31 @@ irq_continue_3068:
 3CF9: 4C FE 3C jmp $3cfe
 3CFC: E6 41    inc $41
 3CFE: A9 9D    lda #$9d
-3D00: 85 17    sta $17
+3D00: 85 17    sta head_x_value_17
 3D02: A9 3E    lda #$3e
 3D04: 85 18    sta $18
 3D06: A5 3D    lda $3d
 3D08: 18       clc
-3D09: 65 17    adc $17
-3D0B: 85 17    sta $17
+3D09: 65 17    adc head_x_value_17
+3D0B: 85 17    sta head_x_value_17
 3D0D: A5 18    lda $18
 3D0F: 69 00    adc #$00
 3D11: 85 18    sta $18
 3D13: A0 00    ldy #$00
-3D15: B1 17    lda ($17), y
+3D15: B1 17    lda (head_x_value_17), y
 3D17: 18       clc
-3D18: 65 51    adc $51
+3D18: 65 51    adc snake_row_51
 3D1A: 85 19    sta $19
 3D1C: A0 08    ldy #$08
-3D1E: B1 17    lda ($17), y
+3D1E: B1 17    lda (head_x_value_17), y
 3D20: 18       clc
 3D21: 65 52    adc $52
 3D23: 85 1A    sta $1a
 3D25: A0 10    ldy #$10
-3D27: B1 17    lda ($17), y
+3D27: B1 17    lda (head_x_value_17), y
 3D29: 85 31    sta $31
 3D2B: A0 18    ldy #$18
-3D2D: B1 17    lda ($17), y
+3D2D: B1 17    lda (head_x_value_17), y
 3D2F: 85 32    sta $32
 3D31: A9 2D    lda #$2d
 3D33: 85 1D    sta $1d
@@ -1562,25 +1651,25 @@ irq_continue_3068:
 3D66: 2A       rol a
 3D67: 2A       rol a
 3D68: 2A       rol a
-3D69: 85 17    sta $17
+3D69: 85 17    sta head_x_value_17
 3D6B: A9 00    lda #$00
 3D6D: 69 00    adc #$00
 3D6F: 0A       asl a
-3D70: 26 17    rol $17
+3D70: 26 17    rol head_x_value_17
 3D72: 69 04    adc #$04
 3D74: 85 18    sta $18
 3D76: A9 1F    lda #$1f
 3D78: 38       sec
 3D79: E5 1A    sbc $1a
 3D7B: 18       clc
-3D7C: 65 17    adc $17
-3D7E: 85 17    sta $17
+3D7C: 65 17    adc head_x_value_17
+3D7E: 85 17    sta head_x_value_17
 3D80: A5 18    lda $18
 3D82: C9 08    cmp #$08
 3D84: 90 05    bcc $3d8b
 3D86: A9 94    lda #$94
 3D88: 4C 87 3F jmp $3f87
-3D8B: A5 17    lda $17
+3D8B: A5 17    lda head_x_value_17
 3D8D: 85 1D    sta $1d
 3D8F: A5 18    lda $18
 3D91: 18       clc
@@ -1588,17 +1677,17 @@ irq_continue_3068:
 3D94: 85 1E    sta $1e
 3D96: A4 32    ldy $32
 3D98: B1 1B    lda ($1b), y
-3D9A: 91 17    sta ($17), y   ; [video_address]
+3D9A: 91 17    sta (head_x_value_17), y   ; [video_address]
 3D9C: B1 1D    lda ($1d), y
 3D9E: 29 38    and #$38
 3DA0: 09 03    ora #$03
 3DA2: 91 1D    sta ($1d), y
 3DA4: 88       dey
 3DA5: 10 F1    bpl $3d98
-3DA7: A5 17    lda $17
+3DA7: A5 17    lda head_x_value_17
 3DA9: 18       clc
 3DAA: 69 20    adc #$20
-3DAC: 85 17    sta $17
+3DAC: 85 17    sta head_x_value_17
 3DAE: A5 18    lda $18
 3DB0: 69 00    adc #$00
 3DB2: 85 18    sta $18
@@ -1633,16 +1722,16 @@ irq_continue_3068:
 3DE7: F0 0E    beq $3df7
 3DE9: C9 04    cmp #$04
 3DEB: F0 0F    beq $3dfc
-3DED: C6 51    dec $51
+3DED: C6 51    dec snake_row_51
 3DEF: 4C FE 3D jmp $3dfe
 3DF2: C6 52    dec $52
 3DF4: 4C FE 3D jmp $3dfe
 3DF7: E6 52    inc $52
 3DF9: 4C FE 3D jmp $3dfe
-3DFC: E6 51    inc $51
+3DFC: E6 51    inc snake_row_51
 3DFE: A9 1B    lda #$1b
 3E00: 38       sec
-3E01: E5 51    sbc $51
+3E01: E5 51    sbc snake_row_51
 3E03: 18       clc
 3E04: 2A       rol a
 3E05: 2A       rol a
@@ -1676,13 +1765,13 @@ irq_continue_3068:
 3F5F: F0 0A    beq $3f6b
 3F61: C9 04    cmp #$04
 3F63: F0 09    beq $3f6e
-3F65: E6 51    inc $51
+3F65: E6 51    inc snake_row_51
 3F67: 60       rts
 3F68: E6 52    inc $52
 3F6A: 60       rts
 3F6B: C6 52    dec $52
 3F6D: 60       rts
-3F6E: C6 51    dec $51
+3F6E: C6 51    dec snake_row_51
 3F70: 60       rts
 3F71: C9 01    cmp #$01
 3F73: F0 11    beq $3f86
@@ -1700,7 +1789,7 @@ irq_continue_3068:
 3F8A: A9 FF    lda #$ff
 3F8C: 85 FD    sta $fd
 3F8E: A9 10    lda #$10
-3F90: 85 17    sta $17
+3F90: 85 17    sta head_x_value_17
 3F92: A9 06    lda #$06
 3F94: 85 18    sta $18
 3F96: A5 D0    lda $d0
@@ -1773,11 +1862,11 @@ irq_continue_3068:
 406A: A9 04    lda #$04
 406C: 85 18    sta $18
 406E: A9 00    lda #$00
-4070: 85 17    sta $17
+4070: 85 17    sta head_x_value_17
 4072: A2 00    ldx #$00		; [cpu_loop]
 4074: CA       dex
 4075: D0 FD    bne $4074
-4077: C6 17    dec $17
+4077: C6 17    dec head_x_value_17
 4079: D0 F9    bne $4074
 407B: C6 18    dec $18
 407D: D0 F5    bne $4074
@@ -1787,11 +1876,11 @@ irq_continue_3068:
 4084: A9 02    lda #$02
 4086: 85 18    sta $18
 4088: A9 00    lda #$00
-408A: 85 17    sta $17
+408A: 85 17    sta head_x_value_17
 408C: A2 00    ldx #$00		; [cpu_loop]
 408E: CA       dex
 408F: D0 FD    bne $408e
-4091: C6 17    dec $17
+4091: C6 17    dec head_x_value_17
 4093: D0 F9    bne $408e
 4095: C6 18    dec $18
 4097: D0 F5    bne $408e
@@ -1844,7 +1933,7 @@ irq_continue_3068:
 40F6: D0 03    bne $40fb
 40F8: 4C 45 40 jmp $4045
 40FB: AA       tax
-40FC: A0 00    ldy #$00
+40FC: A0 00    ldy #$00		; [cpu_loop]
 40FE: 88       dey
 40FF: D0 FD    bne $40fe
 4101: CA       dex
@@ -1879,11 +1968,11 @@ irq_continue_3068:
 4139: A9 01    lda #$01
 413B: 85 18    sta $18
 413D: A9 20    lda #$20
-413F: 85 17    sta $17
+413F: 85 17    sta head_x_value_17
 4141: A2 00    ldx #$00		; [cpu_loop]
 4143: CA       dex
 4144: D0 FD    bne $4143
-4146: C6 17    dec $17
+4146: C6 17    dec head_x_value_17
 4148: D0 F9    bne $4143
 414A: C6 18    dec $18
 414C: D0 F5    bne $4143
@@ -1904,11 +1993,11 @@ irq_continue_3068:
 4169: A9 01    lda #$01
 416B: 85 18    sta $18
 416D: A9 20    lda #$20
-416F: 85 17    sta $17
+416F: 85 17    sta head_x_value_17
 4171: A2 00    ldx #$00		; [cpu_loop]
 4173: CA       dex
 4174: D0 FD    bne $4173
-4176: C6 17    dec $17
+4176: C6 17    dec head_x_value_17
 4178: D0 F9    bne $4173
 417A: C6 18    dec $18
 417C: D0 F5    bne $4173
@@ -1936,11 +2025,11 @@ irq_continue_3068:
 41A7: A9 01    lda #$01
 41A9: 85 18    sta $18
 41AB: A9 20    lda #$20
-41AD: 85 17    sta $17
+41AD: 85 17    sta head_x_value_17
 41AF: A2 00    ldx #$00		; [cpu_loop]
 41B1: CA       dex
 41B2: D0 FD    bne $41b1
-41B4: C6 17    dec $17
+41B4: C6 17    dec head_x_value_17
 41B6: D0 F9    bne $41b1
 41B8: C6 18    dec $18
 41BA: D0 F5    bne $41b1
@@ -2081,6 +2170,7 @@ irq_continue_3068:
 42C0: 85 02    sta $02
 42C2: 4C 1F 40 jmp $401f
 
+draw_fruits_49ab:
 49AB: A5 A9    lda $a9
 49AD: F0 05    beq $49b4
 49AF: C6 A9    dec $a9
@@ -2114,7 +2204,7 @@ irq_continue_3068:
 49DF: A8       tay
 49E0: B1 2B    lda ($2b), y
 49E2: 85 2F    sta $2f
-49E4: A5 BA    lda $ba
+49E4: A5 BA    lda fruits_left_ba
 49E6: D0 04    bne $49ec
 49E8: A9 30    lda #$30
 49EA: 85 2F    sta $2f
@@ -2211,25 +2301,25 @@ irq_continue_3068:
 4B66: 4C 6E 4B jmp write_text_4b6e
 
 4B69: A0 00    ldy #$00
-4B6B: 91 17    sta ($17), y   ; [video_address]
+4B6B: 91 17    sta (head_x_value_17), y   ; [video_address]
 4B6D: 60       rts
 
 ; < ($19): source ($FF terminated)
-; < ($17): destination
+; < (head_x_value_17): destination
 
 write_text_4b6e:
 4B6E: A0 00    ldy #$00
 4B70: B1 19    lda ($19), y
 4B72: C9 FF    cmp #$ff
 4B74: F0 19    beq $4b8f
-4B76: 91 17    sta ($17), y   ; [video_address]
+4B76: 91 17    sta (head_x_value_17), y   ; [video_address]
 4B78: E6 19    inc $19
 4B7A: D0 02    bne $4b7e
 4B7C: E6 1A    inc $1a
-4B7E: A5 17    lda $17
+4B7E: A5 17    lda head_x_value_17
 4B80: 38       sec
 4B81: E9 20    sbc #$20		; screen X++
-4B83: 85 17    sta $17
+4B83: 85 17    sta head_x_value_17
 4B85: A5 18    lda $18
 4B87: E9 00    sbc #$00
 4B89: 85 18    sta $18
@@ -2237,6 +2327,11 @@ write_text_4b6e:
 4B8D: B0 E1    bcs $4b70	; avoid overflow & write to ROM
 4B8F: 60       rts
 
+; < A: as hex: xy
+; > A: x (higher nibble)
+; > X: y (lower nibble)
+
+split_a_digits_4b90:
 4B90: 48       pha
 4B91: 29 0F    and #$0f
 4B93: AA       tax
@@ -2246,19 +2341,20 @@ write_text_4b6e:
 4B97: 4A       lsr a
 4B98: 4A       lsr a
 4B99: 60       rts
+
 4B9A: 48       pha
 4B9B: A9 FF    lda #$ff
 4B9D: 85 C6    sta $c6
 4B9F: 8A       txa
-4BA0: 20 90 4B jsr $4b90
+4BA0: 20 90 4B jsr split_a_digits_4b90
 4BA3: 85 C2    sta $c2
 4BA5: 86 C3    stx $c3
 4BA7: 98       tya
-4BA8: 20 90 4B jsr $4b90
+4BA8: 20 90 4B jsr split_a_digits_4b90
 4BAB: 85 C4    sta $c4
 4BAD: 86 C5    stx $c5
 4BAF: 68       pla
-4BB0: 20 90 4B jsr $4b90
+4BB0: 20 90 4B jsr split_a_digits_4b90
 4BB3: 85 C0    sta $c0
 4BB5: 86 C1    stx $c1
 4BB7: A9 C0    lda #$c0
@@ -2278,11 +2374,11 @@ write_text_4b6e:
 4BD2: A9 FF    lda #$ff
 4BD4: 85 C4    sta $c4
 4BD6: 8A       txa
-4BD7: 20 90 4B jsr $4b90
+4BD7: 20 90 4B jsr split_a_digits_4b90
 4BDA: 85 C2    sta $c2
 4BDC: 86 C3    stx $c3
 4BDE: 68       pla
-4BDF: 20 90 4B jsr $4b90
+4BDF: 20 90 4B jsr split_a_digits_4b90
 4BE2: 85 C0    sta $c0
 4BE4: 86 C1    stx $c1
 4BE6: A9 C0    lda #$c0
@@ -2298,7 +2394,8 @@ write_text_4b6e:
 4BF9: E0 03    cpx #$03
 4BFB: 90 F3    bcc $4bf0
 4BFD: 4C 6E 4B jmp write_text_4b6e
-4C00: 20 90 4B jsr $4b90
+
+4C00: 20 90 4B jsr split_a_digits_4b90
 4C03: 85 C0    sta $c0
 4C05: 86 C1    stx $c1
 4C07: A9 FF    lda #$ff
@@ -2317,11 +2414,11 @@ write_text_4b6e:
 4C22: A9 08    lda #$08
 4C24: 85 1A    sta $1a
 4C26: A5 F9    lda $f9
-4C28: 85 17    sta $17
+4C28: 85 17    sta head_x_value_17
 4C2A: A5 FA    lda $fa
 4C2C: 85 18    sta $18
 4C2E: A0 00    ldy #$00
-4C30: B1 17    lda ($17), y
+4C30: B1 17    lda (head_x_value_17), y
 4C32: C9 40    cmp #$40
 4C34: 10 02    bpl $4c38
 4C36: A9 30    lda #$30
@@ -2339,12 +2436,12 @@ write_text_4b6e:
 4C4C: B9 6A 4C lda $4c6a, y
 4C4F: 85 19    sta $19
 4C51: A9 00    lda #$00
-4C53: 85 17    sta $17
+4C53: 85 17    sta head_x_value_17
 4C55: A8       tay
 4C56: A9 0C    lda #$0c
 4C58: 85 18    sta $18
 4C5A: A5 19    lda $19
-4C5C: 91 17    sta ($17), y   ; [video_address]
+4C5C: 91 17    sta (head_x_value_17), y   ; [video_address]
 4C5E: C8       iny
 4C5F: D0 FB    bne $4c5c
 4C61: E6 18    inc $18
@@ -2358,7 +2455,7 @@ write_text_4b6e:
 4C8C: 2D 06 21 and dsw_2106
 4C8F: D0 48    bne $4cd9
 4C91: A9 0C    lda #$0c
-4C93: 85 17    sta $17
+4C93: 85 17    sta head_x_value_17
 4C95: A9 04    lda #$04
 4C97: 85 18    sta $18
 4C99: A9 C5    lda #$c5
@@ -2367,26 +2464,26 @@ write_text_4b6e:
 4C9F: 85 1A    sta $1a
 4CA1: A0 06    ldy #$06
 4CA3: B1 19    lda ($19), y
-4CA5: 91 17    sta ($17), y   ; [video_address]
+4CA5: 91 17    sta (head_x_value_17), y   ; [video_address]
 4CA7: 88       dey
 4CA8: 10 F9    bpl $4ca3
 4CAA: A0 07    ldy #$07
 4CAC: A5 F5    lda $f5
-4CAE: 91 17    sta ($17), y   ; [video_address]
+4CAE: 91 17    sta (head_x_value_17), y   ; [video_address]
 4CB0: A9 0C    lda #$0c
-4CB2: 85 17    sta $17
+4CB2: 85 17    sta head_x_value_17
 4CB4: A9 0C    lda #$0c
 4CB6: 85 18    sta $18
 4CB8: A0 08    ldy #$08
 4CBA: A6 F5    ldx $f5
 4CBC: BD CC 4C lda $4ccc, x
-4CBF: 91 17    sta ($17), y   ; [video_address]
+4CBF: 91 17    sta (head_x_value_17), y   ; [video_address]
 4CC1: 88       dey
 4CC2: 10 FB    bpl $4cbf
 4CC4: 60       rts
 
 4CD9: A9 0C    lda #$0c
-4CDB: 85 17    sta $17
+4CDB: 85 17    sta head_x_value_17
 4CDD: A9 04    lda #$04
 4CDF: 85 18    sta $18
 4CE1: A9 F9    lda #$f9
@@ -2395,7 +2492,7 @@ write_text_4b6e:
 4CE7: 85 1A    sta $1a
 4CE9: A0 08    ldy #$08
 4CEB: B1 19    lda ($19), y
-4CED: 91 17    sta ($17), y   ; [video_address]
+4CED: 91 17    sta (head_x_value_17), y   ; [video_address]
 4CEF: 88       dey
 4CF0: 10 F9    bpl $4ceb
 4CF2: A9 02    lda #$02
@@ -2421,7 +2518,7 @@ write_text_4b6e:
 4D24: A8       tay
 4D25: A2 00    ldx #$00
 4D27: A9 E0    lda #$e0
-4D29: 85 17    sta $17
+4D29: 85 17    sta head_x_value_17
 4D2B: A9 04    lda #$04
 4D2D: 85 18    sta $18
 4D2F: A9 00    lda #$00
@@ -2440,7 +2537,7 @@ write_text_4b6e:
 4D46: A9 00    lda #$00
 4D48: 85 11    sta $11
 4D4A: A5 1B    lda $1b
-4D4C: 85 17    sta $17
+4D4C: 85 17    sta head_x_value_17
 4D4E: A5 1C    lda $1c
 4D50: 85 18    sta $18
 4D52: A0 00    ldy #$00
@@ -2460,18 +2557,18 @@ write_text_4b6e:
 4D6F: 31 E0    and ($e0), y		; [unchecked_address]
 4D71: F0 52    beq $4dc5
 4D73: A9 40    lda #$40
-4D75: 85 17    sta $17
+4D75: 85 17    sta head_x_value_17
 4D77: A9 05    lda #$05
 4D79: 85 18    sta $18
-4D7B: A4 57    ldy $57
+4D7B: A4 57    ldy head_ptr_57
 4D7D: A2 00    ldx #$00
 4D7F: A9 00    lda #$00
 4D81: 20 9A 4B jsr $4b9a
 4D84: A9 41    lda #$41
-4D86: 85 17    sta $17
+4D86: 85 17    sta head_x_value_17
 4D88: A9 05    lda #$05
 4D8A: 85 18    sta $18
-4D8C: A4 58    ldy $58
+4D8C: A4 58    ldy tail_ptr_58
 4D8E: A2 00    ldx #$00
 4D90: A9 00    lda #$00
 4D92: 20 9A 4B jsr $4b9a
@@ -2479,12 +2576,12 @@ write_text_4b6e:
 4D97: 85 1B    sta $1b
 4D99: A9 05    lda #$05
 4D9B: 85 1C    sta $1c
-4D9D: A5 E2    lda $e2
+4D9D: A5 E2    lda move_slot_ptr_e2
 4D9F: 85 10    sta $10
 4DA1: A5 E3    lda $e3
 4DA3: 85 11    sta $11
 4DA5: A5 1B    lda $1b
-4DA7: 85 17    sta $17
+4DA7: 85 17    sta head_x_value_17
 4DA9: A5 1C    lda $1c
 4DAB: 85 18    sta $18
 4DAD: A0 00    ldy #$00
@@ -2514,24 +2611,24 @@ write_text_4b6e:
 4DDE: 39 04 21 and in0_2104, y
 4DE1: D0 17    bne $4dfa
 4DE3: A9 90    lda #$90
-4DE5: 85 17    sta $17
+4DE5: 85 17    sta head_x_value_17
 4DE7: A9 05    lda #$05
 4DE9: 85 18    sta $18
 4DEB: A9 30    lda #$30
 4DED: A0 00    ldy #$00
-4DEF: 91 17    sta ($17), y   ; [video_address]
+4DEF: 91 17    sta (head_x_value_17), y   ; [video_address]
 4DF1: A9 70    lda #$70
-4DF3: 85 17    sta $17
+4DF3: 85 17    sta head_x_value_17
 4DF5: A9 30    lda #$30
-4DF7: 91 17    sta ($17), y   ; [video_address]
+4DF7: 91 17    sta (head_x_value_17), y   ; [video_address]
 4DF9: 60       rts
 4DFA: A9 00    lda #$00
-4DFC: 85 17    sta $17
+4DFC: 85 17    sta head_x_value_17
 4DFE: A8       tay
 4DFF: A9 0C    lda #$0c
 4E01: 85 18    sta $18
 4E03: A5 EB    lda $eb
-4E05: 91 17    sta ($17), y   ; [video_address]
+4E05: 91 17    sta (head_x_value_17), y   ; [video_address]
 4E07: C8       iny
 4E08: D0 FB    bne $4e05
 4E0A: E6 18    inc $18
@@ -2539,7 +2636,7 @@ write_text_4b6e:
 4E0E: C9 10    cmp #$10
 4E10: D0 F1    bne $4e03
 4E12: A9 10    lda #$10
-4E14: 85 17    sta $17
+4E14: 85 17    sta head_x_value_17
 4E16: A9 06    lda #$06
 4E18: 85 18    sta $18
 4E1A: A9 00    lda #$00
@@ -2598,7 +2695,7 @@ write_text_4b6e:
 4E88: 85 45    sta $45
 4E8A: A0 00    ldy #$00
 4E8C: A9 22    lda #$22
-4E8E: 85 17    sta $17
+4E8E: 85 17    sta head_x_value_17
 4E90: A9 06    lda #$06
 4E92: 85 18    sta $18
 4E94: B1 44    lda ($44), y
@@ -2607,7 +2704,7 @@ write_text_4b6e:
 4E99: A5 45    lda $45
 4E9B: 20 9A 4B jsr $4b9a
 4E9E: A9 42    lda #$42
-4EA0: 85 17    sta $17
+4EA0: 85 17    sta head_x_value_17
 4EA2: A9 05    lda #$05
 4EA4: 85 18    sta $18
 4EA6: A5 46    lda $46
@@ -2693,11 +2790,11 @@ write_text_4b6e:
 4F46: D0 05    bne $4f4d
 4F48: A9 82    lda #$82
 4F4A: 4C 87 3F jmp $3f87
-4F4D: A5 58    lda $58
-4F4F: C5 57    cmp $57
+4F4D: A5 58    lda tail_ptr_58
+4F4F: C5 57    cmp head_ptr_57
 4F51: D0 03    bne $4f56
 4F53: 4C 98 4F jmp $4f98
-4F56: A4 58    ldy $58
+4F56: A4 58    ldy tail_ptr_58
 4F58: A5 56    lda $56
 4F5A: C9 01    cmp #$01
 4F5C: F0 20    beq $4f7e
@@ -2723,12 +2820,12 @@ write_text_4b6e:
 4F84: 20 91 5E jsr $5e91
 4F87: A9 00    lda #$00
 4F89: 85 BF    sta $bf
-4F8B: A4 58    ldy $58
+4F8B: A4 58    ldy tail_ptr_58
 4F8D: C8       iny
 4F8E: C8       iny
 4F8F: 98       tya
 4F90: 29 3F    and #$3f
-4F92: 85 58    sta $58
+4F92: 85 58    sta tail_ptr_58
 4F94: A9 0A    lda #$0a
 4F96: 85 5B    sta $5b
 4F98: 20 00 A6 jsr $a600
@@ -2738,7 +2835,7 @@ write_text_4b6e:
 4FA1: 85 BB    sta $bb
 4FA3: A5 ED    lda $ed
 4FA5: F0 31    beq $4fd8
-4FA7: A5 51    lda $51
+4FA7: A5 51    lda snake_row_51
 4FA9: 85 31    sta $31
 4FAB: A5 52    lda $52
 4FAD: 85 32    sta $32
@@ -2749,10 +2846,10 @@ write_text_4b6e:
 4FB7: F0 10    beq $4fc9
 4FB9: C9 04    cmp #$04
 4FBB: F0 06    beq $4fc3
-4FBD: C6 51    dec $51
+4FBD: C6 51    dec snake_row_51
 4FBF: D0 17    bne $4fd8
 4FC1: F0 10    beq $4fd3
-4FC3: E6 51    inc $51
+4FC3: E6 51    inc snake_row_51
 4FC5: D0 11    bne $4fd8
 4FC7: F0 0A    beq $4fd3
 4FC9: E6 52    inc $52
@@ -2763,7 +2860,7 @@ write_text_4b6e:
 4FD3: A9 85    lda #$85
 4FD5: 4C 87 3F jmp $3f87
 4FD8: 20 8F 5C jsr $5c8f
-4FDB: 20 AB 49 jsr $49ab
+4FDB: 20 AB 49 jsr draw_fruits_49ab
 4FDE: A9 10    lda #$10
 4FE0: 25 F0    and $f0
 4FE2: F0 05    beq $4fe9
@@ -2775,8 +2872,8 @@ write_text_4b6e:
 4FF1: 8D E3 0C sta $0ce3
 4FF4: 8D 03 0D sta $0d03
 4FF7: A9 00    lda #$00
-4FF9: 85 FC    sta $fc
-4FFB: 4C 5F 30 jmp mainloop_305f
+4FF9: 85 FC    sta game_state_fc
+4FFB: 4C 5F 30 jmp infinite_loop_305f
 
 5000: A9 40    lda #$40
 5002: 85 BE    sta $be
@@ -2806,7 +2903,7 @@ write_text_4b6e:
 5039: A9 09    lda #$09
 503B: 85 16    sta $16
 503D: A9 B0    lda #$b0
-503F: 85 17    sta $17
+503F: 85 17    sta head_x_value_17
 5041: A9 02    lda #$02
 5043: 85 18    sta $18
 5045: A9 30    lda #$30
@@ -2814,7 +2911,7 @@ write_text_4b6e:
 5049: A9 00    lda #$00
 504B: 85 1A    sta $1a
 504D: A0 03    ldy #$03
-504F: B1 17    lda ($17), y
+504F: B1 17    lda (head_x_value_17), y
 5051: 91 19    sta ($19), y
 5053: 88       dey
 5054: 10 F9    bpl $504f
@@ -2842,28 +2939,28 @@ write_text_4b6e:
 507F: A5 B9    lda $b9
 5081: E5 33    sbc $33
 5083: B0 12    bcs $5097
-5085: A5 17    lda $17
+5085: A5 17    lda head_x_value_17
 5087: 18       clc
 5088: 69 04    adc #$04
-508A: 85 17    sta $17
+508A: 85 17    sta head_x_value_17
 508C: A5 18    lda $18
 508E: 69 00    adc #$00
 5090: 85 18    sta $18
 5092: E6 16    inc $16
 5094: 4C B7 50 jmp $50b7
-5097: A5 17    lda $17
+5097: A5 17    lda head_x_value_17
 5099: 38       sec
 509A: E9 04    sbc #$04
-509C: 85 17    sta $17
+509C: 85 17    sta head_x_value_17
 509E: A5 18    lda $18
 50A0: E9 00    sbc #$00
 50A2: 85 18    sta $18
 50A4: C6 16    dec $16
 50A6: D0 A5    bne $504d
-50A8: A5 17    lda $17
+50A8: A5 17    lda head_x_value_17
 50AA: 18       clc
 50AB: 69 04    adc #$04
-50AD: 85 17    sta $17
+50AD: 85 17    sta head_x_value_17
 50AF: A5 18    lda $18
 50B1: 69 00    adc #$00
 50B3: 85 18    sta $18
@@ -2905,7 +3002,7 @@ write_text_4b6e:
 50F8: A9 A5    lda #$a5
 50FA: 4C 87 3F jmp $3f87
 50FD: A5 1B    lda $1b
-50FF: C5 17    cmp $17
+50FF: C5 17    cmp head_x_value_17
 5101: D0 06    bne $5109
 5103: A5 1C    lda $1c
 5105: C5 18    cmp $18
@@ -2926,7 +3023,7 @@ write_text_4b6e:
 5125: 85 1A    sta $1a
 5127: A0 03    ldy #$03
 5129: B1 19    lda ($19), y
-512B: 91 17    sta ($17), y   ; [video_address]
+512B: 91 17    sta (head_x_value_17), y   ; [video_address]
 512D: 88       dey
 512E: 10 F9    bpl $5129
 5130: A9 0A    lda #$0a
@@ -3055,7 +3152,7 @@ write_text_4b6e:
 522F: 91 1E    sta ($1e), y
 5231: A4 1C    ldy $1c
 5233: B9 90 34 lda $3490, y
-5236: 20 90 4B jsr $4b90
+5236: 20 90 4B jsr split_a_digits_4b90
 5239: 8D FB 04 sta $04fb
 523C: 8E DB 04 stx $04db
 523F: A9 08    lda #$08
@@ -3119,14 +3216,14 @@ write_text_4b6e:
 52B4: C8       iny
 52B5: 91 19    sta ($19), y
 52B7: A5 19    lda $19
-52B9: 85 17    sta $17
+52B9: 85 17    sta head_x_value_17
 52BB: A5 1A    lda $1a
 52BD: 18       clc
 52BE: 69 08    adc #$08
 52C0: 85 18    sta $18
 52C2: A0 01    ldy #$01
 52C4: A9 03    lda #$03
-52C6: 91 17    sta ($17), y   ; [video_address]
+52C6: 91 17    sta (head_x_value_17), y   ; [video_address]
 52C8: A5 19    lda $19
 52CA: 38       sec
 52CB: E9 20    sbc #$20
@@ -3157,14 +3254,14 @@ write_text_4b6e:
 52FB: C8       iny
 52FC: 91 19    sta ($19), y
 52FE: A5 19    lda $19
-5300: 85 17    sta $17
+5300: 85 17    sta head_x_value_17
 5302: A5 1A    lda $1a
 5304: 18       clc
 5305: 69 08    adc #$08
 5307: 85 18    sta $18
 5309: A0 01    ldy #$01
 530B: A9 03    lda #$03
-530D: 91 17    sta ($17), y   ; [video_address]
+530D: 91 17    sta (head_x_value_17), y   ; [video_address]
 530F: A5 19    lda $19
 5311: 18       clc
 5312: 69 20    adc #$20
@@ -3191,11 +3288,11 @@ write_text_4b6e:
 533E: A9 01    lda #$01
 5340: 85 18    sta $18
 5342: A9 28    lda #$28
-5344: 85 17    sta $17
+5344: 85 17    sta head_x_value_17
 5346: A2 00    ldx #$00		; [cpu_loop]
 5348: CA       dex
 5349: D0 FD    bne $5348
-534B: C6 17    dec $17
+534B: C6 17    dec head_x_value_17
 534D: D0 F9    bne $5348
 534F: C6 18    dec $18
 5351: D0 F5    bne $5348
@@ -3287,7 +3384,7 @@ write_text_4b6e:
 5401: A9 07    lda #$07
 5403: 20 00 40 jsr $4000
 5406: A9 49    lda #$49
-5408: 85 17    sta $17
+5408: 85 17    sta head_x_value_17
 540A: A9 06    lda #$06
 540C: 85 18    sta $18
 540E: A9 D0    lda #$d0
@@ -3298,7 +3395,7 @@ write_text_4b6e:
 5418: 85 1F    sta $1f
 541A: A0 00    ldy #$00
 541C: B1 19    lda ($19), y
-541E: 91 17    sta ($17), y   ; [video_address]
+541E: 91 17    sta (head_x_value_17), y   ; [video_address]
 5420: A5 19    lda $19
 5422: 18       clc
 5423: 69 01    adc #$01
@@ -3306,15 +3403,15 @@ write_text_4b6e:
 5427: A5 1A    lda $1a
 5429: 69 00    adc #$00
 542B: 85 1A    sta $1a
-542D: A5 17    lda $17
+542D: A5 17    lda head_x_value_17
 542F: 38       sec
 5430: E9 20    sbc #$20
-5432: 85 17    sta $17
+5432: 85 17    sta head_x_value_17
 5434: A5 18    lda $18
 5436: E9 00    sbc #$00
 5438: 85 18    sta $18
 543A: B1 19    lda ($19), y
-543C: 91 17    sta ($17), y   ; [video_address]
+543C: 91 17    sta (head_x_value_17), y   ; [video_address]
 543E: A5 19    lda $19
 5440: 18       clc
 5441: 69 01    adc #$01
@@ -3322,15 +3419,15 @@ write_text_4b6e:
 5445: A5 1A    lda $1a
 5447: 69 00    adc #$00
 5449: 85 1A    sta $1a
-544B: A5 17    lda $17
+544B: A5 17    lda head_x_value_17
 544D: 38       sec
 544E: E9 20    sbc #$20
-5450: 85 17    sta $17
+5450: 85 17    sta head_x_value_17
 5452: A5 18    lda $18
 5454: E9 00    sbc #$00
 5456: 85 18    sta $18
 5458: B1 19    lda ($19), y
-545A: 91 17    sta ($17), y   ; [video_address]
+545A: 91 17    sta (head_x_value_17), y   ; [video_address]
 545C: A5 19    lda $19
 545E: 18       clc
 545F: 69 01    adc #$01
@@ -3338,10 +3435,10 @@ write_text_4b6e:
 5463: A5 1A    lda $1a
 5465: 69 00    adc #$00
 5467: 85 1A    sta $1a
-5469: A5 17    lda $17
+5469: A5 17    lda head_x_value_17
 546B: 18       clc
 546C: 69 42    adc #$42
-546E: 85 17    sta $17
+546E: 85 17    sta head_x_value_17
 5470: A5 18    lda $18
 5472: 69 00    adc #$00
 5474: 85 18    sta $18
@@ -3362,7 +3459,7 @@ write_text_4b6e:
 5492: A9 09    lda #$09
 5494: 85 1F    sta $1f
 5496: A5 1D    lda $1d
-5498: 85 17    sta $17
+5498: 85 17    sta head_x_value_17
 549A: A5 1E    lda $1e
 549C: 85 18    sta $18
 549E: 20 CB 54 jsr $54cb
@@ -3394,22 +3491,22 @@ write_text_4b6e:
 54D1: 85 CA    sta $ca
 54D3: A0 00    ldy #$00
 54D5: B1 1B    lda ($1b), y
-54D7: 20 90 4B jsr $4b90
+54D7: 20 90 4B jsr split_a_digits_4b90
 54DA: 86 C9    stx $c9
 54DC: 85 C8    sta $c8
 54DE: C8       iny
 54DF: B1 1B    lda ($1b), y
-54E1: 20 90 4B jsr $4b90
+54E1: 20 90 4B jsr split_a_digits_4b90
 54E4: 86 C6    stx $c6
 54E6: 85 C5    sta $c5
 54E8: C8       iny
 54E9: B1 1B    lda ($1b), y
-54EB: 20 90 4B jsr $4b90
+54EB: 20 90 4B jsr split_a_digits_4b90
 54EE: 86 C4    stx $c4
 54F0: 85 C2    sta $c2
 54F2: C8       iny
 54F3: B1 1B    lda ($1b), y
-54F5: 20 90 4B jsr $4b90
+54F5: 20 90 4B jsr split_a_digits_4b90
 54F8: 86 C1    stx $c1
 54FA: 85 C0    sta $c0
 54FC: A9 27    lda #$27
@@ -3448,7 +3545,7 @@ write_text_4b6e:
 5540: 4C 17 56 jmp $5617
 5543: A9 1B    lda #$1b
 5545: 38       sec
-5546: E5 51    sbc $51
+5546: E5 51    sbc snake_row_51
 5548: 18       clc
 5549: 2A       rol a
 554A: 2A       rol a
@@ -3634,11 +3731,11 @@ write_text_4b6e:
 56AF: A0 00    ldy #$00
 56B1: A9 30    lda #$30
 56B3: 91 1B    sta ($1b), y
-56B5: A5 57    lda $57
-56B7: C5 58    cmp $58
+56B5: A5 57    lda head_ptr_57
+56B7: C5 58    cmp tail_ptr_58
 56B9: F0 03    beq $56be
 56BB: 4C 78 58 jmp $5878
-56BE: A5 51    lda $51
+56BE: A5 51    lda snake_row_51
 56C0: C5 54    cmp $54
 56C2: D0 97    bne $565b
 56C4: A5 52    lda $52
@@ -3745,14 +3842,14 @@ write_text_4b6e:
 579C: 85 AB    sta $ab
 579E: A5 BC    lda $bc
 57A0: 85 AD    sta $ad
-57A2: A5 BA    lda $ba
+57A2: A5 BA    lda fruits_left_ba
 57A4: 85 AF    sta $af
 57A6: A5 AA    lda $aa
 57A8: 85 59    sta $59
 57AA: A5 AC    lda $ac
 57AC: 85 BC    sta $bc
 57AE: A5 AE    lda $ae
-57B0: 85 BA    sta $ba
+57B0: 85 BA    sta fruits_left_ba
 57B2: A9 01    lda #$01
 57B4: 20 00 40 jsr $4000
 57B7: C6 B0    dec $b0
@@ -3775,14 +3872,14 @@ write_text_4b6e:
 57DD: 85 AA    sta $aa
 57DF: A5 BC    lda $bc
 57E1: 85 AC    sta $ac
-57E3: A5 BA    lda $ba
+57E3: A5 BA    lda fruits_left_ba
 57E5: 85 AE    sta $ae
 57E7: A5 AB    lda $ab
 57E9: 85 59    sta $59
 57EB: A5 AD    lda $ad
 57ED: 85 BC    sta $bc
 57EF: A5 AF    lda $af
-57F1: 85 BA    sta $ba
+57F1: 85 BA    sta fruits_left_ba
 57F3: A9 02    lda #$02
 57F5: 20 00 40 jsr $4000
 57F8: C6 B1    dec $b1
@@ -3843,10 +3940,10 @@ write_text_4b6e:
 586B: A9 00    lda #$00
 586D: 85 28    sta $28
 586F: 85 29    sta $29
-5871: 20 AB 49 jsr $49ab
+5871: 20 AB 49 jsr draw_fruits_49ab
 5874: 20 00 AA jsr $aa00
 5877: 60       rts
-5878: A4 58    ldy $58
+5878: A4 58    ldy tail_ptr_58
 587A: A5 56    lda $56
 587C: C9 01    cmp #$01
 587E: F0 23    beq $58a3
@@ -3890,7 +3987,7 @@ write_text_4b6e:
 58CE: C8       iny
 58CF: 98       tya
 58D0: 29 3F    and #$3f
-58D2: 85 58    sta $58
+58D2: 85 58    sta tail_ptr_58
 58D4: 4C 5B 56 jmp $565b
 
 58E9: A0 00    ldy #$00
@@ -3914,6 +4011,7 @@ write_text_4b6e:
 590B: 95 00    sta $00, x
 590D: E8       inx
 590E: D0 FB    bne $590b
+; sets stack top
 5910: A2 FF    ldx #$ff
 5912: 9A       txs
 5913: D8       cld
@@ -3931,8 +4029,8 @@ write_text_4b6e:
 592F: 8D 01 21 sta sound_2101
 5932: 8D 02 21 sta sound_2102
 5935: 8D 03 21 sta flipscreen_2103
-5938: 85 F3    sta $f3
-593A: 85 FC    sta $fc
+5938: 85 F3    sta fast_counter_f3
+593A: 85 FC    sta game_state_fc
 593C: A9 04    lda #$04
 593E: 85 E0    sta $e0
 5940: A9 21    lda #$21
@@ -3940,7 +4038,7 @@ write_text_4b6e:
 5944: A9 00    lda #$00
 5946: 85 FD    sta $fd
 5948: A9 C0    lda #$c0
-594A: 85 E2    sta $e2
+594A: 85 E2    sta move_slot_ptr_e2
 594C: A9 03    lda #$03
 594E: 85 E3    sta $e3
 5950: A9 01    lda #$01
@@ -3950,7 +4048,7 @@ write_text_4b6e:
 595A: A9 05    lda #$05
 595C: 85 DF    sta $df
 595E: A9 90    lda #$90
-5960: 85 17    sta $17
+5960: 85 17    sta head_x_value_17
 5962: A9 02    lda #$02
 5964: 85 18    sta $18
 5966: A9 93    lda #$93
@@ -3959,11 +4057,11 @@ write_text_4b6e:
 596C: 85 1A    sta $1a
 596E: A0 28    ldy #$28
 5970: B1 19    lda ($19), y
-5972: 91 17    sta ($17), y
+5972: 91 17    sta (head_x_value_17), y
 5974: 88       dey
 5975: 10 F9    bpl $5970
 5977: A9 D0    lda #$d0
-5979: 85 17    sta $17
+5979: 85 17    sta head_x_value_17
 597B: A9 02    lda #$02
 597D: 85 18    sta $18
 597F: A9 BB    lda #$bb
@@ -3972,13 +4070,13 @@ write_text_4b6e:
 5985: 85 1A    sta $1a
 5987: A0 1E    ldy #$1e
 5989: B1 19    lda ($19), y
-598B: 91 17    sta ($17), y
+598B: 91 17    sta (head_x_value_17), y
 598D: 88       dey
 598E: 10 F9    bpl $5989
 5990: 4C D9 59 jmp $59d9
 
 59D9: A9 FF    lda #$ff
-59DB: 85 FC    sta $fc
+59DB: 85 FC    sta game_state_fc
 59DD: 58       cli
 59DE: A5 A8    lda $a8
 59E0: 29 78    and #$78
@@ -4016,30 +4114,30 @@ write_text_4b6e:
 5A24: A5 0D    lda $0d
 5A26: 18       clc
 5A27: 65 F0    adc $f0
-5A29: 85 17    sta $17
+5A29: 85 17    sta head_x_value_17
 5A2B: A5 0E    lda $0e
 5A2D: 65 F1    adc $f1
 5A2F: 85 18    sta $18
 5A31: A9 00    lda #$00
 5A33: 85 19    sta $19
 5A35: E6 19    inc $19
-5A37: A5 17    lda $17
+5A37: A5 17    lda head_x_value_17
 5A39: 38       sec
 5A3A: E9 64    sbc #$64
-5A3C: 85 17    sta $17
+5A3C: 85 17    sta head_x_value_17
 5A3E: A5 18    lda $18
 5A40: E9 00    sbc #$00
 5A42: 85 18    sta $18
 5A44: B0 EF    bcs $5a35
 5A46: C6 19    dec $19
-5A48: A5 17    lda $17
+5A48: A5 17    lda head_x_value_17
 5A4A: 18       clc
 5A4B: 69 64    adc #$64
-5A4D: 85 17    sta $17
+5A4D: 85 17    sta head_x_value_17
 5A4F: A5 18    lda $18
 5A51: 69 00    adc #$00
 5A53: 85 18    sta $18
-5A55: A4 17    ldy $17
+5A55: A4 17    ldy head_x_value_17
 5A57: B9 90 34 lda $3490, y
 5A5A: 85 0D    sta $0d
 5A5C: A4 19    ldy $19
@@ -4053,7 +4151,7 @@ write_text_4b6e:
 5A6F: A9 00    lda #$00
 5A71: 20 00 40 jsr $4000
 5A74: A9 83    lda #$83
-5A76: 85 17    sta $17
+5A76: 85 17    sta head_x_value_17
 5A78: A9 04    lda #$04
 5A7A: 85 18    sta $18
 5A7C: A6 0D    ldx $0d
@@ -4062,11 +4160,11 @@ write_text_4b6e:
 5A83: A9 06    lda #$06
 5A85: 85 18    sta $18
 5A87: A9 01    lda #$01
-5A89: 85 17    sta $17
+5A89: 85 17    sta head_x_value_17
 5A8B: A2 00    ldx #$00		; [cpu_loop]
 5A8D: CA       dex
 5A8E: D0 FD    bne $5a8d
-5A90: C6 17    dec $17
+5A90: C6 17    dec head_x_value_17
 5A92: D0 F9    bne $5a8d
 5A94: C6 18    dec $18
 5A96: D0 F5    bne $5a8d
@@ -4074,11 +4172,11 @@ write_text_4b6e:
 5A9B: A9 0C    lda #$0c
 5A9D: 85 18    sta $18
 5A9F: A9 01    lda #$01
-5AA1: 85 17    sta $17
+5AA1: 85 17    sta head_x_value_17
 5AA3: A2 00    ldx #$00		; [cpu_loop]
 5AA5: CA       dex
 5AA6: D0 FD    bne $5aa5
-5AA8: C6 17    dec $17
+5AA8: C6 17    dec head_x_value_17
 5AAA: D0 F9    bne $5aa5
 5AAC: C6 18    dec $18
 5AAE: D0 F5    bne $5aa5
@@ -4097,11 +4195,11 @@ write_text_4b6e:
 5ACD: A9 03    lda #$03
 5ACF: 85 18    sta $18
 5AD1: A9 01    lda #$01
-5AD3: 85 17    sta $17
+5AD3: 85 17    sta head_x_value_17
 5AD5: A2 00    ldx #$00		; [cpu_loop]
 5AD7: CA       dex
 5AD8: D0 FD    bne $5ad7
-5ADA: C6 17    dec $17
+5ADA: C6 17    dec head_x_value_17
 5ADC: D0 F9    bne $5ad7
 5ADE: C6 18    dec $18
 5AE0: D0 F5    bne $5ad7
@@ -4135,11 +4233,11 @@ write_text_4b6e:
 5B15: A9 01    lda #$01
 5B17: 85 18    sta $18
 5B19: A9 20    lda #$20
-5B1B: 85 17    sta $17
+5B1B: 85 17    sta head_x_value_17
 5B1D: A2 00    ldx #$00		; [cpu_loop]
 5B1F: CA       dex
 5B20: D0 FD    bne $5b1f
-5B22: C6 17    dec $17
+5B22: C6 17    dec head_x_value_17
 5B24: D0 F9    bne $5b1f
 5B26: C6 18    dec $18
 5B28: D0 F5    bne $5b1f
@@ -4150,11 +4248,11 @@ write_text_4b6e:
 5B33: A9 0B    lda #$0b
 5B35: 85 18    sta $18
 5B37: A9 01    lda #$01
-5B39: 85 17    sta $17
+5B39: 85 17    sta head_x_value_17
 5B3B: A2 00    ldx #$00		; [cpu_loop]
 5B3D: CA       dex
 5B3E: D0 FD    bne $5b3d
-5B40: C6 17    dec $17
+5B40: C6 17    dec head_x_value_17
 5B42: D0 F9    bne $5b3d
 5B44: C6 18    dec $18
 5B46: D0 F5    bne $5b3d
@@ -4167,8 +4265,12 @@ write_text_4b6e:
 5B55: 85 BC    sta $bc
 5B57: 20 99 32 jsr $3299
 5B5A: A9 00    lda #$00
-5B5C: 85 FC    sta $fc
-5B5E: 4C 5F 30 jmp mainloop_305f
+5B5C: 85 FC    sta game_state_fc
+; start game demo
+5B5E: 4C 5F 30 jmp infinite_loop_305f
+
+; reaches when game is started (not demo)
+exit_irq_5b61:
 5B61: A9 00    lda #$00
 5B63: 85 F4    sta $f4
 5B65: A5 A8    lda $a8
@@ -4206,7 +4308,7 @@ write_text_4b6e:
 5BAB: A9 30    lda #$30
 5BAD: 85 BE    sta $be
 5BAF: 20 EE 5C jsr $5cee
-5BB2: A5 BA    lda $ba
+5BB2: A5 BA    lda fruits_left_ba
 5BB4: 85 AF    sta $af
 5BB6: A9 20    lda #$20
 5BB8: 85 BE    sta $be
@@ -4233,8 +4335,10 @@ write_text_4b6e:
 5BE3: 8D 02 21 sta sound_2102
 5BE6: 20 99 32 jsr $3299
 5BE9: A9 00    lda #$00
-5BEB: 85 FC    sta $fc
-5BED: 4C 5F 30 jmp mainloop_305f
+5BEB: 85 FC    sta game_state_fc
+; game started (real game)
+5BED: 4C 5F 30 jmp infinite_loop_305f
+
 5BF4: A5 E9    lda $e9
 5BF6: 0A       asl a
 5BF7: 0A       asl a
@@ -4247,7 +4351,7 @@ write_text_4b6e:
 5C02: A9 40    lda #$40
 5C04: 18       clc
 5C05: 65 16    adc $16
-5C07: 85 17    sta $17
+5C07: 85 17    sta head_x_value_17
 5C09: A9 60    lda #$60
 5C0B: 69 00    adc #$00
 5C0D: 85 18    sta $18
@@ -4256,7 +4360,7 @@ write_text_4b6e:
 5C13: A9 19    lda #$19
 5C15: 85 1A    sta $1a
 5C17: A0 07    ldy #$07
-5C19: B1 17    lda ($17), y
+5C19: B1 17    lda (head_x_value_17), y
 5C1B: 91 19    sta ($19), y
 5C1D: 88       dey
 5C1E: 10 F9    bpl $5c19
@@ -4265,7 +4369,7 @@ write_text_4b6e:
 5C24: A9 80    lda #$80
 5C26: 18       clc
 5C27: 65 16    adc $16
-5C29: 85 17    sta $17
+5C29: 85 17    sta head_x_value_17
 5C2B: A9 60    lda #$60
 5C2D: 69 00    adc #$00
 5C2F: 85 18    sta $18
@@ -4274,7 +4378,7 @@ write_text_4b6e:
 5C35: A9 1A    lda #$1a
 5C37: 85 1A    sta $1a
 5C39: A0 07    ldy #$07
-5C3B: B1 17    lda ($17), y
+5C3B: B1 17    lda (head_x_value_17), y
 5C3D: 91 19    sta ($19), y
 5C3F: 88       dey
 5C40: 10 F9    bpl $5c3b
@@ -4283,7 +4387,7 @@ write_text_4b6e:
 5C46: A9 00    lda #$00
 5C48: 18       clc
 5C49: 65 16    adc $16
-5C4B: 85 17    sta $17
+5C4B: 85 17    sta head_x_value_17
 5C4D: A9 60    lda #$60
 5C4F: 69 00    adc #$00
 5C51: 85 18    sta $18
@@ -4292,7 +4396,7 @@ write_text_4b6e:
 5C57: A9 19    lda #$19
 5C59: 85 1A    sta $1a
 5C5B: A0 07    ldy #$07
-5C5D: B1 17    lda ($17), y
+5C5D: B1 17    lda (head_x_value_17), y
 5C5F: 91 19    sta ($19), y
 5C61: 88       dey
 5C62: 10 F9    bpl $5c5d
@@ -4301,7 +4405,7 @@ write_text_4b6e:
 5C68: A9 00    lda #$00
 5C6A: 18       clc
 5C6B: 65 16    adc $16
-5C6D: 85 17    sta $17
+5C6D: 85 17    sta head_x_value_17
 5C6F: A9 60    lda #$60
 5C71: 69 00    adc #$00
 5C73: 85 18    sta $18
@@ -4314,7 +4418,7 @@ write_text_4b6e:
 5C81: 98       tya
 5C82: 49 07    eor #$07
 5C84: A8       tay
-5C85: B1 17    lda ($17), y
+5C85: B1 17    lda (head_x_value_17), y
 5C87: A4 1B    ldy $1b
 5C89: 91 19    sta ($19), y
 5C8B: 88       dey
@@ -4333,15 +4437,15 @@ write_text_4b6e:
 5CA5: F0 1C    beq $5cc3
 5CA7: C9 04    cmp #$04
 5CA9: F0 0C    beq $5cb7
-5CAB: A5 3B    lda $3b
+5CAB: A5 3B    lda move_to_row_3b
 5CAD: 38       sec
-5CAE: E5 51    sbc $51
+5CAE: E5 51    sbc snake_row_51
 5CB0: C9 02    cmp #$02
 5CB2: 10 27    bpl $5cdb
 5CB4: 4C DE 5C jmp $5cde
-5CB7: A5 51    lda $51
+5CB7: A5 51    lda snake_row_51
 5CB9: 38       sec
-5CBA: E5 3B    sbc $3b
+5CBA: E5 3B    sbc move_to_row_3b
 5CBC: C9 02    cmp #$02
 5CBE: 10 1B    bpl $5cdb
 5CC0: 4C DE 5C jmp $5cde
@@ -4369,7 +4473,7 @@ write_text_4b6e:
 5CF0: C9 30    cmp #$30
 5CF2: 30 13    bmi $5d07
 5CF4: A9 40    lda #$40
-5CF6: 85 17    sta $17
+5CF6: 85 17    sta head_x_value_17
 5CF8: A9 03    lda #$03
 5CFA: 85 18    sta $18
 5CFC: A9 40    lda #$40
@@ -4378,7 +4482,7 @@ write_text_4b6e:
 5D02: 85 DA    sta $da
 5D04: 4C 0F 5D jmp $5d0f
 5D07: A9 00    lda #$00
-5D09: 85 17    sta $17
+5D09: 85 17    sta head_x_value_17
 5D0B: A9 03    lda #$03
 5D0D: 85 18    sta $18
 5D0F: A5 BC    lda $bc
@@ -4394,7 +4498,7 @@ write_text_4b6e:
 5D21: B9 9B 5D lda $5d9b, y
 5D24: 85 1A    sta $1a
 5D26: A9 00    lda #$00
-5D28: 85 BA    sta $ba
+5D28: 85 BA    sta fruits_left_ba
 5D2A: A0 00    ldy #$00
 5D2C: B1 19    lda ($19), y
 5D2E: 85 1B    sta $1b
@@ -4402,7 +4506,7 @@ write_text_4b6e:
 5D31: B1 19    lda ($19), y
 5D33: 85 1C    sta $1c
 5D35: 30 59    bmi $5d90
-5D37: E6 BA    inc $ba
+5D37: E6 BA    inc fruits_left_ba
 5D39: A9 1B    lda #$1b
 5D3B: 38       sec
 5D3C: E5 1B    sbc $1b
@@ -4426,22 +4530,22 @@ write_text_4b6e:
 5D58: 85 1D    sta $1d
 5D5A: A0 00    ldy #$00
 5D5C: A5 1D    lda $1d
-5D5E: 91 17    sta ($17), y
+5D5E: 91 17    sta (head_x_value_17), y
 5D60: C8       iny
 5D61: A5 1E    lda $1e
 5D63: 18       clc
 5D64: 69 04    adc #$04
-5D66: 91 17    sta ($17), y
+5D66: 91 17    sta (head_x_value_17), y
 5D68: 18       clc
 5D69: 69 04    adc #$04
 5D6B: 85 1E    sta $1e
 5D6D: A0 00    ldy #$00
 5D6F: A5 1F    lda $1f
 5D71: 91 1D    sta ($1d), y		; [video_address]
-5D73: A5 17    lda $17
+5D73: A5 17    lda head_x_value_17
 5D75: 18       clc
 5D76: 69 02    adc #$02
-5D78: 85 17    sta $17
+5D78: 85 17    sta head_x_value_17
 5D7A: A5 18    lda $18
 5D7C: 69 00    adc #$00
 5D7E: 85 18    sta $18
@@ -4455,9 +4559,9 @@ write_text_4b6e:
 5D8D: 4C 2A 5D jmp $5d2a
 5D90: A9 FF    lda #$ff
 5D92: A0 00    ldy #$00
-5D94: 91 17    sta ($17), y
+5D94: 91 17    sta (head_x_value_17), y
 5D96: C8       iny
-5D97: 91 17    sta ($17), y
+5D97: 91 17    sta (head_x_value_17), y
 5D99: 60       rts
 
 5DF9: 08       php
@@ -4465,7 +4569,7 @@ write_text_4b6e:
 5DFC: 85 52    sta $52
 5DFE: 85 55    sta $55
 5E00: A9 10    lda #$10
-5E02: 85 51    sta $51
+5E02: 85 51    sta snake_row_51
 5E04: A9 08    lda #$08
 5E06: 85 54    sta $54
 5E08: A9 04    lda #$04
@@ -4476,8 +4580,8 @@ write_text_4b6e:
 5E12: A9 FF    lda #$ff
 5E14: 85 A9    sta $a9
 5E16: A9 00    lda #$00
-5E18: 85 57    sta $57
-5E1A: 85 58    sta $58
+5E18: 85 57    sta head_ptr_57
+5E1A: 85 58    sta tail_ptr_58
 5E1C: 85 5E    sta $5e
 5E1E: 85 5B    sta $5b
 5E20: 85 5A    sta $5a
@@ -4498,7 +4602,7 @@ write_text_4b6e:
 5E3E: 85 25    sta $25
 5E40: 85 26    sta $26
 5E42: 85 27    sta $27
-5E44: 85 3B    sta $3b
+5E44: 85 3B    sta move_to_row_3b
 5E46: 85 3C    sta $3c
 5E48: 85 BF    sta $bf
 5E4A: 85 48    sta $48
@@ -4509,14 +4613,14 @@ write_text_4b6e:
 5E53: 30 02    bmi $5e57
 5E55: A0 04    ldy #$04
 5E57: A9 00    lda #$00
-5E59: 85 17    sta $17
+5E59: 85 17    sta head_x_value_17
 5E5B: A8       tay
 5E5C: A9 0C    lda #$0c
 5E5E: 85 18    sta $18
-5E60: B1 17    lda ($17), y
+5E60: B1 17    lda (head_x_value_17), y
 5E62: 29 F8    and #$f8
 5E64: 05 16    ora $16
-5E66: 91 17    sta ($17), y   ; [video_address]
+5E66: 91 17    sta (head_x_value_17), y   ; [video_address]
 5E68: C8       iny
 5E69: D0 F5    bne $5e60
 5E6B: E6 18    inc $18
@@ -4530,11 +4634,11 @@ write_text_4b6e:
 5E7B: A9 01    lda #$01
 5E7D: 85 18    sta $18
 5E7F: A9 20    lda #$20
-5E81: 85 17    sta $17
+5E81: 85 17    sta head_x_value_17
 5E83: A2 00    ldx #$00		; [cpu_loop]
 5E85: CA       dex
 5E86: D0 FD    bne $5e85
-5E88: C6 17    dec $17
+5E88: C6 17    dec head_x_value_17
 5E8A: D0 F9    bne $5e85
 5E8C: C6 18    dec $18
 5E8E: D0 F5    bne $5e85
@@ -4568,20 +4672,20 @@ write_text_4b6e:
 5EC6: 2A       rol a
 5EC7: 2A       rol a
 5EC8: 2A       rol a
-5EC9: 85 17    sta $17
+5EC9: 85 17    sta head_x_value_17
 5ECB: A9 00    lda #$00
 5ECD: 69 00    adc #$00
 5ECF: 0A       asl a
-5ED0: 26 17    rol $17
+5ED0: 26 17    rol head_x_value_17
 5ED2: 69 04    adc #$04
 5ED4: 85 18    sta $18
 5ED6: A9 1F    lda #$1f
 5ED8: 38       sec
 5ED9: E5 1A    sbc $1a
 5EDB: 18       clc
-5EDC: 65 17    adc $17
-5EDE: 85 17    sta $17
-5EE0: A4 58    ldy $58
+5EDC: 65 17    adc head_x_value_17
+5EDE: 85 17    sta head_x_value_17
+5EE0: A4 58    ldy tail_ptr_58
 5EE2: C8       iny
 5EE3: B9 C0 03 lda $03c0, y
 5EE6: 29 0F    and #$0f
@@ -4600,10 +4704,10 @@ write_text_4b6e:
 5F02: F0 20    beq $5f24
 5F04: A9 04    lda #$04
 5F06: 85 56    sta $56
-5F08: A5 17    lda $17
+5F08: A5 17    lda head_x_value_17
 5F0A: 38       sec
 5F0B: E9 21    sbc #$21
-5F0D: 85 17    sta $17
+5F0D: 85 17    sta head_x_value_17
 5F0F: A5 18    lda $18
 5F11: E9 00    sbc #$00
 5F13: 85 18    sta $18
@@ -4616,10 +4720,10 @@ write_text_4b6e:
 5F21: 4C 81 5F jmp $5f81
 5F24: A9 08    lda #$08
 5F26: 85 56    sta $56
-5F28: A5 17    lda $17
+5F28: A5 17    lda head_x_value_17
 5F2A: 38       sec
 5F2B: E9 21    sbc #$21
-5F2D: 85 17    sta $17
+5F2D: 85 17    sta head_x_value_17
 5F2F: A5 18    lda $18
 5F31: E9 00    sbc #$00
 5F33: 85 18    sta $18
@@ -4632,10 +4736,10 @@ write_text_4b6e:
 5F41: 4C 81 5F jmp $5f81
 5F44: A9 01    lda #$01
 5F46: 85 56    sta $56
-5F48: A5 17    lda $17
+5F48: A5 17    lda head_x_value_17
 5F4A: 38       sec
 5F4B: E9 21    sbc #$21
-5F4D: 85 17    sta $17
+5F4D: 85 17    sta head_x_value_17
 5F4F: A5 18    lda $18
 5F51: E9 00    sbc #$00
 5F53: 85 18    sta $18
@@ -4648,10 +4752,10 @@ write_text_4b6e:
 5F61: 4C 81 5F jmp $5f81
 5F64: A9 02    lda #$02
 5F66: 85 56    sta $56
-5F68: A5 17    lda $17
+5F68: A5 17    lda head_x_value_17
 5F6A: 38       sec
 5F6B: E9 21    sbc #$21
-5F6D: 85 17    sta $17
+5F6D: 85 17    sta head_x_value_17
 5F6F: A5 18    lda $18
 5F71: E9 00    sbc #$00
 5F73: 85 18    sta $18
@@ -4680,13 +4784,13 @@ write_text_4b6e:
 5FA0: A0 02    ldy #$02
 5FA2: A2 02    ldx #$02
 5FA4: B1 19    lda ($19), y
-5FA6: 91 17    sta ($17), y   ; [video_address]
+5FA6: 91 17    sta (head_x_value_17), y   ; [video_address]
 5FA8: 88       dey
 5FA9: 10 F9    bpl $5fa4
-5FAB: A5 17    lda $17
+5FAB: A5 17    lda head_x_value_17
 5FAD: 18       clc
 5FAE: 69 20    adc #$20
-5FB0: 85 17    sta $17
+5FB0: 85 17    sta head_x_value_17
 5FB2: A5 18    lda $18
 5FB4: 69 00    adc #$00
 5FB6: 85 18    sta $18
@@ -4850,7 +4954,7 @@ boot_7800:
 7902: CA       dex
 7903: 10 FB    bpl $7900
 7905: A9 00    lda #$00
-7907: 85 17    sta $17
+7907: 85 17    sta head_x_value_17
 7909: A9 02    lda #$02
 790B: 85 18    sta $18
 790D: 20 B5 7D jsr $7db5
@@ -4858,7 +4962,7 @@ boot_7800:
 7912: 05 40    ora $40
 7914: 85 40    sta $40
 7916: A9 00    lda #$00
-7918: 85 17    sta $17
+7918: 85 17    sta head_x_value_17
 791A: A9 03    lda #$03
 791C: 85 18    sta $18
 791E: 20 B5 7D jsr $7db5
@@ -4866,14 +4970,14 @@ boot_7800:
 7923: 05 40    ora $40
 7925: 85 40    sta $40
 7927: A9 00    lda #$00
-7929: 85 17    sta $17
+7929: 85 17    sta head_x_value_17
 792B: A9 04    lda #$04
 792D: 85 18    sta $18
 792F: 20 B5 7D jsr $7db5
 7932: A5 16    lda $16
 7934: 85 1F    sta $1f
 7936: A9 00    lda #$00
-7938: 85 17    sta $17
+7938: 85 17    sta head_x_value_17
 793A: A9 05    lda #$05
 793C: 85 18    sta $18
 793E: 20 B5 7D jsr $7db5
@@ -4881,7 +4985,7 @@ boot_7800:
 7943: 05 1F    ora $1f
 7945: 85 1F    sta $1f
 7947: A9 00    lda #$00
-7949: 85 17    sta $17
+7949: 85 17    sta head_x_value_17
 794B: A9 06    lda #$06
 794D: 85 18    sta $18
 794F: 20 B5 7D jsr $7db5
@@ -4889,7 +4993,7 @@ boot_7800:
 7954: 05 1F    ora $1f
 7956: 85 1F    sta $1f
 7958: A9 00    lda #$00
-795A: 85 17    sta $17
+795A: 85 17    sta head_x_value_17
 795C: A9 07    lda #$07
 795E: 85 18    sta $18
 7960: 20 B5 7D jsr $7db5
@@ -4906,14 +5010,14 @@ boot_7800:
 7977: A9 80    lda #$80
 7979: 85 41    sta $41
 797B: A9 00    lda #$00
-797D: 85 17    sta $17
+797D: 85 17    sta head_x_value_17
 797F: A9 08    lda #$08
 7981: 85 18    sta $18
 7983: 20 B5 7D jsr $7db5
 7986: A5 16    lda $16
 7988: 85 1F    sta $1f
 798A: A9 00    lda #$00
-798C: 85 17    sta $17
+798C: 85 17    sta head_x_value_17
 798E: A9 09    lda #$09
 7990: 85 18    sta $18
 7992: 20 B5 7D jsr $7db5
@@ -4921,7 +5025,7 @@ boot_7800:
 7997: 05 1F    ora $1f
 7999: 85 1F    sta $1f
 799B: A9 00    lda #$00
-799D: 85 17    sta $17
+799D: 85 17    sta head_x_value_17
 799F: A9 0A    lda #$0a
 79A1: 85 18    sta $18
 79A3: 20 B5 7D jsr $7db5
@@ -4929,7 +5033,7 @@ boot_7800:
 79A8: 05 1F    ora $1f
 79AA: 85 1F    sta $1f
 79AC: A9 00    lda #$00
-79AE: 85 17    sta $17
+79AE: 85 17    sta head_x_value_17
 79B0: A9 0B    lda #$0b
 79B2: 85 18    sta $18
 79B4: 20 B5 7D jsr $7db5
@@ -4946,14 +5050,14 @@ boot_7800:
 79CB: A9 80    lda #$80
 79CD: 85 43    sta $43
 79CF: A9 00    lda #$00
-79D1: 85 17    sta $17
+79D1: 85 17    sta head_x_value_17
 79D3: A9 0C    lda #$0c
 79D5: 85 18    sta $18
 79D7: 20 2C 7E jsr $7e2c
 79DA: A5 16    lda $16
 79DC: 85 1F    sta $1f
 79DE: A9 00    lda #$00
-79E0: 85 17    sta $17
+79E0: 85 17    sta head_x_value_17
 79E2: A9 0D    lda #$0d
 79E4: 85 18    sta $18
 79E6: 20 2C 7E jsr $7e2c
@@ -4961,7 +5065,7 @@ boot_7800:
 79EB: 05 1F    ora $1f
 79ED: 85 1F    sta $1f
 79EF: A9 00    lda #$00
-79F1: 85 17    sta $17
+79F1: 85 17    sta head_x_value_17
 79F3: A9 0E    lda #$0e
 79F5: 85 18    sta $18
 79F7: 20 2C 7E jsr $7e2c
@@ -4969,7 +5073,7 @@ boot_7800:
 79FC: 05 1F    ora $1f
 79FE: 85 1F    sta $1f
 7A00: A9 00    lda #$00
-7A02: 85 17    sta $17
+7A02: 85 17    sta head_x_value_17
 7A04: A9 0F    lda #$0f
 7A06: 85 18    sta $18
 7A08: 20 2C 7E jsr $7e2c
@@ -4986,7 +5090,7 @@ boot_7800:
 7A1F: A9 80    lda #$80
 7A21: 85 45    sta $45
 7A23: A9 00    lda #$00
-7A25: 85 17    sta $17
+7A25: 85 17    sta head_x_value_17
 7A27: A9 10    lda #$10
 7A29: 85 18    sta $18
 7A2B: A9 00    lda #$00
@@ -5004,7 +5108,7 @@ boot_7800:
 7A43: A5 1F    lda $1f
 7A45: 85 47    sta $47
 7A47: A9 00    lda #$00
-7A49: 85 17    sta $17
+7A49: 85 17    sta head_x_value_17
 7A4B: A9 18    lda #$18
 7A4D: 85 18    sta $18
 7A4F: A9 00    lda #$00
@@ -5024,7 +5128,7 @@ boot_7800:
 7A6B: 20 2B 7F jsr $7f2b
 7A6E: 20 13 7F jsr $7f13
 7A71: A9 A6    lda #$a6
-7A73: 85 17    sta $17
+7A73: 85 17    sta head_x_value_17
 7A75: A9 7A    lda #$7a
 7A77: 85 18    sta $18
 7A79: A9 E3    lda #$e3
@@ -5032,13 +5136,13 @@ boot_7800:
 7A7D: A9 06    lda #$06
 7A7F: 85 1A    sta $1a
 7A81: A0 00    ldy #$00
-7A83: B1 17    lda ($17), y
+7A83: B1 17    lda (head_x_value_17), y
 7A85: 30 34    bmi $7abb
 7A87: 91 19    sta ($19), y
-7A89: A5 17    lda $17
+7A89: A5 17    lda head_x_value_17
 7A8B: 18       clc
 7A8C: 69 01    adc #$01
-7A8E: 85 17    sta $17
+7A8E: 85 17    sta head_x_value_17
 7A90: A5 18    lda $18
 7A92: 69 00    adc #$00
 7A94: 85 18    sta $18
@@ -5074,67 +5178,67 @@ boot_7800:
 7AF0: A9 16    lda #$16
 7AF2: 8D B3 05 sta $05b3
 7AF5: A9 07    lda #$07
-7AF7: 85 17    sta $17
+7AF7: 85 17    sta head_x_value_17
 7AF9: A9 07    lda #$07
 7AFB: 85 18    sta $18
 7AFD: A2 04    ldx #$04
 7AFF: 20 6A 7E jsr $7e6a
-7B02: A5 17    lda $17
+7B02: A5 17    lda head_x_value_17
 7B04: 18       clc
 7B05: 69 02    adc #$02
-7B07: 85 17    sta $17
+7B07: 85 17    sta head_x_value_17
 7B09: A5 18    lda $18
 7B0B: 69 00    adc #$00
 7B0D: 85 18    sta $18
 7B0F: CA       dex
 7B10: 10 ED    bpl $7aff
 7B12: A9 15    lda #$15
-7B14: 85 17    sta $17
+7B14: 85 17    sta head_x_value_17
 7B16: A9 07    lda #$07
 7B18: 85 18    sta $18
 7B1A: A2 03    ldx #$03
 7B1C: 20 6A 7E jsr $7e6a
-7B1F: A5 17    lda $17
+7B1F: A5 17    lda head_x_value_17
 7B21: 18       clc
 7B22: 69 02    adc #$02
-7B24: 85 17    sta $17
+7B24: 85 17    sta head_x_value_17
 7B26: A5 18    lda $18
 7B28: 69 00    adc #$00
 7B2A: 85 18    sta $18
 7B2C: CA       dex
 7B2D: 10 ED    bpl $7b1c
 7B2F: A9 47    lda #$47
-7B31: 85 17    sta $17
+7B31: 85 17    sta head_x_value_17
 7B33: A9 05    lda #$05
 7B35: 85 18    sta $18
 7B37: A2 03    ldx #$03
 7B39: 20 6A 7E jsr $7e6a
-7B3C: A5 17    lda $17
+7B3C: A5 17    lda head_x_value_17
 7B3E: 18       clc
 7B3F: 69 02    adc #$02
-7B41: 85 17    sta $17
+7B41: 85 17    sta head_x_value_17
 7B43: A5 18    lda $18
 7B45: 69 00    adc #$00
 7B47: 85 18    sta $18
 7B49: CA       dex
 7B4A: 10 ED    bpl $7b39
 7B4C: A9 55    lda #$55
-7B4E: 85 17    sta $17
+7B4E: 85 17    sta head_x_value_17
 7B50: A9 05    lda #$05
 7B52: 85 18    sta $18
 7B54: A2 03    ldx #$03
 7B56: 20 6A 7E jsr $7e6a
-7B59: A5 17    lda $17
+7B59: A5 17    lda head_x_value_17
 7B5B: 18       clc
 7B5C: 69 02    adc #$02
-7B5E: 85 17    sta $17
+7B5E: 85 17    sta head_x_value_17
 7B60: A5 18    lda $18
 7B62: 69 00    adc #$00
 7B64: 85 18    sta $18
 7B66: CA       dex
 7B67: 10 ED    bpl $7b56
 7B69: A9 A7    lda #$a7
-7B6B: 85 17    sta $17
+7B6B: 85 17    sta head_x_value_17
 7B6D: A9 06    lda #$06
 7B6F: 85 18    sta $18
 7B71: A9 9C    lda #$9c
@@ -5146,10 +5250,10 @@ boot_7800:
 7B7D: A4 1F    ldy $1f
 7B7F: B1 19    lda ($19), y
 7B81: 20 E1 7E jsr $7ee1
-7B84: A5 17    lda $17
+7B84: A5 17    lda head_x_value_17
 7B86: 18       clc
 7B87: 69 02    adc #$02
-7B89: 85 17    sta $17
+7B89: 85 17    sta head_x_value_17
 7B8B: A5 18    lda $18
 7B8D: 69 00    adc #$00
 7B8F: 85 18    sta $18
@@ -5170,7 +5274,7 @@ boot_7800:
 7BB5: A9 09    lda #$09
 7BB7: 8D B9 06 sta $06b9
 7BBA: A9 E7    lda #$e7
-7BBC: 85 17    sta $17
+7BBC: 85 17    sta head_x_value_17
 7BBE: A9 04    lda #$04
 7BC0: 85 18    sta $18
 7BC2: A9 ED    lda #$ed
@@ -5182,10 +5286,10 @@ boot_7800:
 7BCE: A4 1F    ldy $1f
 7BD0: B1 19    lda ($19), y
 7BD2: 20 E1 7E jsr $7ee1
-7BD5: A5 17    lda $17
+7BD5: A5 17    lda head_x_value_17
 7BD7: 18       clc
 7BD8: 69 02    adc #$02
-7BDA: 85 17    sta $17
+7BDA: 85 17    sta head_x_value_17
 7BDC: A5 18    lda $18
 7BDE: 69 00    adc #$00
 7BE0: 85 18    sta $18
@@ -5196,7 +5300,7 @@ boot_7800:
 7BEA: 4C F1 7B jmp $7bf1
 
 7BF1: A9 F5    lda #$f5
-7BF3: 85 17    sta $17
+7BF3: 85 17    sta head_x_value_17
 7BF5: A9 04    lda #$04
 7BF7: 85 18    sta $18
 7BF9: A9 24    lda #$24
@@ -5208,10 +5312,10 @@ boot_7800:
 7C05: A4 1F    ldy $1f
 7C07: B1 19    lda ($19), y
 7C09: 20 E1 7E jsr $7ee1
-7C0C: A5 17    lda $17
+7C0C: A5 17    lda head_x_value_17
 7C0E: 18       clc
 7C0F: 69 02    adc #$02
-7C11: 85 17    sta $17
+7C11: 85 17    sta head_x_value_17
 7C13: A5 18    lda $18
 7C15: 69 00    adc #$00
 7C17: 85 18    sta $18
@@ -5234,7 +5338,7 @@ boot_7800:
 7C3C: 30 4F    bmi $7c8d
 7C3E: AA       tax
 7C3F: B1 1D    lda ($1d), y
-7C41: 85 17    sta $17
+7C41: 85 17    sta head_x_value_17
 7C43: C8       iny
 7C44: B1 1D    lda ($1d), y
 7C46: 85 18    sta $18
@@ -5275,14 +5379,14 @@ boot_7800:
 7CA5: A0 00    ldy #$00
 7CA7: A9 00    lda #$00
 7CA9: A8       tay
-7CAA: 85 17    sta $17
+7CAA: 85 17    sta head_x_value_17
 7CAC: B1 33    lda ($33), y
 7CAE: F0 76    beq $7d26
 7CB0: 85 18    sta $18
 7CB2: 20 8B 7D jsr $7d8b
 7CB5: A0 00    ldy #$00
 7CB7: B1 31    lda ($31), y
-7CB9: 85 17    sta $17
+7CB9: 85 17    sta head_x_value_17
 7CBB: C8       iny
 7CBC: B1 31    lda ($31), y
 7CBE: 85 18    sta $18
@@ -5326,11 +5430,11 @@ end_of_system_tests_7d26:   ; [global]
 7D26: A9 02    lda #$02
 7D28: 85 18    sta $18
 7D2A: A9 01    lda #$01
-7D2C: 85 17    sta $17
+7D2C: 85 17    sta head_x_value_17
 7D2E: A2 00    ldx #$00		; [cpu_loop] (0.012 seconds)
 7D30: CA       dex
 7D31: D0 FD    bne $7d30
-7D33: C6 17    dec $17
+7D33: C6 17    dec head_x_value_17
 7D35: D0 F9    bne $7d30
 7D37: C6 18    dec $18
 7D39: D0 F5    bne $7d30
@@ -5374,7 +5478,7 @@ end_of_system_tests_7d26:   ; [global]
 7D94: 85 1B    sta $1b
 7D96: 85 1C    sta $1c
 7D98: A8       tay
-7D99: B1 17    lda ($17), y
+7D99: B1 17    lda (head_x_value_17), y
 7D9B: 18       clc
 7D9C: 65 1B    adc $1b
 7D9E: 85 1B    sta $1b
@@ -5394,60 +5498,60 @@ end_of_system_tests_7d26:   ; [global]
 7DB7: 85 16    sta $16
 7DB9: A8       tay
 7DBA: A9 55    lda #$55
-7DBC: 91 17    sta ($17), y   ; [video_address]
+7DBC: 91 17    sta (head_x_value_17), y   ; [video_address]
 7DBE: C8       iny
 7DBF: A9 AA    lda #$aa
-7DC1: 91 17    sta ($17), y   ; [video_address]
+7DC1: 91 17    sta (head_x_value_17), y   ; [video_address]
 7DC3: C8       iny
 7DC4: D0 F4    bne $7dba
 7DC6: A9 55    lda #$55
-7DC8: D1 17    cmp ($17), y
+7DC8: D1 17    cmp (head_x_value_17), y
 7DCA: D0 47    bne $7e13
 7DCC: C8       iny
 7DCD: A9 AA    lda #$aa
-7DCF: D1 17    cmp ($17), y
+7DCF: D1 17    cmp (head_x_value_17), y
 7DD1: D0 40    bne $7e13
 7DD3: C8       iny
 7DD4: D0 F0    bne $7dc6
 7DD6: A9 AA    lda #$aa
-7DD8: 91 17    sta ($17), y   ; [video_address]
+7DD8: 91 17    sta (head_x_value_17), y   ; [video_address]
 7DDA: C8       iny
 7DDB: A9 55    lda #$55
-7DDD: 91 17    sta ($17), y   ; [video_address]
+7DDD: 91 17    sta (head_x_value_17), y   ; [video_address]
 7DDF: C8       iny
 7DE0: D0 F4    bne $7dd6
 7DE2: A9 AA    lda #$aa
-7DE4: D1 17    cmp ($17), y
+7DE4: D1 17    cmp (head_x_value_17), y
 7DE6: D0 2B    bne $7e13
 7DE8: C8       iny
 7DE9: A9 55    lda #$55
-7DEB: D1 17    cmp ($17), y
+7DEB: D1 17    cmp (head_x_value_17), y
 7DED: D0 24    bne $7e13
 7DEF: C8       iny
 7DF0: D0 F0    bne $7de2
 7DF2: 98       tya
-7DF3: 91 17    sta ($17), y   ; [video_address]
+7DF3: 91 17    sta (head_x_value_17), y   ; [video_address]
 7DF5: C8       iny
 7DF6: D0 FA    bne $7df2
 7DF8: 98       tya
-7DF9: D1 17    cmp ($17), y
+7DF9: D1 17    cmp (head_x_value_17), y
 7DFB: D0 16    bne $7e13
 7DFD: C8       iny
 7DFE: D0 F8    bne $7df8
 7E00: A2 00    ldx #$00
 7E02: 8A       txa
-7E03: 91 17    sta ($17), y   ; [video_address]
+7E03: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E05: CA       dex
 7E06: C8       iny
 7E07: D0 F9    bne $7e02
 7E09: 8A       txa
-7E0A: D1 17    cmp ($17), y
+7E0A: D1 17    cmp (head_x_value_17), y
 7E0C: D0 05    bne $7e13
 7E0E: CA       dex
 7E0F: C8       iny
 7E10: D0 F7    bne $7e09
 7E12: 60       rts
-7E13: 51 17    eor ($17), y
+7E13: 51 17    eor (head_x_value_17), y
 7E15: AA       tax
 7E16: C9 10    cmp #$10
 7E18: 90 06    bcc $7e20
@@ -5464,23 +5568,23 @@ end_of_system_tests_7d26:   ; [global]
 7E2C: A0 00    ldy #$00
 7E2E: 84 16    sty $16
 7E30: 98       tya
-7E31: 91 17    sta ($17), y   ; [video_address]
+7E31: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E33: C8       iny
 7E34: D0 FA    bne $7e30
 7E36: 98       tya
-7E37: 51 17    eor ($17), y
+7E37: 51 17    eor (head_x_value_17), y
 7E39: 29 3F    and #$3f
 7E3B: D0 18    bne $7e55
 7E3D: C8       iny
 7E3E: D0 F6    bne $7e36
 7E40: A2 00    ldx #$00
 7E42: 8A       txa
-7E43: 91 17    sta ($17), y   ; [video_address]
+7E43: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E45: CA       dex
 7E46: C8       iny
 7E47: D0 F9    bne $7e42
 7E49: 8A       txa
-7E4A: 51 17    eor ($17), y
+7E4A: 51 17    eor (head_x_value_17), y
 7E4C: 29 3F    and #$3f
 7E4E: D0 05    bne $7e55
 7E50: CA       dex
@@ -5501,22 +5605,22 @@ end_of_system_tests_7d26:   ; [global]
 7E69: 60       rts
 7E6A: A0 00    ldy #$00
 7E6C: A9 0C    lda #$0c
-7E6E: 91 17    sta ($17), y   ; [video_address]
+7E6E: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E70: A0 20    ldy #$20
 7E72: A9 12    lda #$12
-7E74: 91 17    sta ($17), y   ; [video_address]
+7E74: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E76: 60       rts
 7E77: A0 00    ldy #$00
 7E79: A9 30    lda #$30
-7E7B: 91 17    sta ($17), y   ; [video_address]
+7E7B: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E7D: A0 20    ldy #$20
-7E7F: 91 17    sta ($17), y   ; [video_address]
+7E7F: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E81: A0 40    ldy #$40
 7E83: A9 14    lda #$14
-7E85: 91 17    sta ($17), y   ; [video_address]
+7E85: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E87: A0 60    ldy #$60
 7E89: A9 18    lda #$18
-7E8B: 91 17    sta ($17), y   ; [video_address]
+7E8B: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E8D: A5 18    lda $18
 7E8F: 48       pha
 7E90: 18       clc
@@ -5524,28 +5628,28 @@ end_of_system_tests_7d26:   ; [global]
 7E93: 85 18    sta $18
 7E95: A9 05    lda #$05
 7E97: A0 00    ldy #$00
-7E99: 91 17    sta ($17), y   ; [video_address]
+7E99: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E9B: A0 20    ldy #$20
-7E9D: 91 17    sta ($17), y   ; [video_address]
+7E9D: 91 17    sta (head_x_value_17), y   ; [video_address]
 7E9F: A0 40    ldy #$40
-7EA1: 91 17    sta ($17), y   ; [video_address]
+7EA1: 91 17    sta (head_x_value_17), y   ; [video_address]
 7EA3: A0 60    ldy #$60
-7EA5: 91 17    sta ($17), y   ; [video_address]
+7EA5: 91 17    sta (head_x_value_17), y   ; [video_address]
 7EA7: 68       pla
 7EA8: 85 18    sta $18
 7EAA: 60       rts
 7EAB: A0 00    ldy #$00
 7EAD: A9 15    lda #$15
-7EAF: 91 17    sta ($17), y   ; [video_address]
+7EAF: 91 17    sta (head_x_value_17), y   ; [video_address]
 7EB1: A0 20    ldy #$20
 7EB3: A9 12    lda #$12
-7EB5: 91 17    sta ($17), y   ; [video_address]
+7EB5: 91 17    sta (head_x_value_17), y   ; [video_address]
 7EB7: A0 40    ldy #$40
 7EB9: A9 0A    lda #$0a
-7EBB: 91 17    sta ($17), y   ; [video_address]
+7EBB: 91 17    sta (head_x_value_17), y   ; [video_address]
 7EBD: A0 60    ldy #$60
 7EBF: A9 0F    lda #$0f
-7EC1: 91 17    sta ($17), y   ; [video_address]
+7EC1: 91 17    sta (head_x_value_17), y   ; [video_address]
 7EC3: A5 18    lda $18
 7EC5: 48       pha
 7EC6: 18       clc
@@ -5553,13 +5657,13 @@ end_of_system_tests_7d26:   ; [global]
 7EC9: 85 18    sta $18
 7ECB: A9 06    lda #$06
 7ECD: A0 00    ldy #$00
-7ECF: 91 17    sta ($17), y   ; [video_address]
+7ECF: 91 17    sta (head_x_value_17), y   ; [video_address]
 7ED1: A0 20    ldy #$20
-7ED3: 91 17    sta ($17), y   ; [video_address]
+7ED3: 91 17    sta (head_x_value_17), y   ; [video_address]
 7ED5: A0 40    ldy #$40
-7ED7: 91 17    sta ($17), y   ; [video_address]
+7ED7: 91 17    sta (head_x_value_17), y   ; [video_address]
 7ED9: A0 60    ldy #$60
-7EDB: 91 17    sta ($17), y   ; [video_address]
+7EDB: 91 17    sta (head_x_value_17), y   ; [video_address]
 7EDD: 68       pla
 7EDE: 85 18    sta $18
 7EE0: 60       rts
@@ -5573,10 +5677,10 @@ end_of_system_tests_7d26:   ; [global]
 7EE9: 68       pla
 7EEA: 29 0F    and #$0f
 7EEC: A0 00    ldy #$00
-7EEE: 91 17    sta ($17), y   ; [video_address]
+7EEE: 91 17    sta (head_x_value_17), y   ; [video_address]
 7EF0: A0 20    ldy #$20
 7EF2: 8A       txa
-7EF3: 91 17    sta ($17), y   ; [video_address]
+7EF3: 91 17    sta (head_x_value_17), y   ; [video_address]
 7EF5: 60       rts
 7EF6: A0 0D    ldy #$0d
 7EF8: 8C 00 20 sty crtc_2000
@@ -5617,6 +5721,8 @@ end_of_system_tests_7d26:   ; [global]
 7F48: C9 20    cmp #$20
 7F4A: 90 ED    bcc $7f39
 7F4C: 60       rts
+
+save_debug_values_7f4d:
 7F4D: 85 D5    sta $d5
 7F4F: A9 07    lda #$07
 7F51: 25 49    and $49
@@ -5637,7 +5743,7 @@ end_of_system_tests_7d26:   ; [global]
 7F6B: A5 D5    lda $d5
 7F6D: 9D 00 02 sta $0200, x
 7F70: E8       inx
-7F71: A5 51    lda $51
+7F71: A5 51    lda snake_row_51
 7F73: 9D 00 02 sta $0200, x
 7F76: E8       inx
 7F77: A5 52    lda $52
@@ -5681,19 +5787,19 @@ A004: 4C 61 A1 jmp $a161
 A007: A5 53    lda $53
 A009: C9 04    cmp #$04
 A00B: F0 0E    beq $a01b
-A00D: A5 51    lda $51
+A00D: A5 51    lda snake_row_51
 A00F: 18       clc
 A010: 69 02    adc #$02
 A012: 85 33    sta $33
-A014: A5 51    lda $51
-A016: 85 17    sta $17
+A014: A5 51    lda snake_row_51
+A016: 85 17    sta head_x_value_17
 A018: 4C 26 A0 jmp $a026
-A01B: A5 51    lda $51
+A01B: A5 51    lda snake_row_51
 A01D: 38       sec
 A01E: E9 02    sbc #$02
 A020: 85 33    sta $33
-A022: A5 51    lda $51
-A024: 85 17    sta $17
+A022: A5 51    lda snake_row_51
+A024: 85 17    sta head_x_value_17
 A026: A5 52    lda $52
 A028: 85 18    sta $18
 A02A: 18       clc
@@ -5723,9 +5829,9 @@ A04E: 85 31    sta $31
 A050: A5 53    lda $53
 A052: C9 04    cmp #$04
 A054: F0 1B    beq $a071
-A056: A5 3B    lda $3b
+A056: A5 3B    lda move_to_row_3b
 A058: 38       sec
-A059: E5 51    sbc $51
+A059: E5 51    sbc snake_row_51
 A05B: 30 0F    bmi $a06c
 A05D: C9 04    cmp #$04
 A05F: 30 2C    bmi $a08d
@@ -5736,9 +5842,9 @@ A067: 85 1C    sta $1c
 A069: 4C 84 A0 jmp $a084
 A06C: A9 92    lda #$92
 A06E: 4C 10 30 jmp $3010
-A071: A5 51    lda $51
+A071: A5 51    lda snake_row_51
 A073: 38       sec
-A074: E5 3B    sbc $3b
+A074: E5 3B    sbc move_to_row_3b
 A076: 30 F4    bmi $a06c
 A078: C9 04    cmp #$04
 A07A: 30 11    bmi $a08d
@@ -5752,16 +5858,16 @@ A088: 91 31    sta ($31), y
 A08A: 88       dey
 A08B: 10 F9    bpl $a086
 A08D: A9 58    lda #$58
-A08F: 85 17    sta $17
+A08F: 85 17    sta head_x_value_17
 A091: A9 A1    lda #$a1
 A093: 85 18    sta $18
 A095: A4 EC    ldy $ec
-A097: B1 17    lda ($17), y
+A097: B1 17    lda (head_x_value_17), y
 A099: 85 19    sta $19
 A09B: C8       iny
-A09C: B1 17    lda ($17), y
+A09C: B1 17    lda (head_x_value_17), y
 A09E: 85 1A    sta $1a
-A0A0: A0 17    ldy #$17
+A0A0: A0 17    ldy #head_x_value_17
 A0A2: A9 00    lda #$00
 A0A4: 91 19    sta ($19), y
 A0A6: 88       dey
@@ -5770,7 +5876,7 @@ A0A9: A5 1A    lda $1a
 A0AB: 18       clc
 A0AC: 69 08    adc #$08
 A0AE: 85 1A    sta $1a
-A0B0: A0 17    ldy #$17
+A0B0: A0 17    ldy #head_x_value_17
 A0B2: A9 00    lda #$00
 A0B4: 91 19    sta ($19), y
 A0B6: 88       dey
@@ -5867,14 +5973,14 @@ A187: C8       iny
 A188: B1 19    lda ($19), y
 A18A: 85 1E    sta $1e
 A18C: A9 79    lda #$79
-A18E: 85 17    sta $17
+A18E: 85 17    sta head_x_value_17
 A190: A9 A2    lda #$a2
 A192: 85 18    sta $18
 A194: A4 EC    ldy $ec
-A196: B1 17    lda ($17), y
+A196: B1 17    lda (head_x_value_17), y
 A198: 85 16    sta $16
 A19A: C8       iny
-A19B: B1 17    lda ($17), y
+A19B: B1 17    lda (head_x_value_17), y
 A19D: 85 1F    sta $1f
 A19F: A4 16    ldy $16
 A1A1: A5 53    lda $53
@@ -5885,12 +5991,12 @@ A1A9: 91 1D    sta ($1d), y
 A1AB: 88       dey
 A1AC: 10 F9    bpl $a1a7
 A1AE: 4C C0 A1 jmp $a1c0
-A1B1: 84 17    sty $17
+A1B1: 84 17    sty head_x_value_17
 A1B3: 98       tya
 A1B4: 49 07    eor #$07
 A1B6: A8       tay
 A1B7: B1 1B    lda ($1b), y
-A1B9: A4 17    ldy $17
+A1B9: A4 17    ldy head_x_value_17
 A1BB: 91 1D    sta ($1d), y
 A1BD: 88       dey
 A1BE: 10 F1    bpl $a1b1
@@ -5919,12 +6025,12 @@ A1E8: 91 1D    sta ($1d), y
 A1EA: 88       dey
 A1EB: 10 F9    bpl $a1e6
 A1ED: 4C FF A1 jmp $a1ff
-A1F0: 84 17    sty $17
+A1F0: 84 17    sty head_x_value_17
 A1F2: 98       tya
 A1F3: 49 07    eor #$07
 A1F5: A8       tay
 A1F6: B1 1B    lda ($1b), y
-A1F8: A4 17    ldy $17
+A1F8: A4 17    ldy head_x_value_17
 A1FA: 91 1D    sta ($1d), y
 A1FC: 88       dey
 A1FD: 10 F1    bpl $a1f0
@@ -5946,12 +6052,12 @@ A219: 91 1D    sta ($1d), y
 A21B: 88       dey
 A21C: 10 F9    bpl $a217
 A21E: 4C 30 A2 jmp $a230
-A221: 84 17    sty $17
+A221: 84 17    sty head_x_value_17
 A223: 98       tya
 A224: 49 07    eor #$07
 A226: A8       tay
 A227: B1 31    lda ($31), y
-A229: A4 17    ldy $17
+A229: A4 17    ldy head_x_value_17
 A22B: 91 1D    sta ($1d), y
 A22D: 88       dey
 A22E: 10 F1    bpl $a221
@@ -5982,12 +6088,12 @@ A25B: 91 1D    sta ($1d), y
 A25D: 88       dey
 A25E: 10 F9    bpl $a259
 A260: 4C 72 A2 jmp $a272
-A263: 84 17    sty $17
+A263: 84 17    sty head_x_value_17
 A265: 98       tya
 A266: 49 07    eor #$07
 A268: A8       tay
 A269: B1 31    lda ($31), y
-A26B: A4 17    ldy $17
+A26B: A4 17    ldy head_x_value_17
 A26D: 91 1D    sta ($1d), y
 A26F: 88       dey
 A270: 10 F1    bpl $a263
@@ -6012,8 +6118,8 @@ A31E: E9 02    sbc #$02
 A320: 85 34    sta $34
 A322: A5 52    lda $52
 A324: 85 18    sta $18
-A326: A5 51    lda $51
-A328: 85 17    sta $17
+A326: A5 51    lda snake_row_51
+A328: 85 17    sta head_x_value_17
 A32A: 18       clc
 A32B: 69 01    adc #$01
 A32D: 85 33    sta $33
@@ -6082,16 +6188,16 @@ A39F: 85 32    sta $32
 A3A1: 88       dey
 A3A2: 10 EC    bpl $a390
 A3A4: A9 98    lda #$98
-A3A6: 85 17    sta $17
+A3A6: 85 17    sta head_x_value_17
 A3A8: A9 A4    lda #$a4
 A3AA: 85 18    sta $18
 A3AC: A4 EC    ldy $ec
-A3AE: B1 17    lda ($17), y
+A3AE: B1 17    lda (head_x_value_17), y
 A3B0: 85 19    sta $19
 A3B2: C8       iny
-A3B3: B1 17    lda ($17), y
+A3B3: B1 17    lda (head_x_value_17), y
 A3B5: 85 1A    sta $1a
-A3B7: A0 17    ldy #$17
+A3B7: A0 17    ldy #head_x_value_17
 A3B9: A9 00    lda #$00
 A3BB: 91 19    sta ($19), y
 A3BD: 88       dey
@@ -6100,7 +6206,7 @@ A3C0: A5 1A    lda $1a
 A3C2: 18       clc
 A3C3: 69 08    adc #$08
 A3C5: 85 1A    sta $1a
-A3C7: A0 17    ldy #$17
+A3C7: A0 17    ldy #head_x_value_17
 A3C9: A9 00    lda #$00
 A3CB: 91 19    sta ($19), y
 A3CD: 88       dey
@@ -6240,14 +6346,14 @@ A4E4: C8       iny
 A4E5: B1 19    lda ($19), y
 A4E7: 85 1E    sta $1e
 A4E9: A9 D6    lda #$d6
-A4EB: 85 17    sta $17
+A4EB: 85 17    sta head_x_value_17
 A4ED: A9 A5    lda #$a5
 A4EF: 85 18    sta $18
 A4F1: A4 EC    ldy $ec
-A4F3: B1 17    lda ($17), y
+A4F3: B1 17    lda (head_x_value_17), y
 A4F5: 85 16    sta $16
 A4F7: C8       iny
-A4F8: B1 17    lda ($17), y
+A4F8: B1 17    lda (head_x_value_17), y
 A4FA: 85 1F    sta $1f
 A4FC: A4 16    ldy $16
 A4FE: A5 53    lda $53
@@ -6258,12 +6364,12 @@ A506: 91 1D    sta ($1d), y
 A508: 88       dey
 A509: 10 F9    bpl $a504
 A50B: 4C 1D A5 jmp $a51d
-A50E: 84 17    sty $17
+A50E: 84 17    sty head_x_value_17
 A510: 98       tya
 A511: 49 07    eor #$07
 A513: A8       tay
 A514: B1 1B    lda ($1b), y
-A516: A4 17    ldy $17
+A516: A4 17    ldy head_x_value_17
 A518: 91 1D    sta ($1d), y
 A51A: 88       dey
 A51B: 10 F1    bpl $a50e
@@ -6292,12 +6398,12 @@ A545: 91 1D    sta ($1d), y
 A547: 88       dey
 A548: 10 F9    bpl $a543
 A54A: 4C 5C A5 jmp $a55c
-A54D: 84 17    sty $17
+A54D: 84 17    sty head_x_value_17
 A54F: 98       tya
 A550: 49 07    eor #$07
 A552: A8       tay
 A553: B1 1B    lda ($1b), y
-A555: A4 17    ldy $17
+A555: A4 17    ldy head_x_value_17
 A557: 91 1D    sta ($1d), y
 A559: 88       dey
 A55A: 10 F1    bpl $a54d
@@ -6319,12 +6425,12 @@ A576: 91 1D    sta ($1d), y
 A578: 88       dey
 A579: 10 F9    bpl $a574
 A57B: 4C 8D A5 jmp $a58d
-A57E: 84 17    sty $17
+A57E: 84 17    sty head_x_value_17
 A580: 98       tya
 A581: 49 07    eor #$07
 A583: A8       tay
 A584: B1 31    lda ($31), y
-A586: A4 17    ldy $17
+A586: A4 17    ldy head_x_value_17
 A588: 91 1D    sta ($1d), y
 A58A: 88       dey
 A58B: 10 F1    bpl $a57e
@@ -6355,12 +6461,12 @@ A5B8: 91 1D    sta ($1d), y
 A5BA: 88       dey
 A5BB: 10 F9    bpl $a5b6
 A5BD: 4C CF A5 jmp $a5cf
-A5C0: 84 17    sty $17
+A5C0: 84 17    sty head_x_value_17
 A5C2: 98       tya
 A5C3: 49 07    eor #$07
 A5C5: A8       tay
 A5C6: B1 31    lda ($31), y
-A5C8: A4 17    ldy $17
+A5C8: A4 17    ldy head_x_value_17
 A5CA: 91 1D    sta ($1d), y
 A5CC: 88       dey
 A5CD: 10 F1    bpl $a5c0
@@ -6373,12 +6479,12 @@ A605: A5 ED    lda $ed
 A607: D0 03    bne $a60c
 A609: 4C E3 A7 jmp $a7e3
 A60C: A5 54    lda $54
-A60E: 85 17    sta $17
+A60E: 85 17    sta head_x_value_17
 A610: A5 55    lda $55
 A612: 85 18    sta $18
 A614: A9 1B    lda #$1b
 A616: 38       sec
-A617: E5 17    sbc $17
+A617: E5 17    sbc head_x_value_17
 A619: 18       clc
 A61A: 2A       rol a
 A61B: 2A       rol a
@@ -6481,8 +6587,8 @@ A6D3: 85 19    sta $19
 A6D5: A5 1A    lda $1a
 A6D7: 69 00    adc #$00
 A6D9: 85 1A    sta $1a
-A6DB: A5 58    lda $58
-A6DD: C5 57    cmp $57
+A6DB: A5 58    lda tail_ptr_58
+A6DD: C5 57    cmp head_ptr_57
 A6DF: F0 5C    beq $a73d
 A6E1: A8       tay
 A6E2: B9 C0 03 lda $03c0, y
@@ -6532,14 +6638,14 @@ A736: E9 04    sbc #$04
 A738: 10 03    bpl $a73d
 A73A: 4C C5 A7 jmp $a7c5
 A73D: A9 DD    lda #$dd
-A73F: 85 17    sta $17
+A73F: 85 17    sta head_x_value_17
 A741: A9 A7    lda #$a7
 A743: 85 18    sta $18
 A745: A4 EE    ldy $ee
-A747: B1 17    lda ($17), y
+A747: B1 17    lda (head_x_value_17), y
 A749: 85 1B    sta $1b
 A74B: C8       iny
-A74C: B1 17    lda ($17), y
+A74C: B1 17    lda (head_x_value_17), y
 A74E: 18       clc
 A74F: 69 08    adc #$08
 A751: 85 1C    sta $1c
@@ -6553,17 +6659,17 @@ A760: F0 1A    beq $a77c
 A762: C9 02    cmp #$02
 A764: F0 0B    beq $a771
 A766: A9 00    lda #$00
-A768: 85 17    sta $17
+A768: 85 17    sta head_x_value_17
 A76A: A9 60    lda #$60
 A76C: 85 18    sta $18
 A76E: 4C 84 A7 jmp $a784
 A771: A9 80    lda #$80
-A773: 85 17    sta $17
+A773: 85 17    sta head_x_value_17
 A775: A9 60    lda #$60
 A777: 85 18    sta $18
 A779: 4C 84 A7 jmp $a784
 A77C: A9 40    lda #$40
-A77E: 85 17    sta $17
+A77E: 85 17    sta head_x_value_17
 A780: A9 60    lda #$60
 A782: 85 18    sta $18
 A784: A5 E9    lda $e9
@@ -6571,8 +6677,8 @@ A786: 0A       asl a
 A787: 0A       asl a
 A788: 0A       asl a
 A789: 18       clc
-A78A: 65 17    adc $17
-A78C: 85 17    sta $17
+A78A: 65 17    adc head_x_value_17
+A78C: 85 17    sta head_x_value_17
 A78E: A5 18    lda $18
 A790: 69 00    adc #$00
 A792: 85 18    sta $18
@@ -6580,7 +6686,7 @@ A794: A0 07    ldy #$07
 A796: A5 56    lda $56
 A798: C9 08    cmp #$08
 A79A: F0 0A    beq $a7a6
-A79C: B1 17    lda ($17), y
+A79C: B1 17    lda (head_x_value_17), y
 A79E: 91 1B    sta ($1b), y
 A7A0: 88       dey
 A7A1: 10 F9    bpl $a79c
@@ -6589,17 +6695,17 @@ A7A6: 84 16    sty $16
 A7A8: 98       tya
 A7A9: 49 07    eor #$07
 A7AB: A8       tay
-A7AC: B1 17    lda ($17), y
+A7AC: B1 17    lda (head_x_value_17), y
 A7AE: A4 16    ldy $16
 A7B0: 91 1B    sta ($1b), y
 A7B2: 88       dey
 A7B3: 10 F1    bpl $a7a6
 A7B5: A9 D7    lda #$d7
-A7B7: 85 17    sta $17
+A7B7: 85 17    sta head_x_value_17
 A7B9: A9 A7    lda #$a7
 A7BB: 85 18    sta $18
 A7BD: A4 EE    ldy $ee
-A7BF: B1 17    lda ($17), y
+A7BF: B1 17    lda (head_x_value_17), y
 A7C1: A0 00    ldy #$00
 A7C3: 91 19    sta ($19), y
 A7C5: A5 EE    lda $ee
@@ -6648,7 +6754,7 @@ A823: A5 E9    lda $e9
 A825: 0A       asl a
 A826: A8       tay
 A827: B1 19    lda ($19), y
-A829: 85 17    sta $17
+A829: 85 17    sta head_x_value_17
 A82B: B1 33    lda ($33), y
 A82D: 85 31    sta $31
 A82F: C8       iny
@@ -6680,7 +6786,7 @@ A85E: A4 1D    ldy $1d
 A860: A5 56    lda $56
 A862: C9 08    cmp #$08
 A864: F0 0A    beq $a870
-A866: B1 17    lda ($17), y
+A866: B1 17    lda (head_x_value_17), y
 A868: 91 1B    sta ($1b), y
 A86A: 88       dey
 A86B: 10 F9    bpl $a866
@@ -6689,7 +6795,7 @@ A870: 84 16    sty $16
 A872: 98       tya
 A873: 49 07    eor #$07
 A875: A8       tay
-A876: B1 17    lda ($17), y
+A876: B1 17    lda (head_x_value_17), y
 A878: A4 16    ldy $16
 A87A: 91 1B    sta ($1b), y
 A87C: 88       dey
@@ -6699,8 +6805,8 @@ A881: 30 3A    bmi $a8bd
 A883: E6 1D    inc $1d
 A885: A5 1D    lda $1d
 A887: 18       clc
-A888: 65 17    adc $17
-A88A: 85 17    sta $17
+A888: 65 17    adc head_x_value_17
+A88A: 85 17    sta head_x_value_17
 A88C: A5 18    lda $18
 A88E: 69 00    adc #$00
 A890: 85 18    sta $18
@@ -6713,7 +6819,7 @@ A89C: A4 1E    ldy $1e
 A89E: A5 56    lda $56
 A8A0: C9 08    cmp #$08
 A8A2: F0 0A    beq $a8ae
-A8A4: B1 17    lda ($17), y
+A8A4: B1 17    lda (head_x_value_17), y
 A8A6: 91 1B    sta ($1b), y
 A8A8: 88       dey
 A8A9: 10 F9    bpl $a8a4
@@ -6722,7 +6828,7 @@ A8AE: 84 16    sty $16
 A8B0: 98       tya
 A8B1: 49 07    eor #$07
 A8B3: A8       tay
-A8B4: B1 17    lda ($17), y
+A8B4: B1 17    lda (head_x_value_17), y
 A8B6: A4 16    ldy $16
 A8B8: 91 1B    sta ($1b), y
 A8BA: 88       dey
@@ -6799,8 +6905,8 @@ AA08: C5 53    cmp $53
 AA0A: D0 0A    bne $aa16
 AA0C: C5 56    cmp $56
 AA0E: D0 06    bne $aa16
-AA10: A5 57    lda $57
-AA12: C5 58    cmp $58
+AA10: A5 57    lda head_ptr_57
+AA12: C5 58    cmp tail_ptr_58
 AA14: F0 05    beq $aa1b
 AA16: A9 97    lda #$97
 AA18: 4C 10 30 jmp $3010
@@ -6838,7 +6944,7 @@ AA4F: E5 1A    sbc $1a
 AA51: 18       clc
 AA52: 65 10    adc $10
 AA54: 85 10    sta $10
-AA56: A5 51    lda $51
+AA56: A5 51    lda snake_row_51
 AA58: 18       clc
 AA59: 69 01    adc #$01
 AA5B: 85 19    sta $19
@@ -6959,11 +7065,11 @@ AB31: 85 1A    sta $1a
 AB33: A9 01    lda #$01
 AB35: 85 18    sta $18
 AB37: A9 20    lda #$20
-AB39: 85 17    sta $17
+AB39: 85 17    sta head_x_value_17
 AB3B: A2 00    ldx #$00		; [cpu_loop]
 AB3D: CA       dex
 AB3E: D0 FD    bne $ab3d
-AB40: C6 17    dec $17
+AB40: C6 17    dec head_x_value_17
 AB42: D0 F9    bne $ab3d
 AB44: C6 18    dec $18
 AB46: D0 F5    bne $ab3d
@@ -6984,11 +7090,11 @@ AB68: B0 F7    bcs $ab61
 AB6A: A9 01    lda #$01
 AB6C: 85 18    sta $18
 AB6E: A9 90    lda #$90
-AB70: 85 17    sta $17
+AB70: 85 17    sta head_x_value_17
 AB72: A2 00    ldx #$00		; [cpu_loop]
 AB74: CA       dex
 AB75: D0 FD    bne $ab74
-AB77: C6 17    dec $17
+AB77: C6 17    dec head_x_value_17
 AB79: D0 F9    bne $ab74
 AB7B: C6 18    dec $18
 AB7D: D0 F5    bne $ab74
@@ -7026,11 +7132,11 @@ ABBC: 85 1A    sta $1a
 ABBE: A9 01    lda #$01
 ABC0: 85 18    sta $18
 ABC2: A9 20    lda #$20
-ABC4: 85 17    sta $17
+ABC4: 85 17    sta head_x_value_17
 ABC6: A2 00    ldx #$00		; [cpu_loop]
 ABC8: CA       dex
 ABC9: D0 FD    bne $abc8
-ABCB: C6 17    dec $17
+ABCB: C6 17    dec head_x_value_17
 ABCD: D0 F9    bne $abc8
 ABCF: C6 18    dec $18
 ABD1: D0 F5    bne $abc8
@@ -7056,11 +7162,11 @@ ABF7: 85 1A    sta $1a
 ABF9: A9 01    lda #$01
 ABFB: 85 18    sta $18
 ABFD: A9 20    lda #$20
-ABFF: 85 17    sta $17
+ABFF: 85 17    sta head_x_value_17
 AC01: A2 00    ldx #$00		; [cpu_loop]
 AC03: CA       dex
 AC04: D0 FD    bne $ac03
-AC06: C6 17    dec $17
+AC06: C6 17    dec head_x_value_17
 AC08: D0 F9    bne $ac03
 AC0A: C6 18    dec $18
 AC0C: D0 F5    bne $ac03
@@ -7086,11 +7192,11 @@ AC32: 85 1A    sta $1a
 AC34: A9 01    lda #$01
 AC36: 85 18    sta $18
 AC38: A9 20    lda #$20
-AC3A: 85 17    sta $17
+AC3A: 85 17    sta head_x_value_17
 AC3C: A2 00    ldx #$00		; [cpu_loop]
 AC3E: CA       dex
 AC3F: D0 FD    bne $ac3e
-AC41: C6 17    dec $17
+AC41: C6 17    dec head_x_value_17
 AC43: D0 F9    bne $ac3e
 AC45: C6 18    dec $18
 AC47: D0 F5    bne $ac3e
@@ -7130,11 +7236,11 @@ AC8B: B0 F7    bcs $ac84
 AC8D: A9 01    lda #$01
 AC8F: 85 18    sta $18
 AC91: A9 20    lda #$20
-AC93: 85 17    sta $17
+AC93: 85 17    sta head_x_value_17
 AC95: A2 00    ldx #$00		; [cpu_loop]
 AC97: CA       dex
 AC98: D0 FD    bne $ac97
-AC9A: C6 17    dec $17
+AC9A: C6 17    dec head_x_value_17
 AC9C: D0 F9    bne $ac97
 AC9E: C6 18    dec $18
 ACA0: D0 F5    bne $ac97
@@ -7159,11 +7265,11 @@ ACCE: B0 F7    bcs $acc7
 ACD0: A9 01    lda #$01
 ACD2: 85 18    sta $18
 ACD4: A9 20    lda #$20
-ACD6: 85 17    sta $17
+ACD6: 85 17    sta head_x_value_17
 ACD8: A2 00    ldx #$00		; [cpu_loop]
 ACDA: CA       dex
 ACDB: D0 FD    bne $acda
-ACDD: C6 17    dec $17
+ACDD: C6 17    dec head_x_value_17
 ACDF: D0 F9    bne $acda
 ACE1: C6 18    dec $18
 ACE3: D0 F5    bne $acda
@@ -7193,11 +7299,11 @@ AD0F: B0 F7    bcs $ad08
 AD11: A9 01    lda #$01
 AD13: 85 18    sta $18
 AD15: A9 20    lda #$20
-AD17: 85 17    sta $17
+AD17: 85 17    sta head_x_value_17
 AD19: A2 00    ldx #$00		; [cpu_loop]
 AD1B: CA       dex
 AD1C: D0 FD    bne $ad1b
-AD1E: C6 17    dec $17
+AD1E: C6 17    dec head_x_value_17
 AD20: D0 F9    bne $ad1b
 AD22: C6 18    dec $18
 AD24: D0 F5    bne $ad1b
@@ -7227,11 +7333,11 @@ AD50: B0 F7    bcs $ad49
 AD52: A9 01    lda #$01
 AD54: 85 18    sta $18
 AD56: A9 90    lda #$90
-AD58: 85 17    sta $17
+AD58: 85 17    sta head_x_value_17
 AD5A: A2 00    ldx #$00		; [cpu_loop]
 AD5C: CA       dex
 AD5D: D0 FD    bne $ad5c
-AD5F: C6 17    dec $17
+AD5F: C6 17    dec head_x_value_17
 AD61: D0 F9    bne $ad5c
 AD63: C6 18    dec $18
 AD65: D0 F5    bne $ad5c
@@ -7270,11 +7376,11 @@ ADA2: B0 F7    bcs $ad9b
 ADA4: A9 01    lda #$01
 ADA6: 85 18    sta $18
 ADA8: A9 20    lda #$20
-ADAA: 85 17    sta $17
+ADAA: 85 17    sta head_x_value_17
 ADAC: A2 00    ldx #$00		; [cpu_loop]
 ADAE: CA       dex
 ADAF: D0 FD    bne $adae
-ADB1: C6 17    dec $17
+ADB1: C6 17    dec head_x_value_17
 ADB3: D0 F9    bne $adae
 ADB5: C6 18    dec $18
 ADB7: D0 F5    bne $adae
@@ -7309,7 +7415,7 @@ ADEE: A9 00    lda #$00
 ADF0: 8D 01 21 sta sound_2101
 ADF3: 60       rts
 
-AF00: A5 3B    lda $3b
+AF00: A5 3B    lda move_to_row_3b
 AF02: 18       clc
 AF03: 69 01    adc #$01
 AF05: 85 19    sta $19
@@ -7325,19 +7431,19 @@ AF14: 2A       rol a
 AF15: 2A       rol a
 AF16: 2A       rol a
 AF17: 2A       rol a
-AF18: 85 17    sta $17
+AF18: 85 17    sta head_x_value_17
 AF1A: A9 00    lda #$00
 AF1C: 69 00    adc #$00
 AF1E: 0A       asl a
-AF1F: 26 17    rol $17
+AF1F: 26 17    rol head_x_value_17
 AF21: 69 04    adc #$04
 AF23: 85 18    sta $18
 AF25: A9 1F    lda #$1f
 AF27: 38       sec
 AF28: E5 1A    sbc $1a
 AF2A: 18       clc
-AF2B: 65 17    adc $17
-AF2D: 85 17    sta $17
+AF2B: 65 17    adc head_x_value_17
+AF2D: 85 17    sta head_x_value_17
 AF2F: A9 71    lda #$71
 AF31: 85 19    sta $19
 AF33: A9 AF    lda #$af
@@ -7353,7 +7459,7 @@ AF42: 85 1C    sta $1c
 AF44: A2 02    ldx #$02
 AF46: A0 02    ldy #$02
 AF48: B1 1B    lda ($1b), y
-AF4A: 91 17    sta ($17), y   ; [video_address]
+AF4A: 91 17    sta (head_x_value_17), y   ; [video_address]
 AF4C: 88       dey
 AF4D: 10 F9    bpl $af48
 AF4F: A9 03    lda #$03
@@ -7365,8 +7471,8 @@ AF58: 69 00    adc #$00
 AF5A: 85 1C    sta $1c
 AF5C: A9 20    lda #$20
 AF5E: 18       clc
-AF5F: 65 17    adc $17
-AF61: 85 17    sta $17
+AF5F: 65 17    adc head_x_value_17
+AF61: 85 17    sta head_x_value_17
 AF63: A5 18    lda $18
 AF65: 69 00    adc #$00
 AF67: 85 18    sta $18

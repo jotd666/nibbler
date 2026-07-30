@@ -164,6 +164,9 @@ w\@:
 	.global	osd_write_2103
 	.global	osd_write_sound_2100
 	.global	osd_write_sound_2101
+	.global	osd_set_irq_return_address
+	.global	osd_wait
+	.global	osd_small_wait
 	.global	osd_write_sound_2102
 	.global	osd_log_cpu
 	
@@ -730,15 +733,21 @@ _vblank:
 	
 	
 23:
-	.ifne	OPT_ENABLE_LOGGING
 
+
+3:
+	.ifne	OPT_ENABLE_LOGGING
 	jbsr	log_used_fg_tiles
 	jbsr	log_used_bg_tiles
 	.endif
 
-
-3:
     movem.l (a7)+,d0-d7/a0-a6
+	tst.l	return_address
+	jeq		4f
+	* non-null return address: jump there instead of returning
+	move.l	return_address,(sp)
+	clr.l	return_address
+4:
     rte
 	
 
@@ -777,7 +786,6 @@ log_used_fg_tiles:
 log_used_bg_tiles:
 	* scan the whole screen, see what was updated
 	* main screen
-
 	GET_MEMORY_START_IN_A6
 	lea		(BG_SCREEN_TILE_ADDRESS,a6),a5
 	lea		(BG_SCREEN_COLOR_ADDRESS,a6),a4
@@ -790,6 +798,8 @@ log_used_bg_tiles:
 	moveq	#0,d6
 	move.b	charbank_value,d6
 	add.b	d6,d6
+	move.w	(a1,d6.w),d6
+	move.b	#0,0x110
 0:
 
 	moveq	#0,d1
@@ -803,7 +813,7 @@ log_used_bg_tiles:
 	moveq	#0,d3
 	move.b	d0,d2	| code
 
-	add.w	(a1,d6.w),d2	| add bank offset
+	add.w	d6,d2	| add bank offset
 	
 	lsl.l	d5,d2			| tile code * NB_CLUTS (long!)
 	add.l	d1,d2			| add clut
@@ -850,39 +860,8 @@ osd_break:
 
 	
 
-* < D0: number of 1/60Hz ticks
-* can work with interrupts enabled or disabled
-osd_wait:
-	move.w	d0,delay_timer
-	**jbsr	osd_is_vblank_interrupt_enabled
-	tst.w	d0
-	jne		2f
-	* interrupts are disabled: timer isn't going to change
-	* wait using vertical blank interrupt request (we don't need it!)
-	clr.w	one_out_of_five
-0:
-	move.w	#0x20,_custom+intreq
-	move.w	#0x20,_custom+intreq
-1:
-	move.w	_custom+intreqr,d0
-	btst	#5,d0
-	beq.b	1b
-	addq.w	#1,one_out_of_five
-	cmp.w	#5,one_out_of_five
-	bne.b	5f
-	subq.w	#1,delay_timer	
-	clr.w	one_out_of_five
-5:
-	subq.w	#1,delay_timer
-	beq.b	4f
-	bpl.b	0b
-4:
-	rts
 	
-2:
-	tst.w	delay_timer
-	bne.b	2b
-	rts
+
 
 osd_write_sound_2100:
 osd_write_sound_2101:
@@ -1531,7 +1510,17 @@ compute_fg_tile_xy:
 	exg		d0,d1
 	rts
 
+osd_small_wait:
+	* empiric
+	.rept	50
+	tst.b	0xbfe001
+	.endr
+	rts
 	
+osd_set_irq_return_address:
+	move.l	a0,return_address
+	rts
+		
 osd_enable_interrupts:
 	move.w	#0xC038,_custom+intena
 	rts
@@ -2649,7 +2638,8 @@ read_args_string_end:
 	.align	2
 
 
-
+return_address:
+	.long	0
 
 old_intena:
 	.long	0

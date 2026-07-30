@@ -1,4 +1,5 @@
-- figure out irq hacks
+- figure out irq hacks: almost ok but need to set SR to $2000 before jumping
+  to infinite_loop from interrupt
 - bg_used_tiles don't work at all
 - fix cpu loops
 
