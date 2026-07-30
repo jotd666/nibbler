@@ -2,12 +2,10 @@
   to infinite_loop from interrupt:
   MAME trace with interrupt flag
   313B: rti then I is unset (returns in ADAE)
-- 740/741: 29/0 not displayed
 - CREDIT is not displayed on the side
 - missing tile on nibble title
 - insert coin to implement
-- wrong cluts
-- "nibbler" title is not flashing
+- "nibbler" title is not flashing: check this
 
 
 - set DSW difficulty lives, etc.

@@ -1628,11 +1628,13 @@ osd_video_byte_dirty:
 	jra		osd_w_videoram_out
 0:
 	.endif
+	move.l	a6,a1
 	
+	cmp.w	#BG_SCREEN_COLOR_ADDRESS-FG_SCREEN_TILE_ADDRESS,d7
+	jcc		both			| attribute value is shared between both layers
 	cmp.w	#BG_SCREEN_TILE_ADDRESS-FG_SCREEN_TILE_ADDRESS,d7
 	jcc		bg_tile
 	and.w	#0x3FF,d7
-	move.l	a6,a1
 
 	lea		(FG_SCREEN_TILE_ADDRESS,a1),a0
 	move.b	(a0,d7.w),d0
@@ -1641,17 +1643,27 @@ osd_video_byte_dirty:
 
 	jbsr	update_fg_tile
 	jra		osd_w_videoram_out
-	
+both:
+	and.w	#0x3FF,d7
+	lea		(FG_SCREEN_TILE_ADDRESS,a1),a0
+	move.b	(a0,d7.w),d0
+	lea		(FG_SCREEN_COLOR_ADDRESS,a1),a0
+	move.b	(a0,d7.w),d1
+	move.w	d7,-(a7)
+	jbsr	update_fg_tile
+	move.w	(a7)+,d7
+	jra 	bg_tile_cont
 bg_tile:
 	and.w	#0x3FF,d7
+bg_tile_cont:
 	move.l	a6,a1
-
 	lea		(BG_SCREEN_TILE_ADDRESS,a1),a0
 	move.b	(a0,d7.w),d0
 	lea		(BG_SCREEN_COLOR_ADDRESS,a1),a0
 	move.b	(a0,d7.w),d1
 
 	jbsr	update_bg_tile
+
 osd_w_videoram_out:
 	movem.l	(a7)+,d0-d7/a0-a3/a5
 	rts		
@@ -1713,7 +1725,6 @@ update_fg_tile:
 	moveq	#0,d3
 	move.b	d1,d3			| CLUT & tile code & flags
 	
-
 	* compute address
 	lea		fg_tile_address_table,a1
 	.ifdef	NO68020
