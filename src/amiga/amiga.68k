@@ -373,19 +373,10 @@ _user:
 	btst	#31,d1
 	sne		break_at_startup_flag
 	.endif
-	st.b	d1
-	move.l	dsw_options,d0
-	btst	#0,d0
-	jeq		0f
-	bclr	#3,d1	| fast game
-0:
-	btst	#1,d0
-	jeq		0f
-	bclr	#0,d1	| 5 lives
-0:
-	* bits 1 and 2 at 0: bonus life at 15000 (else 20000, 30000)
 
-	move.b	d1,dip_switches_2
+	move.l	dsw_options,d0
+
+
 
 
 	
@@ -567,7 +558,7 @@ call_bcpl:
 demo_game:
 		move		#0x4000,_custom+intena						| disable interrupts
 		move		#0x7FFF,_custom+intreq						| ack all interrupts
-		bsr			platform_init					| amiga-specific init
+		jbsr			platform_init					| amiga-specific init
 		
 0:	
 	* compute ram start
@@ -622,6 +613,10 @@ demo_game:
 	move.b	#0x0,(in0_2104,a6)	| player 1 input
 	move.b	#0x0,(in1_2105,a6)
 	move.b	#0x0,(in2_2107,a6)
+
+	* enable interrupts
+	move.w	#0xC038,_custom+intena
+
 	jmp		end_of_system_tests_7d26					| pass control to the mpatrol core
 		
 
@@ -695,7 +690,6 @@ _vblank:
 
 	* set base for RAM
 	GET_MEMORY_START_IN_A6
-	* declare that we're in interrupt mode so osd_disable_interrupts/osd_enable_interrupts
 	* is level 1 interrupt set? that would mean that mid-screen interrupt
 	* is the source of the interrupt
 	btst	#2,d0
@@ -710,14 +704,19 @@ _vblank:
 	bne.b	1f
 	* clear the sync flag a few lines later
 	* to simulate an extra vblank
+	tst.b	interrupts_on
+	jeq		33f
 	jbsr	irq_3009
+33:
 	clr.b	d0
 1:
 	move.b	d0,mid_screen_interrupt_count
 	jra		23f	| no need to update sprites we're in the middle of a frame
 2:
-
+	tst.b	interrupts_on
+	jeq		33f
 	jbsr	irq_3009
+33:
 	subq.w	#1,delay_timer
 		
 	tst.b	frameskip
@@ -772,12 +771,11 @@ log_used_fg_tiles:
 	move.b	(a4,d7.w),d1	| tile attribute
 
 	moveq	#0,d2
-	moveq	#0,d3
 	move.b	d0,d2	| code
-	and.w	d4,d3	| clut masked
+	and.w	d4,d1	| clut masked
 	
 	lsl.l	d5,d2			| tile code * NB_CLUTS (long!)
-	add.l	d3,d2			| add clut
+	add.l	d1,d2			| add clut
 	st.b	(a0,d2.l)
 20:
 	dbf		d7,0b
@@ -799,7 +797,6 @@ log_used_bg_tiles:
 	move.b	charbank_value,d6
 	add.b	d6,d6
 	move.w	(a1,d6.w),d6
-	move.b	#0,0x110
 0:
 
 	moveq	#0,d1
@@ -810,7 +807,6 @@ log_used_bg_tiles:
 	lsr.b	#3,d1   | color = (m_colorram[tile_index] & 0x38) >> 3;
 
 	moveq	#0,d2
-	moveq	#0,d3
 	move.b	d0,d2	| code
 
 	add.w	d6,d2	| add bank offset
@@ -1522,11 +1518,11 @@ osd_set_irq_return_address:
 	rts
 		
 osd_enable_interrupts:
-	move.w	#0xC038,_custom+intena
+	st.b	interrupts_on
 	rts
 	
 osd_disable_interrupts:
-	move.w	#0x0030,_custom+intena
+	clr.b	interrupts_on
 	rts
 	
 
@@ -2091,12 +2087,6 @@ update_controls:
 0:
 	rts
 	
-direction_table:
-	.byte	0x00,0x01,0x01,0x00,0x01,0xff,0xff,0x00	| 0x0000
-	.byte	0x01,0xff,0xff,0x00,0x00,0x00,0x00,0x00	| 0x0008	
-
-
-
 
 osd_read_system:
 	moveq	#0,d0
@@ -2681,16 +2671,12 @@ misc_options:
 		.long	WHDLTAG_CUSTOM5_GET
 		.long	0
 	.long	0
-dip_switches_1:
-		.byte	0
-dip_switches_0:
-		.byte	0
+	
+interrupts_on:
+	.byte	0
 insert_coin_requested:
 	.byte	0
-dsw0_value_high_bit:
-	.byte	0
-dip_switches_2:
-	.byte	0
+
 ntsc_flag:
 	.byte 	0
 mid_screen_interrupt_count:

@@ -17,10 +17,10 @@ dump_dir = this_dir / "dumps"
 fg_used_tile_cluts_file = this_dir / "fg_used_tile_cluts.json"
 used_graphics_dir = this_dir / "used_graphics"
 
-FG_NB_TILES = 0x200
-FG_NB_CLUTS = 7
-BG_NB_TILES = 0x100
-BG_NB_CLUTS = 7
+FG_NB_TILES = 0x100
+FG_NB_CLUTS = 8
+BG_NB_TILES = 0x200
+BG_NB_CLUTS = 8
 
 
 

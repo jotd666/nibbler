@@ -647,7 +647,7 @@ if len(bg_tile_palette)>target_nb_colors:
     else:
         raise Exception("quantize error")  # not really possible since we try 32 as last chance!
     apply_color_replacement(bg_tile_set_list,bg_replacement_dict)
-    fg_tile_palette = sorted(set(bg_replacement_dict.values()))
+    bg_tile_palette = sorted(set(bg_replacement_dict.values()))
     bitplanelib.palette_dump(bg_tile_palette,dump_dir / "bg_tile_palette_after.png",pformat=bitplanelib.PALETTE_FORMAT_PNG)
 else:
     pass
@@ -685,7 +685,7 @@ is_bob=False, nb_cluts=BG_NB_CLUTS, mask_color=magenta)
 
 tile_plane_cache = {}
 
-fg_tile_table,_ = read_tileset(fg_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache, is_bob=False, mask_color=magenta, nb_cluts=FG_NB_CLUTS)
+fg_tile_table,_ = read_tileset(fg_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache, is_bob=False, mask_color=black, nb_cluts=FG_NB_CLUTS)
 
 
 
