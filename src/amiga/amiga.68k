@@ -648,7 +648,7 @@ _vblank:
 	
 	tst.b	insert_coin_requested
 	jeq		0f
-	jbsr	nmi_3000
+	jbsr	insert_coin
 	clr.b	insert_coin_requested
 0:
 	move.l	_joypad_state,d0
@@ -1394,7 +1394,7 @@ platform_init:
 
  	*         VVHH
     move.w #0x2489,d0
-    move.w #0x2489,d1
+    move.w #0x2389,d1
 	cmp.l	#NTSC_MONITOR_ID,monitor
 	jne		0f
 	sub.w	#NTSC_Y_SHIFT<<8,d0
@@ -1501,6 +1501,7 @@ compute_fg_tile_xy:
 	move.w	d7,d1
 	lsr.w	#5,d1		| Y
 	neg.b	d1
+	add.b	#0x1F,d1
 	and.b	#0x1F,d1	| Y
 	
 	exg		d0,d1

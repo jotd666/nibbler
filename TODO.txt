@@ -2,10 +2,9 @@
   to infinite_loop from interrupt:
   MAME trace with interrupt flag
   313B: rti then I is unset (returns in ADAE)
-- CREDIT is not displayed on the side
-- missing tile on nibble title
-- insert coin to implement
-- "nibbler" title is not flashing: check this
+- missing tile on nibble title big caterpillar
+- start game not working
+- "nibbler" title is not flashing: check this is that special change bg color register?
 
 
 - set DSW difficulty lives, etc.

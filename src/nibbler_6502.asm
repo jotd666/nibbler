@@ -2458,10 +2458,12 @@ split_a_digits_4b90:
 4C93: 85 17    sta head_x_value_17
 4C95: A9 04    lda #$04
 4C97: 85 18    sta $18
+; $4CC5: address of end of "CREDIT" string (0C 1B 0E 0D 12 1D 30)
 4C99: A9 C5    lda #$c5
 4C9B: 85 19    sta $19
 4C9D: A9 4C    lda #$4c
 4C9F: 85 1A    sta $1a
+; write "CREDIT" vertically
 4CA1: A0 06    ldy #$06
 4CA3: B1 19    lda ($19), y
 4CA5: 91 17    sta (head_x_value_17), y   ; [video_address]

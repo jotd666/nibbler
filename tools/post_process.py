@@ -30,7 +30,10 @@ def game_specific(address,lines,i):
     line = lines[i]
     # game_specific
     if "unsupported return from interrupt" in line:
-        line = change_instruction("jra\tosd_enable_interrupts",lines,i)
+        if address == 0x3288:
+            line = change_instruction("rts",lines,i)
+        else:
+            line = change_instruction("jra\tosd_enable_interrupts",lines,i)
     if "replacing by tst.b" in line:
         line = remove_error(line)
     if address == 0x305f:
@@ -50,12 +53,15 @@ def game_specific(address,lines,i):
         kill_code(lines,i,0x306d)
     elif address == 0x3280:
         kill_code(lines,i,0x3287)
+    elif address == 0x3217:
+        kill_code(lines,i,0x321c)
     elif address == 0x313C:
         line = remove_instruction(lines,i)
         kill_code(lines,i,0x3141)
     elif address == 0x3154:
         line = change_instruction("lea\tl_315b,a0",lines,i)+"\tjbsr\tosd_set_irq_return_address\n"
-
+    elif address in {0x320e,0x3213}:
+        line = remove_instruction(lines,i)
     if "[cpu_loop]" in line:
         lines[i+2] = change_instruction("jbsr\twait_1_frame",lines,i+2)
         lines[i+3] = remove_instruction(lines,i+3)
