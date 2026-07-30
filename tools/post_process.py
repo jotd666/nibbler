@@ -33,6 +33,8 @@ def game_specific(address,lines,i):
         line = change_instruction("rts",lines,i)
     if "replacing by tst.b" in line:
         line = remove_error(line)
+    if address == 0x305F:
+        kill_code(lines,i,0x3066)
     return line
 
 

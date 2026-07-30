@@ -1,3 +1,7 @@
+- figure out irq hacks
+- bg_used_tiles don't work at all
+- fix cpu loops
+
 - set DSW difficulty lives, etc.
 - cheat add 10000 to score 
 - highscore load/save

@@ -15,7 +15,7 @@
 ;	map(0x2300, 0x2300).w(FUNC(fantasy_state::scrolly_w));
 ;	map(0x3000, 0xffff).rom().region("maincpu", 0x3000);
 
-
+countdown_timer_bd = $bd
 flipscreen_2103 = $2103	
 scroll_x_2200 = $2200
 scroll_y_2300 = $2300
@@ -38,7 +38,7 @@ reset_3004:  ; [global]
 
 3008: 78       sei
 irq_3009:    ; [global]
-3009: 4C 68 30 jmp $3068
+3009: 4C 68 30 jmp irq_continue_3068
 
 300C: 78       sei
 300D: 4C 5E 4B jmp $4b5e
@@ -49,20 +49,25 @@ irq_3009:    ; [global]
 301C: 4C 06 59 jmp $5906
 
 ; cpu wait loop in mainloop
+; during that time, interrupts can occur
+
+mainloop_305f:
 305F: E6 F3    inc $f3
 3061: A0 11    ldy #$11
 3063: 88       dey
 3064: D0 FD    bne $3063
-3066: F0 F7    beq $305f
-3068: 78       sei
-3069: 48       pha
+3066: F0 F7    beq mainloop_305f
+
+irq_continue_3068:
+3068: 78       sei		; no interrupts
+3069: 48       pha		; save registers
 306A: 8A       txa
 306B: 48       pha
 306C: 98       tya
 306D: 48       pha
-306E: A5 BD    lda $bd
+306E: A5 BD    lda countdown_timer_bd
 3070: F0 02    beq $3074
-3072: C6 BD    dec $bd
+3072: C6 BD    dec countdown_timer_bd
 3074: A9 00    lda #$00
 3076: 8D 00 22 sta scroll_x_2200		; no scrolling
 3079: 8D 00 23 sta scroll_y_2300
@@ -121,7 +126,7 @@ irq_3009:    ; [global]
 30ED: A5 BE    lda $be
 30EF: C9 10    cmp #$10
 30F1: B0 3F    bcs $3132
-30F3: A5 BD    lda $bd
+30F3: A5 BD    lda countdown_timer_bd
 30F5: D0 3B    bne $3132
 30F7: A9 80    lda #$80
 30F9: 2D 07 21 and in2_2107
@@ -157,7 +162,8 @@ irq_3009:    ; [global]
 3138: 68       pla
 3139: AA       tax
 313A: 68       pla
-313B: 40       rti
+313B: 40       rti			; [return_from_interrupt]
+
 313C: 68       pla
 313D: 68       pla
 313E: 68       pla
@@ -175,8 +181,8 @@ irq_3009:    ; [global]
 3153: 58       cli
 3154: 4C 5B 31 jmp $315b
 3157: 58       cli
+3158: 4C 5F 30 jmp mainloop_305f
 
-3158: 4C 5F 30 jmp $305f
 315B: A9 04    lda #$04
 315D: 2D 04 21 and in0_2104
 3160: F0 03    beq $3165
@@ -258,12 +264,13 @@ irq_3009:    ; [global]
 3208: 20 00 4C jsr $4c00
 320B: 4C A7 39 jmp $39a7
 320E: 48       pha
-320F: A5 BD    lda $bd
+320F: A5 BD    lda countdown_timer_bd
 3211: F0 02    beq $3215
 3213: 68       pla
-3214: 40       rti
+3214: 40       rti			; [return_from_interrupt]
+
 3215: A9 0A    lda #$0a
-3217: 85 BD    sta $bd
+3217: 85 BD    sta countdown_timer_bd
 3219: 8A       txa
 321A: 48       pha
 321B: 98       tya
@@ -331,7 +338,7 @@ irq_3009:    ; [global]
 3285: AA       tax
 3286: 68       pla
 3287: 58       cli
-3288: 40       rti
+3288: 40       rti			; [return_from_interrupt]
 
 3299: A9 00    lda #$00
 329B: 85 A5    sta $a5
@@ -1033,7 +1040,7 @@ irq_3009:    ; [global]
 3955: 85 18    sta $18
 3957: A9 20    lda #$20
 3959: 85 17    sta $17
-395B: A2 00    ldx #$00
+395B: A2 00    ldx #$00		; [cpu_loop]
 395D: CA       dex
 395E: D0 FD    bne $395d
 3960: C6 17    dec $17
@@ -1767,7 +1774,7 @@ irq_3009:    ; [global]
 406C: 85 18    sta $18
 406E: A9 00    lda #$00
 4070: 85 17    sta $17
-4072: A2 00    ldx #$00
+4072: A2 00    ldx #$00		; [cpu_loop]
 4074: CA       dex
 4075: D0 FD    bne $4074
 4077: C6 17    dec $17
@@ -1781,7 +1788,7 @@ irq_3009:    ; [global]
 4086: 85 18    sta $18
 4088: A9 00    lda #$00
 408A: 85 17    sta $17
-408C: A2 00    ldx #$00
+408C: A2 00    ldx #$00		; [cpu_loop]
 408E: CA       dex
 408F: D0 FD    bne $408e
 4091: C6 17    dec $17
@@ -1873,7 +1880,7 @@ irq_3009:    ; [global]
 413B: 85 18    sta $18
 413D: A9 20    lda #$20
 413F: 85 17    sta $17
-4141: A2 00    ldx #$00
+4141: A2 00    ldx #$00		; [cpu_loop]
 4143: CA       dex
 4144: D0 FD    bne $4143
 4146: C6 17    dec $17
@@ -1898,7 +1905,7 @@ irq_3009:    ; [global]
 416B: 85 18    sta $18
 416D: A9 20    lda #$20
 416F: 85 17    sta $17
-4171: A2 00    ldx #$00
+4171: A2 00    ldx #$00		; [cpu_loop]
 4173: CA       dex
 4174: D0 FD    bne $4173
 4176: C6 17    dec $17
@@ -1930,7 +1937,7 @@ irq_3009:    ; [global]
 41A9: 85 18    sta $18
 41AB: A9 20    lda #$20
 41AD: 85 17    sta $17
-41AF: A2 00    ldx #$00
+41AF: A2 00    ldx #$00		; [cpu_loop]
 41B1: CA       dex
 41B2: D0 FD    bne $41b1
 41B4: C6 17    dec $17
@@ -2769,7 +2776,7 @@ write_text_4b6e:
 4FF4: 8D 03 0D sta $0d03
 4FF7: A9 00    lda #$00
 4FF9: 85 FC    sta $fc
-4FFB: 4C 5F 30 jmp $305f
+4FFB: 4C 5F 30 jmp mainloop_305f
 
 5000: A9 40    lda #$40
 5002: 85 BE    sta $be
@@ -3185,7 +3192,7 @@ write_text_4b6e:
 5340: 85 18    sta $18
 5342: A9 28    lda #$28
 5344: 85 17    sta $17
-5346: A2 00    ldx #$00
+5346: A2 00    ldx #$00		; [cpu_loop]
 5348: CA       dex
 5349: D0 FD    bne $5348
 534B: C6 17    dec $17
@@ -4056,7 +4063,7 @@ write_text_4b6e:
 5A85: 85 18    sta $18
 5A87: A9 01    lda #$01
 5A89: 85 17    sta $17
-5A8B: A2 00    ldx #$00
+5A8B: A2 00    ldx #$00		; [cpu_loop]
 5A8D: CA       dex
 5A8E: D0 FD    bne $5a8d
 5A90: C6 17    dec $17
@@ -4068,7 +4075,7 @@ write_text_4b6e:
 5A9D: 85 18    sta $18
 5A9F: A9 01    lda #$01
 5AA1: 85 17    sta $17
-5AA3: A2 00    ldx #$00
+5AA3: A2 00    ldx #$00		; [cpu_loop]
 5AA5: CA       dex
 5AA6: D0 FD    bne $5aa5
 5AA8: C6 17    dec $17
@@ -4091,7 +4098,7 @@ write_text_4b6e:
 5ACF: 85 18    sta $18
 5AD1: A9 01    lda #$01
 5AD3: 85 17    sta $17
-5AD5: A2 00    ldx #$00
+5AD5: A2 00    ldx #$00		; [cpu_loop]
 5AD7: CA       dex
 5AD8: D0 FD    bne $5ad7
 5ADA: C6 17    dec $17
@@ -4129,7 +4136,7 @@ write_text_4b6e:
 5B17: 85 18    sta $18
 5B19: A9 20    lda #$20
 5B1B: 85 17    sta $17
-5B1D: A2 00    ldx #$00
+5B1D: A2 00    ldx #$00		; [cpu_loop]
 5B1F: CA       dex
 5B20: D0 FD    bne $5b1f
 5B22: C6 17    dec $17
@@ -4144,7 +4151,7 @@ write_text_4b6e:
 5B35: 85 18    sta $18
 5B37: A9 01    lda #$01
 5B39: 85 17    sta $17
-5B3B: A2 00    ldx #$00
+5B3B: A2 00    ldx #$00		; [cpu_loop]
 5B3D: CA       dex
 5B3E: D0 FD    bne $5b3d
 5B40: C6 17    dec $17
@@ -4161,7 +4168,7 @@ write_text_4b6e:
 5B57: 20 99 32 jsr $3299
 5B5A: A9 00    lda #$00
 5B5C: 85 FC    sta $fc
-5B5E: 4C 5F 30 jmp $305f
+5B5E: 4C 5F 30 jmp mainloop_305f
 5B61: A9 00    lda #$00
 5B63: 85 F4    sta $f4
 5B65: A5 A8    lda $a8
@@ -4218,7 +4225,7 @@ write_text_4b6e:
 5BD3: 85 B8    sta $b8
 5BD5: 85 B9    sta $b9
 5BD7: 85 BC    sta $bc
-5BD9: 85 BD    sta $bd
+5BD9: 85 BD    sta countdown_timer_bd
 5BDB: 85 F0    sta $f0
 5BDD: 85 F1    sta $f1
 5BDF: 85 F2    sta $f2
@@ -4227,7 +4234,7 @@ write_text_4b6e:
 5BE6: 20 99 32 jsr $3299
 5BE9: A9 00    lda #$00
 5BEB: 85 FC    sta $fc
-5BED: 4C 5F 30 jmp $305f
+5BED: 4C 5F 30 jmp mainloop_305f
 5BF4: A5 E9    lda $e9
 5BF6: 0A       asl a
 5BF7: 0A       asl a
@@ -4524,7 +4531,7 @@ write_text_4b6e:
 5E7D: 85 18    sta $18
 5E7F: A9 20    lda #$20
 5E81: 85 17    sta $17
-5E83: A2 00    ldx #$00
+5E83: A2 00    ldx #$00		; [cpu_loop]
 5E85: CA       dex
 5E86: D0 FD    bne $5e85
 5E88: C6 17    dec $17
@@ -5320,7 +5327,7 @@ end_of_system_tests_7d26:   ; [global]
 7D28: 85 18    sta $18
 7D2A: A9 01    lda #$01
 7D2C: 85 17    sta $17
-7D2E: A2 00    ldx #$00
+7D2E: A2 00    ldx #$00		; [cpu_loop] (0.012 seconds)
 7D30: CA       dex
 7D31: D0 FD    bne $7d30
 7D33: C6 17    dec $17
@@ -6953,7 +6960,7 @@ AB33: A9 01    lda #$01
 AB35: 85 18    sta $18
 AB37: A9 20    lda #$20
 AB39: 85 17    sta $17
-AB3B: A2 00    ldx #$00
+AB3B: A2 00    ldx #$00		; [cpu_loop]
 AB3D: CA       dex
 AB3E: D0 FD    bne $ab3d
 AB40: C6 17    dec $17
@@ -6978,7 +6985,7 @@ AB6A: A9 01    lda #$01
 AB6C: 85 18    sta $18
 AB6E: A9 90    lda #$90
 AB70: 85 17    sta $17
-AB72: A2 00    ldx #$00
+AB72: A2 00    ldx #$00		; [cpu_loop]
 AB74: CA       dex
 AB75: D0 FD    bne $ab74
 AB77: C6 17    dec $17
@@ -7020,7 +7027,7 @@ ABBE: A9 01    lda #$01
 ABC0: 85 18    sta $18
 ABC2: A9 20    lda #$20
 ABC4: 85 17    sta $17
-ABC6: A2 00    ldx #$00
+ABC6: A2 00    ldx #$00		; [cpu_loop]
 ABC8: CA       dex
 ABC9: D0 FD    bne $abc8
 ABCB: C6 17    dec $17
@@ -7050,7 +7057,7 @@ ABF9: A9 01    lda #$01
 ABFB: 85 18    sta $18
 ABFD: A9 20    lda #$20
 ABFF: 85 17    sta $17
-AC01: A2 00    ldx #$00
+AC01: A2 00    ldx #$00		; [cpu_loop]
 AC03: CA       dex
 AC04: D0 FD    bne $ac03
 AC06: C6 17    dec $17
@@ -7080,7 +7087,7 @@ AC34: A9 01    lda #$01
 AC36: 85 18    sta $18
 AC38: A9 20    lda #$20
 AC3A: 85 17    sta $17
-AC3C: A2 00    ldx #$00
+AC3C: A2 00    ldx #$00		; [cpu_loop]
 AC3E: CA       dex
 AC3F: D0 FD    bne $ac3e
 AC41: C6 17    dec $17
@@ -7124,7 +7131,7 @@ AC8D: A9 01    lda #$01
 AC8F: 85 18    sta $18
 AC91: A9 20    lda #$20
 AC93: 85 17    sta $17
-AC95: A2 00    ldx #$00
+AC95: A2 00    ldx #$00		; [cpu_loop]
 AC97: CA       dex
 AC98: D0 FD    bne $ac97
 AC9A: C6 17    dec $17
@@ -7153,7 +7160,7 @@ ACD0: A9 01    lda #$01
 ACD2: 85 18    sta $18
 ACD4: A9 20    lda #$20
 ACD6: 85 17    sta $17
-ACD8: A2 00    ldx #$00
+ACD8: A2 00    ldx #$00		; [cpu_loop]
 ACDA: CA       dex
 ACDB: D0 FD    bne $acda
 ACDD: C6 17    dec $17
@@ -7187,7 +7194,7 @@ AD11: A9 01    lda #$01
 AD13: 85 18    sta $18
 AD15: A9 20    lda #$20
 AD17: 85 17    sta $17
-AD19: A2 00    ldx #$00
+AD19: A2 00    ldx #$00		; [cpu_loop]
 AD1B: CA       dex
 AD1C: D0 FD    bne $ad1b
 AD1E: C6 17    dec $17
@@ -7221,7 +7228,7 @@ AD52: A9 01    lda #$01
 AD54: 85 18    sta $18
 AD56: A9 90    lda #$90
 AD58: 85 17    sta $17
-AD5A: A2 00    ldx #$00
+AD5A: A2 00    ldx #$00		; [cpu_loop]
 AD5C: CA       dex
 AD5D: D0 FD    bne $ad5c
 AD5F: C6 17    dec $17
@@ -7264,7 +7271,7 @@ ADA4: A9 01    lda #$01
 ADA6: 85 18    sta $18
 ADA8: A9 20    lda #$20
 ADAA: 85 17    sta $17
-ADAC: A2 00    ldx #$00
+ADAC: A2 00    ldx #$00		; [cpu_loop]
 ADAE: CA       dex
 ADAF: D0 FD    bne $adae
 ADB1: C6 17    dec $17
