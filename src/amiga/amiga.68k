@@ -23,7 +23,7 @@ NO68020 = 1
 
 
 
-TILE_PLANE_X_SHIFT = 8
+TILE_PLANE_X_SHIFT = 0
 
 
 FG_TILE_NB_CLUTS_POW = 3
@@ -1643,6 +1643,15 @@ osd_video_byte_dirty:
 	jra		osd_w_videoram_out
 	
 bg_tile:
+	and.w	#0x3FF,d7
+	move.l	a6,a1
+
+	lea		(BG_SCREEN_TILE_ADDRESS,a1),a0
+	move.b	(a0,d7.w),d0
+	lea		(BG_SCREEN_COLOR_ADDRESS,a1),a0
+	move.b	(a0,d7.w),d1
+
+	jbsr	update_bg_tile
 osd_w_videoram_out:
 	movem.l	(a7)+,d0-d7/a0-a3/a5
 	rts		
@@ -1669,7 +1678,6 @@ osd_w_videoram_out:
 	
 	.macro	TILE8_FG_NEXT_PLANE
 	add.w	d5,a1
-	add.w	d5,a3
 	.ifne	OPT_ENABLE_DOUBLE_BUFFERING
 	add.w	d5,a4
 	.endif
@@ -1677,7 +1685,6 @@ osd_w_videoram_out:
 
 	.macro	COPY_FG_TILE8_PLANE_ROW
 	move.b	d0,(offset,a1)  | buffer
-	move.b	d0,(offset,a3)  | buffer
 	.ifne	OPT_ENABLE_DOUBLE_BUFFERING
 	move.b	d0,(offset,a4)  | buffer
 	.endif
@@ -1687,7 +1694,6 @@ osd_w_videoram_out:
 	.set	offset,0
 	.rept	8
 	clr.b	(offset,a1)
-	clr.b	(offset,a3)
 	.ifne	OPT_ENABLE_DOUBLE_BUFFERING
 	clr.b	(offset,a4)
 	.endif
@@ -1750,9 +1756,6 @@ update_fg_tile:
 	* double buffering
 	add.w	d0,a4
 	.endif
-
-	lea		background_restore_buffer,a3
-	add.w	d0,a3
 
 
 	lea		fg_character_table,a0
@@ -1854,56 +1857,99 @@ compute_tile_xy:
 * < D0: extended tile code
 
 update_bg_tile:
-	move.w	d0,d2	| code
+	movew	#0x100,d2			| mask up to 255
+	move.b	d0,d2			| tile code
 	
-	bsr		compute_tile_xy
+	moveq	#0,d3
+	move.b	d1,d3			| CLUT & tile code & flags
 	
-	lea		bg_character_table,a0
 
+	* compute address
+	lea		fg_tile_address_table,a1
+	.ifdef	NO68020
+	add.w	d7,d7
+	move.w	(a1,d7.w),d0
+	.else
+	move.w	(a1,d7.w*2),d0
+	.endif
+	moveq	#0,d1
+	move.b	d0,d1		| d1 is in chars not in pixels (times 8 is needed)
+	lsr.w	#8,d0
 	
 	* updating bitplanes
-	move.l	#BG_SCREEN_PLANE_SIZE,d5
-	move.w	#NB_BG_PLANES-1,d4
-	move.l	background_screen_ptr,a1
-
-
-	lea		mulBG_NB_BYTES_PER_ROW_table,A2
+	move.w	#FG_SCREEN_PLANE_SIZE,d5
+	
+	
+	move.l		background_screen_ptr,a1
+	.ifeq	OPT_ENABLE_DOUBLE_BUFFERING
+	.else 
+	* double buffering
+	move.l		playfield_displayed_screen_ptr,a4
+	.endif
+	
+	move.w	#NB_FG_PLANES-1,d4   | needed even if no tile
+	lea		mulFG_NB_BYTES_PER_ROW_table,A2
+	.ifdef	NO68020
 	add.w	d1,d1
 	move.w	(a2,d1.w),d1
-	add.w	d1,d0
-	add.w	d0,a1
-
-	lea		bank_table,a0
-	moveq	#0,d0
-	move.b	charbank_value,d0
-
-	.ifdef	NO68020
-	add.b	d0,d0
-	add.w	(a0,d0.w),d2
 	.else
-	add.w	(a0,d0.w*2),d2
+	move.w	(a2,d1.w*2),d1
+	.endif
+	lsl.w	#3,d1	| 8 pixels
+	add.w	d1,d0
+	swap	d0
+	clr.w	d0
+	swap	d0
+	add.w	d0,a1
+	.ifeq	OPT_ENABLE_DOUBLE_BUFFERING
+	.else 
+	* double buffering
+	add.w	d0,a4
 	.endif
 
+
+	lea		bg_character_table,a0
+	.ifdef	NO68020
 	add.w	d2,d2
 	add.w	d2,d2	
 	move.l	(a0,d2.w),d0		| tile pointer
-	
-	jeq		11f 	| can happen when tile code is read when screen is being erased	
-*	.ifndef	RELEASE
-*	jne		12f
-*	add.w	#0x1400,d7
-*	lsr.w	#2,d2
-*	BREAKPOINT	"game tile (in D2) not registered"	
-*	.endif
-*
-*	jra		11f
+	.else
+	move.l	(a0,d2.w*4),d0		| tile pointer
+	.endif
+	.ifdef	RELEASE
+	jeq		11f					| clear tile, no error (release)
+	.else
+	jne		12f
+	move.w	d7,-(a7)
+	add.w	#BG_SCREEN_TILE_ADDRESS,d7
+	.ifdef	NO68020
+	lsr.w	#2,d2
+	.endif
+	move.w	(a7)+,d7
+	jra		11f
 12:
-	move.l	d0,a2		| directly pointer on tile bitplanes
+	.endif
+	move.l	d0,a2
 	
+	and.w	#BG_TILE_NB_CLUTS-1,d3
+
 	
-standard_tile:
+	.ifdef	NO68020
+	add.w	d3,d3
+	add.w	d3,d3
+	move.l	(a2,d3.w),d0			| pointer on tile bitplanes for that CLUT
+	.else
+	move.l	(a2,d3.w*4),d0			| pointer on tile bitplanes for that CLUT	
+	.endif
+	jeq		11f						| not necessarily a problem
+12:
+	move.l	d0,a2					| pointer on bitplanes
+
+	
+	move.w	#NB_BG_PLANES-1,d4
 
 	* just copy
+
 
 4:
 	move.l	(a2)+,d0		| next plane
@@ -2962,8 +3008,6 @@ bg_screen_buffer:
 	.skip	8
 	.skip	8	
 
-background_restore_buffer:
-	.skip	FG_SCREEN_SIZE
 		
 bobs_screen_buffer_1:
 	.skip	FG_SCREEN_SIZE

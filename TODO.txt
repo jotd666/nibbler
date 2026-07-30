@@ -1,9 +1,19 @@
 - figure out irq hacks: almost ok but need to set SR to $2000 before jumping
-  to infinite_loop from interrupt
-- bg_used_tiles don't work at all
-- fix cpu loops
+  to infinite_loop from interrupt:
+  MAME trace with interrupt flag
+  313B: rti then I is unset (returns in ADAE)
+- 740/741: 29/0 not displayed
+- CREDIT is not displayed on the side
+- missing tile on nibble title
+- insert coin to implement
+- wrong cluts
+- "nibbler" title is not flashing
+
 
 - set DSW difficulty lives, etc.
 - cheat add 10000 to score 
 - highscore load/save
 - detect not game in play for insert coin
+
+trace interrupt status:
+trace mame.tr,,,{tracelog "P=%02X ",p&4}

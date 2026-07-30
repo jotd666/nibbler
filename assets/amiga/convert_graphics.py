@@ -621,12 +621,6 @@ for i,tsd in bg_tile_sheet_dict.items():
     tp,tile_set = load_tileset(tsd,i,8,8,"bg_tiles",dump_dir,dump=dump_it,
     cluts=bg_tile_cluts,
     name_dict=None)
-    for j,tile in enumerate(tile_set):
-        if tile:
-            # images are mirrored & flipped, fix this here
-            tile = ImageOps.mirror(tile)
-            tile = ImageOps.flip(tile)
-            tile_set[j] = tile
 
     bg_tile_set_list.append(tile_set)
     bg_tile_palette.update(tp)

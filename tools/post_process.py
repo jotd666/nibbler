@@ -30,7 +30,7 @@ def game_specific(address,lines,i):
     line = lines[i]
     # game_specific
     if "unsupported return from interrupt" in line:
-        line = change_instruction("rts",lines,i)
+        line = change_instruction("jra\tosd_enable_interrupts",lines,i)
     if "replacing by tst.b" in line:
         line = remove_error(line)
     if address == 0x305f:
