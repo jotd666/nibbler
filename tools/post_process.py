@@ -57,7 +57,7 @@ def game_specific(address,lines,i):
         kill_code(lines,i,0x3141)
     elif address == 0x3154:
         line = change_instruction("lea\tl_315b,a0",lines,i)+"\tjbra\tosd_set_irq_return_address\n"
-    elif address in {0x3158}:
+    elif address in {0x3158,0x5BED}:
         line = change_instruction("lea\tinfinite_loop_305f,a0",lines,i)+"\tjbra\tosd_set_irq_return_address\n"
     elif address in {0x320e,0x3213}:
         line = remove_instruction(lines,i)
@@ -71,6 +71,12 @@ def game_specific(address,lines,i):
 """
     elif address == 0x5B0C:
         line += "\t.endif\n"
+    # free play
+    elif address == 0X5920:
+        line += "\tmoveq\t#9,d0\n"
+    elif address == 0X5B88:
+        line = remove_instruction(lines,i)  # no credit decrease
+
     if "[cpu_loop]" in line:
         lines[i+2] = change_instruction("jbsr\twait_1_frame",lines,i+2)
         lines[i+3] = remove_instruction(lines,i+3)

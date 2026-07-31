@@ -89,6 +89,7 @@ game_state_fc = $fc
 fruits_left_ba = $ba
 countdown_timer_bd = $bd
 fast_counter_f3 = $f3
+nb_credits_f5 = $f5
 flipscreen_2103 = $2103	
 scroll_x_2200 = $2200
 scroll_y_2300 = $2300
@@ -209,10 +210,11 @@ irq_continue_3068:
 30F7: A9 80    lda #$80
 30F9: 2D 07 21 and in2_2107
 30FC: F0 14    beq $3112
+; start game
 30FE: A9 20    lda #$20
 3100: 2D 06 21 and dsw_2106
 3103: D0 06    bne $310b
-3105: A5 F5    lda $f5
+3105: A5 F5    lda nb_credits_f5
 3107: F0 29    beq $3132
 3109: 30 27    bmi $3132
 310B: A9 10    lda #$10
@@ -225,7 +227,7 @@ irq_continue_3068:
 3119: A9 20    lda #$20
 311B: 2D 06 21 and dsw_2106
 311E: D0 06    bne $3126
-3120: A5 F5    lda $f5
+3120: A5 F5    lda nb_credits_f5
 3122: C9 02    cmp #$02
 3124: 30 0C    bmi $3132
 3126: A9 20    lda #$20
@@ -384,12 +386,13 @@ nmi_continue_320e:
 323D: AA       tax
 323E: BD 89 32 lda $3289, x
 3241: 18       clc
-3242: 65 F5    adc $f5
-3244: 85 F5    sta $f5
+3242: 65 F5    adc nb_credits_f5
+3244: 85 F5    sta nb_credits_f5
 3246: C9 09    cmp #$09
 3248: 30 04    bmi $324e
+; max nb credits reached
 324A: A9 09    lda #$09
-324C: 85 F5    sta $f5
+324C: 85 F5    sta nb_credits_f5
 324E: 29 07    and #$07
 3250: 0A       asl a
 3251: 0A       asl a
@@ -409,7 +412,7 @@ nmi_continue_320e:
 326C: 8D 00 21 sta sound_2100
 326F: A9 40    lda #$40
 3271: 85 4E    sta $4e
-3273: 20 8A 4C jsr $4c8a
+3273: 20 8A 4C jsr write_credit_string_4c8a
 3276: 68       pla
 3277: 85 1A    sta $1a
 3279: 68       pla
@@ -1064,7 +1067,7 @@ nmi_continue_320e:
 38AC: A5 18    lda $18
 38AE: C9 10    cmp #$10
 38B0: 90 E9    bcc $389b
-38B2: 20 8A 4C jsr $4c8a
+38B2: 20 8A 4C jsr write_credit_string_4c8a
 38B5: 60       rts
 
 38DC: A9 47    lda #$47
@@ -2450,7 +2453,7 @@ split_a_digits_4b90:
 4C67: D0 F1    bne $4c5a
 4C69: 60       rts
 
-
+write_credit_string_4c8a:
 4C8A: A9 20    lda #$20
 4C8C: 2D 06 21 and dsw_2106
 4C8F: D0 48    bne $4cd9
@@ -2470,14 +2473,14 @@ split_a_digits_4b90:
 4CA7: 88       dey
 4CA8: 10 F9    bpl $4ca3
 4CAA: A0 07    ldy #$07
-4CAC: A5 F5    lda $f5
+4CAC: A5 F5    lda nb_credits_f5
 4CAE: 91 17    sta (head_x_value_17), y   ; [video_address]
 4CB0: A9 0C    lda #$0c
 4CB2: 85 17    sta head_x_value_17
 4CB4: A9 0C    lda #$0c
 4CB6: 85 18    sta $18
 4CB8: A0 08    ldy #$08
-4CBA: A6 F5    ldx $f5
+4CBA: A6 F5    ldx nb_credits_f5
 4CBC: BD CC 4C lda $4ccc, x
 4CBF: 91 17    sta (head_x_value_17), y   ; [video_address]
 4CC1: 88       dey
@@ -2498,7 +2501,7 @@ split_a_digits_4b90:
 4CEF: 88       dey
 4CF0: 10 F9    bpl $4ceb
 4CF2: A9 02    lda #$02
-4CF4: 85 F5    sta $f5
+4CF4: 85 F5    sta nb_credits_f5
 4CF6: 4C B0 4C jmp $4cb0
 
 4D02: A0 00    ldy #$00
@@ -3636,7 +3639,7 @@ split_a_digits_4b90:
 55E4: A0 02    ldy #$02
 55E6: A2 00    ldx #$00
 55E8: B1 1B    lda ($1b), y
-55EA: 81 1D    sta ($1d, x)
+55EA: 81 1D    sta ($1d, x)		; [video_address]
 55EC: A5 1D    lda $1d
 55EE: 18       clc
 55EF: 69 20    adc #$20
@@ -3919,7 +3922,7 @@ split_a_digits_4b90:
 5837: C9 10    cmp #$10
 5839: 10 08    bpl $5843
 583B: A5 2A    lda $2a
-583D: 81 2D    sta ($2d, x)
+583D: 81 2D    sta ($2d, x)		; [video_address]
 583F: C8       iny
 5840: 4C 23 58 jmp $5823
 5843: A9 A1    lda #$a1
@@ -4023,7 +4026,7 @@ split_a_digits_4b90:
 591B: 20 24 4B jsr $4b24
 591E: A9 00    lda #$00
 5920: 85 F4    sta $f4
-5922: 85 F5    sta $f5
+5922: 85 F5    sta nb_credits_f5		; zero number of credits
 5924: A9 00    lda #$00
 5926: 8D 00 22 sta scroll_x_2200
 5929: 8D 00 23 sta scroll_y_2300
@@ -4292,9 +4295,10 @@ exit_irq_5b61:
 5B7F: C6 B0    dec $b0
 5B81: A9 20    lda #$20
 5B83: 2D 06 21 and dsw_2106
-5B86: D0 3D    bne $5bc5
-5B88: C6 F5    dec $f5
-5B8A: 4C C5 5B jmp $5bc5
+5B86: D0 3D    bne start_game_5bc5
+5B88: C6 F5    dec nb_credits_f5		; consume one credit
+5B8A: 4C C5 5B jmp start_game_5bc5
+
 5B8D: A9 03    lda #$03
 5B8F: 2D 06 21 and dsw_2106
 5B92: AA       tax
@@ -4304,8 +4308,8 @@ exit_irq_5b61:
 5B9A: A9 20    lda #$20
 5B9C: 2D 06 21 and dsw_2106
 5B9F: D0 04    bne $5ba5
-5BA1: C6 F5    dec $f5
-5BA3: C6 F5    dec $f5
+5BA1: C6 F5    dec nb_credits_f5
+5BA3: C6 F5    dec nb_credits_f5
 5BA5: A9 01    lda #$01
 5BA7: 85 BC    sta $bc
 5BA9: 85 AD    sta $ad
@@ -4321,6 +4325,8 @@ exit_irq_5b61:
 5BBF: C6 B0    dec $b0
 5BC1: A9 02    lda #$02
 5BC3: 85 AB    sta $ab
+
+start_game_5bc5:
 5BC5: A9 00    lda #$00
 5BC7: 85 B2    sta $b2
 5BC9: 85 B3    sta $b3

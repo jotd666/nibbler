@@ -646,11 +646,7 @@ _vblank:
 	move.l	d0,_joypad_state
 	jbsr	update_controls
 	
-	tst.b	insert_coin_requested
-	jeq		0f
-	jbsr	insert_coin
-	clr.b	insert_coin_requested
-0:
+
 	move.l	_joypad_state,d0
 	btst	#JPB_BTN_BLU,d0
 	beq.b	0f
@@ -2150,15 +2146,25 @@ update_controls:
 
 	move.b	d0,(in0_2104,a6)
 
+	moveq	#0,d0
+	tst.b	(0x01,a0)		| "1" key
+	beq.b	0f
+	bset	#BIT_START_1P,d0
+0:
+	tst.b	(0x02,a0)		| "1" key
+	beq.b	0f
+	bset	#BIT_START_2P,d0
+0:
+	
+	
 	jbsr		is_game_playing
 	jeq	0f
 	* game not playing, we can insert coin/start with joypad
-	btst	#JPB_BTN_RED,d1		| "5" key like in MAME
-	jeq		0f
-	btst	#JPB_BTN_RED,d2
-	jne		0f
-	st.b	insert_coin_requested
+	nop
 0:
+
+	move.b	d0,(in2_2107,a6)
+
 	rts
 	
 
@@ -2192,16 +2198,16 @@ osd_read_system:
 	rts
 
 	
-
-insert_coin:
-	movem.l	d0-a6,-(a7)
-	GET_MEMORY_START_IN_A6
-	jbsr 	cpu_init
-
-	jbsr	nmi_3000
-
-	movem.l (a7)+,d0-a6
-	rts	
+* this seems to freeze the game, we don't need it (free play)
+*insert_coin:
+*	movem.l	d0-a6,-(a7)
+*	GET_MEMORY_START_IN_A6
+*	jbsr 	cpu_init
+*
+*	jbsr	nmi_3000
+*
+*	movem.l (a7)+,d0-a6
+*	rts	
 
 
 	
@@ -2240,10 +2246,7 @@ handle_keyboard:
     bsr	toggle_pause
 0:
 
-	cmp.b	#5,d0
-	jne	0f
-	st.b	insert_coin_requested
-0:
+
 	* cheat keys are always active in dev mode
 	.ifdef	RELEASE
 	btst	#4,cheat_flags+3
@@ -2748,8 +2751,7 @@ misc_options:
 	
 interrupts_on:
 	.byte	0
-insert_coin_requested:
-	.byte	0
+
 
 ntsc_flag:
 	.byte 	0

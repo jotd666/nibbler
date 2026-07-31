@@ -1,6 +1,7 @@
 - start game not working
 - character redefine trap
 - background erased by nibbler
+- fruits not showing
 - bg: allocate colors manually ?
 - fg: show score using copper trick to show orig color
 - remove double buffering
