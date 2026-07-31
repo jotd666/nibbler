@@ -20,3 +20,20 @@
 
 trace interrupt status:
 trace mame.tr,,,{tracelog "P=%02X ",p&4}
+
+dynamic tiles: 49,4B,4D (tail)
+going left/right: head: 32, eyes: 35
+going up/down: head: 62, eyes: 65
+going left: tail: 4D, tip: 49
+going up: tail: 4D, tip: 49
+going down: tail: 4B, tip: 49/4D
+
+charset decoding: 1 byte = 1 column of 8 pixels
+first bitplane: 0x1000+(8*charcode), second bitplane 0x1800+
+
+on each irq (3009) save buffers 1000-2000 for a full run (4 directions)
+create 16-byte keys for each different pattern offset(8 bytes), offset+0x800 (8 bytes)
+count how many different patterns exist for each character
+
+
+

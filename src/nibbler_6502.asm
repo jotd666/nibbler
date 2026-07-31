@@ -1550,7 +1550,7 @@ circular_buffer_ok_3c0a:
 3C98: F0 1C    beq $3cb6
 3C9A: A0 47    ldy #$47
 3C9C: B1 31    lda ($31), y
-3C9E: 91 1B    sta ($1b), y
+3C9E: 91 1B    sta ($1b), y		; change charset (going up/right/down)
 3CA0: 88       dey
 3CA1: 10 F9    bpl $3c9c
 3CA3: A0 47    ldy #$47
@@ -1563,6 +1563,7 @@ circular_buffer_ok_3c0a:
 3CB0: 88       dey
 3CB1: 10 F9    bpl $3cac
 3CB3: 4C DF 3C jmp $3cdf
+
 3CB6: A0 47    ldy #$47
 3CB8: 84 16    sty $16
 3CBA: 98       tya
@@ -1570,9 +1571,10 @@ circular_buffer_ok_3c0a:
 3CBD: A8       tay
 3CBE: B1 31    lda ($31), y
 3CC0: A4 16    ldy $16
-3CC2: 91 1B    sta ($1b), y
+3CC2: 91 1B    sta ($1b), y		; charset when turning left
 3CC4: 88       dey
 3CC5: 10 F1    bpl $3cb8
+; nibbler tiles: change charset when turning left
 3CC7: A0 47    ldy #$47
 3CC9: A5 1C    lda $1c
 3CCB: 18       clc
