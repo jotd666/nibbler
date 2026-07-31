@@ -1,12 +1,16 @@
-- start game not working
 - character redefine trap
-- background erased by nibbler
-- fruits not showing
+- set dip switch free play
+- cheat start level (find level number)
 - bg: allocate colors manually ?
-- fg: show score using copper trick to show orig color
+- A8DD invalid mem access after level 34 expected?
+- score BCD issue
+- fg: show score using copper trick to show orig color (light blue for score), hack flashing "TIME"
+  with palette change yellow/blue don't set to blue
+  
 - remove double buffering
 
-- set DSW difficulty lives, etc.
+- set DSW difficulty easy/hard
+- DSW lives 3,4,5,6
 - cheat add 10000 to score 
 - highscore load/save
 - detect not game in play for insert coin

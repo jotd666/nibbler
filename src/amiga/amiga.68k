@@ -910,7 +910,7 @@ lose_all_lives:
 skip_level:
 	move.l	a6,-(a7)
 	GET_MEMORY_START_IN_A6
-	*st.b	(player_state_3b,a6)		| found by mistake :)
+	clr.b	(fruits_left_ba,a6)
 	move.l	(a7)+,a6
 	rts
 

@@ -108,6 +108,9 @@ move_slot_ptr_e2 = $e2
 head_x_value_17 = $17
 tail_ptr_58 = $58
 head_ptr_57 = $57
+p2_lives_b1 = $b1
+p1_lives_b0 = $b0
+time_a3 = $a3
 
 nmi_3000:    ; [global]
 3000: 78       sei
@@ -293,11 +296,11 @@ l_315b:		; [global]
 318C: 10 17    bpl $31a5
 318E: A9 1E    lda #$1e
 3190: 85 A4    sta $a4
-3192: C6 A3    dec $a3
+3192: C6 A3    dec time_a3
 3194: D0 0F    bne $31a5
 3196: A5 5A    lda $5a
 3198: F0 05    beq $319f
-319A: E6 A3    inc $a3
+319A: E6 A3    inc time_a3
 319C: 4C A5 31 jmp $31a5
 319F: 20 72 39 jsr $3972
 31A2: 20 16 55 jsr $5516
@@ -492,19 +495,19 @@ nmi_continue_320e:
 331C: 29 1F    and #$1f
 331E: A8       tay
 331F: B9 02 34 lda $3402, y
-3322: 85 A3    sta $a3
+3322: 85 A3    sta time_a3
 3324: A5 BE    lda $be
 3326: C9 30    cmp #$30
 3328: 30 0B    bmi $3335
 332A: B9 71 33 lda $3371, y
 332D: 18       clc
-332E: 65 B1    adc $b1
-3330: 85 B1    sta $b1
+332E: 65 B1    adc p2_lives_b1
+3330: 85 B1    sta p2_lives_b1
 3332: 4C 3D 33 jmp $333d
 3335: B9 71 33 lda $3371, y
 3338: 18       clc
-3339: 65 B0    adc $b0
-333B: 85 B0    sta $b0
+3339: 65 B0    adc p1_lives_b0
+333B: 85 B0    sta p1_lives_b0
 333D: A5 F0    lda $f0
 333F: 29 C0    and #$c0
 3341: 85 F0    sta $f0
@@ -989,7 +992,7 @@ nmi_continue_320e:
 380D: 85 17    sta head_x_value_17
 380F: A9 04    lda #$04
 3811: 85 18    sta $18
-3813: A4 B0    ldy $b0
+3813: A4 B0    ldy p1_lives_b0
 3815: B9 90 34 lda $3490, y
 3818: 20 00 4C jsr $4c00
 381B: A5 BE    lda $be
@@ -1001,7 +1004,7 @@ nmi_continue_320e:
 3827: 85 17    sta head_x_value_17
 3829: A9 04    lda #$04
 382B: 85 18    sta $18
-382D: A4 B1    ldy $b1
+382D: A4 B1    ldy p2_lives_b1
 382F: B9 90 34 lda $3490, y
 3832: 20 00 4C jsr $4c00
 3835: A9 C0    lda #$c0
@@ -1083,7 +1086,7 @@ nmi_continue_320e:
 38F5: 8D C3 0C sta $0cc3
 38F8: 8D E3 0C sta $0ce3
 38FB: 8D 03 0D sta $0d03
-38FE: C6 A3    dec $a3
+38FE: C6 A3    dec time_a3
 3900: A4 BC    ldy $bc
 3902: A5 BE    lda $be
 3904: C9 30    cmp #$30
@@ -1121,7 +1124,7 @@ nmi_continue_320e:
 3942: 20 32 35 jsr $3532
 3945: 20 72 39 jsr $3972
 3948: A9 03    lda #$03
-394A: 25 A3    and $a3
+394A: 25 A3    and time_a3
 394C: D0 B0    bne $38fe
 394E: A9 0A    lda #$0a
 3950: 8D 01 21 sta sound_2101
@@ -1138,14 +1141,14 @@ nmi_continue_320e:
 3966: D0 F5    bne $395d
 3968: A9 00    lda #$00
 396A: 8D 01 21 sta sound_2101
-396D: A5 A3    lda $a3
+396D: A5 A3    lda time_a3
 396F: D0 8D    bne $38fe
 3971: 60       rts
 3972: A9 FF    lda #$ff
 3974: 85 C3    sta $c3
 3976: A9 00    lda #$00
 3978: 85 C2    sta $c2
-397A: A4 A3    ldy $a3
+397A: A4 A3    ldy time_a3
 397C: B9 90 34 lda $3490, y
 397F: 20 90 4B jsr split_a_digits_4b90
 3982: 86 C1    stx $c1
@@ -3545,7 +3548,7 @@ write_credit_string_4c8a:
 5535: 8D 01 21 sta sound_2101
 5538: A9 B0    lda #$b0
 553A: 85 4F    sta $4f
-553C: A5 A3    lda $a3
+553C: A5 A3    lda time_a3
 553E: D0 03    bne $5543
 5540: 4C 17 56 jmp $5617
 5543: A9 1B    lda #$1b
@@ -3790,7 +3793,7 @@ write_credit_string_4c8a:
 571A: A9 03    lda #$03
 571C: 85 16    sta $16
 571E: 20 4D 5E jsr $5e4d
-5721: A5 A3    lda $a3
+5721: A5 A3    lda time_a3
 5723: D0 05    bne $572a
 5725: A9 05    lda #$05
 5727: 20 00 40 jsr $4000
@@ -3799,17 +3802,17 @@ write_credit_string_4c8a:
 572E: 30 52    bmi $5782
 5730: C9 30    cmp #$30
 5732: 30 2D    bmi $5761
-5734: A5 B1    lda $b1
+5734: A5 B1    lda p2_lives_b1
 5736: D0 05    bne $573d
 5738: A9 0D    lda #$0d
 573A: 20 00 40 jsr $4000
-573D: A5 B0    lda $b0
+573D: A5 B0    lda p1_lives_b0
 573F: D0 4C    bne $578d
-5741: A5 B1    lda $b1
+5741: A5 B1    lda p2_lives_b1
 5743: F0 10    beq $5755
 5745: A9 02    lda #$02
 5747: 20 00 40 jsr $4000
-574A: C6 B1    dec $b1
+574A: C6 B1    dec p2_lives_b1
 574C: 20 E9 58 jsr $58e9
 574F: 20 1E 4C jsr $4c1e
 5752: 4C 48 58 jmp $5848
@@ -3818,24 +3821,24 @@ write_credit_string_4c8a:
 5759: 85 A8    sta $a8
 575B: 8D 03 21 sta flipscreen_2103
 575E: 4C DE 59 jmp $59de
-5761: A5 B0    lda $b0
+5761: A5 B0    lda p1_lives_b0
 5763: D0 05    bne $576a
 5765: A9 0C    lda #$0c
 5767: 20 00 40 jsr $4000
-576A: A5 B1    lda $b1
+576A: A5 B1    lda p2_lives_b1
 576C: D0 56    bne $57c4
-576E: A5 B0    lda $b0
+576E: A5 B0    lda p1_lives_b0
 5770: F0 E3    beq $5755
 5772: A9 01    lda #$01
 5774: 20 00 40 jsr $4000
-5777: C6 B0    dec $b0
+5777: C6 B0    dec p1_lives_b0
 5779: 20 E9 58 jsr $58e9
 577C: 20 1E 4C jsr $4c1e
 577F: 4C 48 58 jmp $5848
-5782: C6 B0    dec $b0
+5782: C6 B0    dec p1_lives_b0
 5784: 10 7C    bpl $5802
 5786: A9 00    lda #$00
-5788: 85 B0    sta $b0
+5788: 85 B0    sta p1_lives_b0
 578A: 4C DE 59 jmp $59de
 578D: A5 A8    lda $a8
 578F: 29 7F    and #$7f
@@ -3857,7 +3860,7 @@ write_credit_string_4c8a:
 57B0: 85 BA    sta fruits_left_ba
 57B2: A9 01    lda #$01
 57B4: 20 00 40 jsr $4000
-57B7: C6 B0    dec $b0
+57B7: C6 B0    dec p1_lives_b0
 57B9: A9 00    lda #$00
 57BB: 85 2B    sta $2b
 57BD: A9 03    lda #$03
@@ -3887,7 +3890,7 @@ write_credit_string_4c8a:
 57F1: 85 BA    sta fruits_left_ba
 57F3: A9 02    lda #$02
 57F5: 20 00 40 jsr $4000
-57F8: C6 B1    dec $b1
+57F8: C6 B1    dec p2_lives_b1
 57FA: A9 40    lda #$40
 57FC: 85 2B    sta $2b
 57FE: A9 03    lda #$03
@@ -3937,7 +3940,7 @@ write_credit_string_4c8a:
 5857: 29 0F    and #$0f
 5859: A8       tay
 585A: B9 02 34 lda $3402, y
-585D: 85 A3    sta $a3
+585D: 85 A3    sta time_a3
 585F: 20 EE 35 jsr $35ee
 5862: 20 32 35 jsr $3532
 5865: 20 72 39 jsr $3972
@@ -4092,8 +4095,8 @@ write_credit_string_4c8a:
 59EB: B0 03    bcs $59f0
 59ED: 4C 66 5A jmp $5a66
 59F0: A9 00    lda #$00
-59F2: 85 B0    sta $b0
-59F4: 85 B1    sta $b1
+59F2: 85 B0    sta p1_lives_b0
+59F4: 85 B1    sta p2_lives_b1
 59F6: 8D 00 21 sta sound_2100
 59F9: 8D 01 21 sta sound_2101
 59FC: 8D 02 21 sta sound_2102
@@ -4291,8 +4294,8 @@ exit_irq_5b61:
 5B76: 2D 06 21 and dsw_2106
 5B79: AA       tax
 5B7A: BD F0 5B lda $5bf0, x
-5B7D: 85 B0    sta $b0
-5B7F: C6 B0    dec $b0
+5B7D: 85 B0    sta p1_lives_b0
+5B7F: C6 B0    dec p1_lives_b0
 5B81: A9 20    lda #$20
 5B83: 2D 06 21 and dsw_2106
 5B86: D0 3D    bne start_game_5bc5
@@ -4303,8 +4306,8 @@ exit_irq_5b61:
 5B8F: 2D 06 21 and dsw_2106
 5B92: AA       tax
 5B93: BD F0 5B lda $5bf0, x
-5B96: 85 B0    sta $b0
-5B98: 85 B1    sta $b1
+5B96: 85 B0    sta p1_lives_b0
+5B98: 85 B1    sta p2_lives_b1
 5B9A: A9 20    lda #$20
 5B9C: 2D 06 21 and dsw_2106
 5B9F: D0 04    bne $5ba5
@@ -4322,7 +4325,7 @@ exit_irq_5b61:
 5BB8: 85 BE    sta $be
 5BBA: A9 01    lda #$01
 5BBC: 20 00 40 jsr $4000
-5BBF: C6 B0    dec $b0
+5BBF: C6 B0    dec p1_lives_b0
 5BC1: A9 02    lda #$02
 5BC3: 85 AB    sta $ab
 
