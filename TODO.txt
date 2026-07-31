@@ -1,11 +1,9 @@
-- figure out irq hacks: almost ok but need to set SR to $2000 before jumping
-  to infinite_loop from interrupt:
-  MAME trace with interrupt flag
-  313B: rti then I is unset (returns in ADAE)
-- missing tile on nibble title big caterpillar
 - start game not working
-- "nibbler" title is not flashing: check this is that special change bg color register?
-
+- character redefine trap
+- background erased by nibbler
+- bg: allocate colors manually ?
+- fg: show score using copper trick to show orig color
+- remove double buffering
 
 - set DSW difficulty lives, etc.
 - cheat add 10000 to score 

@@ -173,7 +173,6 @@ dump=False,name_dict=None,cluts=None,tile_number=0,is_bob=False):
 
     for j in range(nb_rows):
         for i in range(nb_cols):
-
             if cluts is not None and (tile_number not in cluts or palette_index not in cluts[tile_number]):
                 # no clut declared for that tile
                 tileset_1.append(None)
@@ -189,7 +188,7 @@ dump=False,name_dict=None,cluts=None,tile_number=0,is_bob=False):
 
                 tileset_1.append(img)
                 # dump tiles
-                if not is_bob and dump:
+                if dump:
                     img = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
                     if name_dict:
                         name = name_dict.get(tile_number,"unknown")
@@ -198,86 +197,6 @@ dump=False,name_dict=None,cluts=None,tile_number=0,is_bob=False):
 
                     img.save(os.path.join(dump_subdir,f"{name}_{tile_number:02x}_{palette_index:02x}.png"))
             tile_number += 1
-
-    if is_bob:
-
-        # rework & dump grouped / non grouped sprites
-        # rework tiles which are grouped
-        for tile_number,wtile in enumerate(tileset_1):
-
-            if wtile:
-                if tile_number in group_sprite_pairs:
-                    # change wtile, fetch code +1
-                    other_tile_index = tile_number+1
-                    other_tile = tileset_1[other_tile_index]
-                    if not other_tile:
-                        raise Exception(f"pair: 0x{tile_number:02x} ok but other tile index 0x{other_tile_index:02x} not found")
-                    new_tile = Image.new("RGB",(wtile.size[0]*2,wtile.size[1]))
-
-                    new_tile.paste(wtile)
-
-                    new_tile.paste(other_tile,(wtile.size[0],0))
-                    tileset_1[tile_number] = new_tile
-                    tileset_1[other_tile_index] = None  # discatd
-                    wtile = new_tile
-
-                elif tile_number in group_sprite_triplets:
-                    # change wtile, fetch code +1
-                    central_tile_index = tile_number+1
-                    central_tile = tileset_1[central_tile_index]
-                    right_tile_index = central_tile_index+1
-                    right_tile = tileset_1[right_tile_index]
-                    if not central_tile:
-                        raise Exception(f"triplet: central tile index 0x{central_tile_index:02x} not found")
-                    if not right_tile:
-                        raise Exception(f"triplet: right tile index 0x{right_tile_index:02x} not found")
-                    new_tile = Image.new("RGB",(wtile.size[0]*3,wtile.size[1]))
-
-                    new_tile.paste(wtile)
-
-                    new_tile.paste(central_tile,(wtile.size[0],0))
-                    new_tile.paste(right_tile,(wtile.size[0]*2,0))
-                    tileset_1[tile_number] = new_tile
-                    tileset_1[central_tile_index] = None  # discard
-                    tileset_1[right_tile_index] = None  # discard
-                    wtile = new_tile
-
-                elif tile_number in group_sprite_quadruplets:
-                    # change wtile, fetch code +1
-                    central_tile_index = tile_number+1
-                    central_tile_1 = tileset_1[central_tile_index]
-                    central_tile_2 = tileset_1[central_tile_index+1]
-                    right_tile_index = central_tile_index+2
-                    right_tile = tileset_1[right_tile_index]
-                    if not central_tile_1:
-                        raise Exception(f"triplet: central tile index 0x{central_tile_index:02x} not found")
-                    if not central_tile_2:
-                        raise Exception(f"triplet: central tile index 0x{central_tile_index+1:02x} not found")
-                    if not right_tile:
-                        raise Exception(f"triplet: right tile index 0x{right_tile_index:02x} not found")
-                    new_tile = Image.new("RGB",(wtile.size[0]*4,wtile.size[1]))
-
-                    new_tile.paste(wtile)
-
-                    new_tile.paste(central_tile_1,(wtile.size[0],0))
-                    new_tile.paste(central_tile_2,(wtile.size[0]*2,0))
-                    new_tile.paste(right_tile,(wtile.size[0]*3,0))
-                    tileset_1[tile_number] = new_tile
-                    tileset_1[central_tile_index] = None  # discard
-                    tileset_1[central_tile_index+1] = None  # discard
-                    tileset_1[right_tile_index] = None  # discard
-                    wtile = new_tile
-
-            if dump_it and wtile:
-                img = ImageOps.scale(wtile,5,resample=Image.Resampling.NEAREST)
-                if sprite_names:
-                    name = sprite_names.get(tile_number,"unknown")
-                else:
-                    name = "unknown"
-
-                img.save(os.path.join(dump_subdir,f"{name}_{tile_number:02x}_{palette_index:02x}.png"))
-
-
 
     return sorted(set(palette)),tileset_1
 
@@ -541,7 +460,6 @@ fg_tile_sheet_dict = {i:img for i,img in enumerate(generate_tiles.doit_fg_tiles(
 ###############
 fg_tile_set_list = []
 
-
 for i,tsd in fg_tile_sheet_dict.items():
     _,tile_set = load_tileset(tsd,i,8,8,"fg_tiles",dump_dir,dump=dump_it,
     cluts=fg_tile_cluts,
@@ -554,55 +472,30 @@ for i,tsd in fg_tile_sheet_dict.items():
     for j,tile in enumerate(tile_set):
         tp = set()
         if tile:
-            if i==0 and j==0x29:
-                # force tile 0x29 clut 0 to black
-                tile = Image.new("RGB",(8,8),black)
-
             tp = set(bitplanelib.palette_extract(tile))
             fg_tile_palette.update(tp)
             upper_tile_set[j] = tile
 
     fg_tile_set_list.append(upper_tile_set)
 
-### we'll quantize manually, 21 FG colors => 18
-##fg_replacement_dict = {(174,157,112):(188,157,112),
-##(45,31,0):black,
-##(188,174,174):(174,174,174),
-##}
-##apply_color_replacement(fg_tile_set_list,fg_replacement_dict)
+# we'll quantize manually, 21 FG colors => 18
+fg_replacement_dict = {(0,184,151):(0,0,222)
+}
+apply_color_replacement(fg_tile_set_list,fg_replacement_dict)
 
-### recompute new fg palette
-##fg_tile_palette = set()
-##
-##for tile_set in fg_tile_set_list:
-##    for j,tile in enumerate(tile_set):
-##        tp = set()
-##        if tile:
-##            tp = set(bitplanelib.palette_extract(tile))
-##            fg_tile_palette.update(tp)
+# recompute new fg palette
+fg_tile_palette = set()
+
+for tile_set in fg_tile_set_list:
+    for j,tile in enumerate(tile_set):
+        tp = set()
+        if tile:
+            tp = set(bitplanelib.palette_extract(tile))
+            fg_tile_palette.update(tp)
 
 # then lazy me let's quantize 18=>16
 
 
-
-target_nb_colors = total_nb_colors # -1 should be minus 1 but black is transparent
-if len(fg_tile_palette)>target_nb_colors:
-    print(f"Too many colors ({len(fg_tile_palette)}), quantizing")
-    bitplanelib.palette_dump(fg_tile_palette,dump_dir / "fg_tile_palette_orig.png",pformat=bitplanelib.PALETTE_FORMAT_PNG)
-    for attempt_nb_colors in [target_nb_colors+3,target_nb_colors+2,target_nb_colors+1,target_nb_colors]:
-        fg_replacement_dict = quantize_palette(fg_tile_palette,"foreground_upper_tiles",attempt_nb_colors,transparent=black,dump_it=dump_it)
-        new_fg_tile_palette = sorted(set(fg_replacement_dict.values()))
-        if len(new_fg_tile_palette)<=target_nb_colors:
-            print(f"Quantization achieved {len(new_fg_tile_palette)} colors with start colors = {attempt_nb_colors}")
-            fg_tile_palette = new_fg_tile_palette
-            break
-    else:
-        raise Exception("quantize error")  # not really possible since we try 32 as last chance!
-    apply_color_replacement(fg_tile_set_list,fg_replacement_dict)
-    fg_tile_palette = sorted(set(fg_replacement_dict.values()))
-    bitplanelib.palette_dump(fg_tile_palette,dump_dir / "fg_tile_palette_after.png",pformat=bitplanelib.PALETTE_FORMAT_PNG)
-else:
-    fg_tile_palette = sorted(fg_tile_palette)
 
 fg_tile_palette = sorted(fg_tile_palette)
 

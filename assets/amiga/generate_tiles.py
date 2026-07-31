@@ -56,9 +56,9 @@ def doit(nb_colors,offset,nb_cluts,kind,ref_clut_index,dump_it=False):
     return rval
 
 def doit_fg_tiles(dump_it=False):
-    return doit(nb_colors=4,offset=0,nb_cluts=7,kind="tiles_8x8_fg",ref_clut_index=0x0,dump_it=dump_it)
+    return doit(nb_colors=4,offset=0,nb_cluts=8,kind="tiles_8x8_fg",ref_clut_index=0x0,dump_it=dump_it)
 def doit_bg_tiles(dump_it=False):
-    return doit(nb_colors=4,offset=8,nb_cluts=7,kind="tiles_8x8_bg",ref_clut_index=0x0,dump_it=dump_it)
+    return doit(nb_colors=4,offset=8,nb_cluts=8,kind="tiles_8x8_bg",ref_clut_index=0x0,dump_it=dump_it)
 
 if __name__ == "__main__":
     doit_fg_tiles(True)
