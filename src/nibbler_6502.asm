@@ -1302,7 +1302,7 @@ nmi_continue_320e:
 3AAA: A2 02    ldx #$02
 3AAC: A0 02    ldy #$02
 3AAE: A9 30    lda #$30
-3AB0: 91 10    sta ($10), y
+3AB0: 91 10    sta ($10), y		; [video_address]
 3AB2: 88       dey
 3AB3: 10 FB    bpl $3ab0
 3AB5: A5 10    lda $10
@@ -2270,7 +2270,7 @@ draw_fruits_49ab:
 4B28: A9 04    lda #$04
 4B2A: 85 11    sta $11
 4B2C: A9 30    lda #$30
-4B2E: 91 10    sta ($10), y		; [video_address]
+4B2E: 91 10    sta ($10), y		; [video_address] (sometimes going past 0x1000)
 4B30: 88       dey
 4B31: D0 FB    bne $4b2e
 4B33: E6 11    inc $11
@@ -3605,7 +3605,7 @@ write_credit_string_4c8a:
 55A3: 85 1C    sta $1c
 55A5: A0 02    ldy #$02
 55A7: B1 1B    lda ($1b), y
-55A9: 91 1D    sta ($1d), y
+55A9: 91 1D    sta ($1d), y	; [video_address]
 55AB: 88       dey
 55AC: 10 F9    bpl $55a7
 55AE: 4C 17 56 jmp $5617

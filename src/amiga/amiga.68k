@@ -1628,7 +1628,8 @@ osd_video_byte_dirty:
 	cmp.w	#FG_SCREEN_TILE_ADDRESS+0xC00,d7
 	jcs		0f
 1:
-	BREAKPOINT	"write videoram out of range (D7 too high)"
+	* game overflows sometimes
+	*BREAKPOINT	"write videoram out of range (D7 too high)"
 	jra	osd_w_videoram_out	
 0:
 	.endif
@@ -1886,7 +1887,7 @@ update_bg_tile:
 	
 	moveq	#0,d3
 	move.b	d1,d3			| CLUT & tile code & flags
-	
+	lsr.b	#3,d3
 
 	* compute address
 	lea		fg_tile_address_table,a1
