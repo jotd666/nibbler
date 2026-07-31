@@ -378,8 +378,9 @@ _user:
 
 
 
-
-	
+	move.l	start_level_option,d0
+	and.b	#0x1F,d0
+	move.b	d0,start_level_flag
 
 	move.l	cheat_flags,d0
 	btst	#0,d0
@@ -2745,8 +2746,8 @@ misc_options:
 		
 		.long	WHDLTAG_CUSTOM4_GET
 		.long	0
-
 		.long	WHDLTAG_CUSTOM5_GET
+start_level_option:
 		.long	0
 	.long	0
 	

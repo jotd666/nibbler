@@ -76,7 +76,10 @@ def game_specific(address,lines,i):
         line += "\tmoveq\t#9,d0\n"
     elif address == 0X5B88:
         line = remove_instruction(lines,i)  # no credit decrease
-
+    elif address == 0x32ae:
+        line += "\tcmp.b\tstart_level_flag,d0\n"
+    elif address == 0x5bdf:
+        line += "\tmove.b\tstart_level_flag,d0\n\tOP_W_ON_ZP_ADDRESS\tmove,level_number_bc,d0\n"
     if "[cpu_loop]" in line:
         lines[i+2] = change_instruction("jbsr\twait_1_frame",lines,i+2)
         lines[i+3] = remove_instruction(lines,i+3)

@@ -111,6 +111,7 @@ head_ptr_57 = $57
 p2_lives_b1 = $b1
 p1_lives_b0 = $b0
 time_a3 = $a3
+level_number_bc = $bc
 
 nmi_3000:    ; [global]
 3000: 78       sei
@@ -309,7 +310,7 @@ l_315b:		; [global]
 31AB: A5 BA    lda fruits_left_ba
 31AD: D0 03    bne $31b2
 31AF: 20 99 32 jsr $3299
-31B2: A4 BC    ldy $bc
+31B2: A4 BC    ldy level_number_bc
 31B4: A9 04    lda #$04
 31B6: 2D 06 21 and dsw_2106
 31B9: D0 17    bne $31d2
@@ -441,16 +442,17 @@ nmi_continue_320e:
 32A7: 29 80    and #$80
 32A9: 85 A8    sta $a8
 32AB: 8D 03 21 sta flipscreen_2103
-32AE: A5 BC    lda $bc
+32AE: A5 BC    lda level_number_bc
 32B0: F0 03    beq $32b5
-32B2: 20 DC 38 jsr $38dc
+; not the first level: award bonus
+32B2: 20 DC 38 jsr award_end_of_level_bonus_38dc
 32B5: 20 24 4B jsr $4b24
-32B8: E6 BC    inc $bc
-32BA: A5 BC    lda $bc
+32B8: E6 BC    inc level_number_bc
+32BA: A5 BC    lda level_number_bc
 32BC: C9 64    cmp #$64
 32BE: 30 04    bmi $32c4
 32C0: A9 50    lda #$50
-32C2: 85 BC    sta $bc
+32C2: 85 BC    sta level_number_bc
 32C4: A0 00    ldy #$00
 32C6: A9 00    lda #$00
 32C8: 85 17    sta head_x_value_17
@@ -464,7 +466,7 @@ nmi_continue_320e:
 32D7: A5 18    lda $18
 32D9: C9 10    cmp #$10
 32DB: D0 F1    bne $32ce
-32DD: A5 BC    lda $bc
+32DD: A5 BC    lda level_number_bc
 32DF: 29 1F    and #$1f
 32E1: 0A       asl a
 32E2: A8       tay
@@ -474,7 +476,7 @@ nmi_continue_320e:
 32EB: 85 FA    sta $fa
 32ED: 20 1E 4C jsr $4c1e
 32F0: 20 EE 5C jsr $5cee
-32F3: A4 BC    ldy $bc
+32F3: A4 BC    ldy level_number_bc
 32F5: A9 04    lda #$04
 32F7: 2D 06 21 and dsw_2106
 32FA: D0 0C    bne $3308
@@ -491,7 +493,7 @@ nmi_continue_320e:
 3313: 20 FA 5D jsr $5dfa
 3316: A9 3C    lda #$3c
 3318: 85 A4    sta $a4
-331A: A5 BC    lda $bc
+331A: A5 BC    lda level_number_bc
 331C: 29 1F    and #$1f
 331E: A8       tay
 331F: B9 02 34 lda $3402, y
@@ -548,7 +550,7 @@ nmi_continue_320e:
 343D: 85 4F    sta $4f
 343F: 08       php
 3440: D8       cld
-3441: A4 BC    ldy $bc
+3441: A4 BC    ldy level_number_bc
 3443: A5 BE    lda $be
 3445: C9 30    cmp #$30
 3447: 30 1E    bmi $3467
@@ -592,7 +594,7 @@ nmi_continue_320e:
 
 34F6: 08       php
 34F7: D8       cld
-34F8: A5 BC    lda $bc
+34F8: A5 BC    lda level_number_bc
 34FA: 0A       asl a
 34FB: C9 63    cmp #$63
 34FD: 90 02    bcc $3501
@@ -1016,7 +1018,7 @@ nmi_continue_320e:
 3842: 99 C0 00 sta $00c0, y
 3845: 88       dey
 3846: 10 F7    bpl $383f
-3848: A5 BC    lda $bc
+3848: A5 BC    lda level_number_bc
 384A: 85 16    sta $16
 384C: C9 64    cmp #$64
 384E: 90 18    bcc $3868
@@ -1040,7 +1042,7 @@ nmi_continue_320e:
 3872: 86 C7    stx $c7
 3874: A9 FF    lda #$ff
 3876: 85 C8    sta $c8
-3878: A5 BC    lda $bc
+3878: A5 BC    lda level_number_bc
 387A: C9 0A    cmp #$0a
 387C: B0 08    bcs $3886
 387E: A5 C6    lda $c6
@@ -1073,6 +1075,7 @@ nmi_continue_320e:
 38B2: 20 8A 4C jsr write_credit_string_4c8a
 38B5: 60       rts
 
+award_end_of_level_bonus_38dc:
 38DC: A9 47    lda #$47
 38DE: 8D A3 04 sta $04a3
 38E1: A9 46    lda #$46
@@ -1087,7 +1090,7 @@ nmi_continue_320e:
 38F8: 8D E3 0C sta $0ce3
 38FB: 8D 03 0D sta $0d03
 38FE: C6 A3    dec time_a3
-3900: A4 BC    ldy $bc
+3900: A4 BC    ldy level_number_bc
 3902: A5 BE    lda $be
 3904: C9 30    cmp #$30
 3906: 90 1E    bcc $3926
@@ -1340,7 +1343,7 @@ nmi_continue_320e:
 3AF7: 65 59    adc $59
 3AF9: C9 05    cmp #$05
 3AFB: 10 28    bpl $3b25
-3AFD: A4 BC    ldy $bc
+3AFD: A4 BC    ldy level_number_bc
 3AFF: C0 07    cpy #$07
 3B01: 90 02    bcc $3b05
 3B03: A0 07    ldy #$07
@@ -2186,7 +2189,7 @@ draw_fruits_49ab:
 49B6: 38       sec
 49B7: E9 06    sbc #$06
 49B9: 85 A4    sta $a4
-49BB: A5 BC    lda $bc
+49BB: A5 BC    lda level_number_bc
 49BD: 29 1F    and #$1f
 49BF: 0A       asl a
 49C0: A8       tay
@@ -2200,7 +2203,7 @@ draw_fruits_49ab:
 49D0: 4A       lsr a
 49D1: 4A       lsr a
 49D2: A8       tay
-49D3: A5 BC    lda $bc
+49D3: A5 BC    lda level_number_bc
 49D5: C9 13    cmp #$13
 49D7: 90 07    bcc $49e0
 49D9: A5 F0    lda $f0
@@ -2436,7 +2439,7 @@ split_a_digits_4b90:
 4C41: A5 1A    lda $1a
 4C43: C9 0C    cmp #$0c
 4C45: 90 E9    bcc $4c30
-4C47: A5 BC    lda $bc
+4C47: A5 BC    lda level_number_bc
 4C49: 29 1F    and #$1f
 4C4B: A8       tay
 4C4C: B9 6A 4C lda $4c6a, y
@@ -3695,7 +3698,7 @@ write_credit_string_4c8a:
 565B: C6 EF    dec $ef
 565D: 10 10    bpl $566f
 565F: 20 4D 5E jsr $5e4d
-5662: A4 BC    ldy $bc
+5662: A4 BC    ldy level_number_bc
 5664: C0 10    cpy #$10
 5666: 90 02    bcc $566a
 5668: A0 10    ldy #$10
@@ -3848,14 +3851,14 @@ write_credit_string_4c8a:
 5798: 85 BE    sta $be
 579A: A5 59    lda $59
 579C: 85 AB    sta $ab
-579E: A5 BC    lda $bc
+579E: A5 BC    lda level_number_bc
 57A0: 85 AD    sta $ad
 57A2: A5 BA    lda fruits_left_ba
 57A4: 85 AF    sta $af
 57A6: A5 AA    lda $aa
 57A8: 85 59    sta $59
 57AA: A5 AC    lda $ac
-57AC: 85 BC    sta $bc
+57AC: 85 BC    sta level_number_bc
 57AE: A5 AE    lda $ae
 57B0: 85 BA    sta fruits_left_ba
 57B2: A9 01    lda #$01
@@ -3878,14 +3881,14 @@ write_credit_string_4c8a:
 57D9: 85 BE    sta $be
 57DB: A5 59    lda $59
 57DD: 85 AA    sta $aa
-57DF: A5 BC    lda $bc
+57DF: A5 BC    lda level_number_bc
 57E1: 85 AC    sta $ac
 57E3: A5 BA    lda fruits_left_ba
 57E5: 85 AE    sta $ae
 57E7: A5 AB    lda $ab
 57E9: 85 59    sta $59
 57EB: A5 AD    lda $ad
-57ED: 85 BC    sta $bc
+57ED: 85 BC    sta level_number_bc
 57EF: A5 AF    lda $af
 57F1: 85 BA    sta fruits_left_ba
 57F3: A9 02    lda #$02
@@ -3896,7 +3899,7 @@ write_credit_string_4c8a:
 57FE: A9 03    lda #$03
 5800: 85 2C    sta $2c
 5802: 20 24 4B jsr $4b24
-5805: A5 BC    lda $bc
+5805: A5 BC    lda level_number_bc
 5807: 29 1F    and #$1f
 5809: A8       tay
 580A: B9 DA 5D lda $5dda, y
@@ -3930,13 +3933,13 @@ write_credit_string_4c8a:
 5840: 4C 23 58 jmp $5823
 5843: A9 A1    lda #$a1
 5845: 4C 87 3F jmp $3f87
-5848: A5 BC    lda $bc
+5848: A5 BC    lda level_number_bc
 584A: C9 20    cmp #$20
 584C: 90 03    bcc $5851
 584E: 20 EE 5C jsr $5cee
 5851: A9 1E    lda #$1e
 5853: 85 A4    sta $a4
-5855: A5 BC    lda $bc
+5855: A5 BC    lda level_number_bc
 5857: 29 0F    and #$0f
 5859: A8       tay
 585A: B9 02 34 lda $3402, y
@@ -4272,7 +4275,7 @@ color_loop_5aea:
 5B4F: A9 03    lda #$03
 5B51: 85 BE    sta $be
 5B53: A9 00    lda #$00
-5B55: 85 BC    sta $bc
+5B55: 85 BC    sta level_number_bc
 5B57: 20 99 32 jsr $3299
 5B5A: A9 00    lda #$00
 5B5C: 85 FC    sta game_state_fc
@@ -4314,7 +4317,7 @@ exit_irq_5b61:
 5BA1: C6 F5    dec nb_credits_f5
 5BA3: C6 F5    dec nb_credits_f5
 5BA5: A9 01    lda #$01
-5BA7: 85 BC    sta $bc
+5BA7: 85 BC    sta level_number_bc
 5BA9: 85 AD    sta $ad
 5BAB: A9 30    lda #$30
 5BAD: 85 BE    sta $be
@@ -4339,7 +4342,7 @@ start_game_5bc5:
 5BD1: 85 B7    sta $b7
 5BD3: 85 B8    sta $b8
 5BD5: 85 B9    sta $b9
-5BD7: 85 BC    sta $bc
+5BD7: 85 BC    sta level_number_bc		; first level
 5BD9: 85 BD    sta countdown_timer_bd
 5BDB: 85 F0    sta $f0
 5BDD: 85 F1    sta $f1
@@ -4498,7 +4501,7 @@ start_game_5bc5:
 5D09: 85 17    sta head_x_value_17
 5D0B: A9 03    lda #$03
 5D0D: 85 18    sta $18
-5D0F: A5 BC    lda $bc
+5D0F: A5 BC    lda level_number_bc
 5D11: 29 1F    and #$1f
 5D13: A8       tay
 5D14: B9 DA 5D lda $5dda, y
