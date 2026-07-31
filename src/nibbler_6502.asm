@@ -4209,6 +4209,7 @@ split_a_digits_4b90:
 5AE4: 85 19    sta $19
 5AE6: A9 00    lda #$00
 5AE8: 85 16    sta $16
+color_loop_5aea:
 5AEA: A9 84    lda #$84
 5AEC: 85 31    sta $31
 5AEE: A9 0C    lda #$0c
@@ -4232,6 +4233,7 @@ split_a_digits_4b90:
 5B10: 18       clc
 5B11: 69 08    adc #$08
 5B13: 85 16    sta $16
+; once color changed on title, wait a while
 5B15: A9 01    lda #$01
 5B17: 85 18    sta $18
 5B19: A9 20    lda #$20
@@ -4244,7 +4246,7 @@ split_a_digits_4b90:
 5B26: C6 18    dec $18
 5B28: D0 F5    bne $5b1f
 5B2A: C6 19    dec $19
-5B2C: D0 BC    bne $5aea
+5B2C: D0 BC    bne color_loop_5aea
 5B2E: A9 04    lda #$04
 5B30: 20 00 40 jsr $4000
 5B33: A9 0B    lda #$0b
@@ -5856,7 +5858,7 @@ A080: A9 A1    lda #$a1
 A082: 85 1C    sta $1c
 A084: A0 02    ldy #$02
 A086: B1 1B    lda ($1b), y
-A088: 91 31    sta ($31), y
+A088: 91 31    sta ($31), y		; [video_address]
 A08A: 88       dey
 A08B: 10 F9    bpl $a086
 A08D: A9 58    lda #$58
@@ -5922,25 +5924,25 @@ A0FD: AA       tax
 A0FE: 18       clc
 A0FF: 69 08    adc #$08
 A101: 85 32    sta $32
-A103: B1 31    lda ($31), y
+A103: B1 31    lda ($31), y		; [unchecked_address]
 A105: 29 F8    and #$f8
 A107: 09 03    ora #$03
-A109: 91 31    sta ($31), y
+A109: 91 31    sta ($31), y		; [video_address]
 A10B: 88       dey
 A10C: 10 F5    bpl $a103
 A10E: 86 32    stx $32
 A110: A0 01    ldy #$01
-A112: B1 31    lda ($31), y
+A112: B1 31    lda ($31), y		; [unchecked_address]
 A114: C9 30    cmp #$30
 A116: D0 46    bne $a15e
 A118: B1 1B    lda ($1b), y
-A11A: 91 31    sta ($31), y
+A11A: 91 31    sta ($31), y		; [video_address]
 A11C: 88       dey
 A11D: B1 1B    lda ($1b), y
-A11F: 91 31    sta ($31), y
+A11F: 91 31    sta ($31), y		; [video_address]
 A121: A0 02    ldy #$02
 A123: B1 1B    lda ($1b), y
-A125: 91 31    sta ($31), y
+A125: 91 31    sta ($31), y		; [video_address]
 A127: 88       dey
 A128: A5 EC    lda $ec
 A12A: 18       clc
@@ -6544,13 +6546,13 @@ A67A: A5 1A    lda $1a
 A67C: E9 00    sbc #$00
 A67E: 85 1A    sta $1a
 A680: A0 00    ldy #$00
-A682: B1 19    lda ($19), y
+A682: B1 19    lda ($19), y		; [unchecked_address]
 A684: C9 49    cmp #$49
 A686: 90 08    bcc $a690
 A688: C9 4F    cmp #$4f
 A68A: B0 04    bcs $a690
 A68C: A9 30    lda #$30
-A68E: 91 19    sta ($19), y
+A68E: 91 19    sta ($19), y		; [video_address]
 A690: A5 56    lda $56
 A692: C9 01    cmp #$01
 A694: F0 38    beq $a6ce
@@ -6709,7 +6711,7 @@ A7BB: 85 18    sta $18
 A7BD: A4 EE    ldy $ee
 A7BF: B1 17    lda (head_x_value_17), y
 A7C1: A0 00    ldy #$00
-A7C3: 91 19    sta ($19), y
+A7C3: 91 19    sta ($19), y		; [video_address]
 A7C5: A5 EE    lda $ee
 A7C7: 18       clc
 A7C8: 69 02    adc #$02

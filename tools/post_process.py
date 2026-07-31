@@ -38,10 +38,7 @@ def game_specific(address,lines,i):
         line = remove_error(line)
     if address == 0x305f:
         # rewrite infinite loop completely
-        # 1) force enable interrupts (??? but needed)
-        # 2) change cpu-dependent wait
-        line = """\tjbsr\tosd_enable_interrupts   | force interrupts on
-0:
+        line = """0:
 \tOP_W_ON_ZP_ADDRESS    addq,fast_counter_f3,#1 |  [$305f: inc fast_counter_f3]
 """+change_instruction("jbsr\tosd_small_wait",lines,i)+"\tjra\t0b\n"
         kill_code(lines,i,0x3066)
@@ -59,9 +56,21 @@ def game_specific(address,lines,i):
         line = remove_instruction(lines,i)
         kill_code(lines,i,0x3141)
     elif address == 0x3154:
-        line = change_instruction("lea\tl_315b,a0",lines,i)+"\tjbsr\tosd_set_irq_return_address\n"
+        line = change_instruction("lea\tl_315b,a0",lines,i)+"\tjbra\tosd_set_irq_return_address\n"
+    elif address in {0x3158}:
+        line = change_instruction("lea\tinfinite_loop_305f,a0",lines,i)+"\tjbra\tosd_set_irq_return_address\n"
     elif address in {0x320e,0x3213}:
         line = remove_instruction(lines,i)
+    elif address == 0x5aea:
+        line = """\t.ifdef\t__amiga__
+\tOP_R_ON_ZP_ADDRESS\tmove,0x16,d0
+\tlsr.b\t#3,d0
+\tjbsr\tosd_set_title_color
+\t.else
+* normal tile changing code
+"""
+    elif address == 0x5B0C:
+        line += "\t.endif\n"
     if "[cpu_loop]" in line:
         lines[i+2] = change_instruction("jbsr\twait_1_frame",lines,i+2)
         lines[i+3] = remove_instruction(lines,i+3)

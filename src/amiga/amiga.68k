@@ -165,8 +165,8 @@ w\@:
 	.global	osd_write_sound_2100
 	.global	osd_write_sound_2101
 	.global	osd_set_irq_return_address
-	.global	osd_wait
 	.global	osd_small_wait
+	.global	osd_set_title_color
 	.global	osd_write_sound_2102
 	.global	osd_log_cpu
 	
@@ -744,7 +744,7 @@ _vblank:
 	tst.l	return_address
 	jeq		4f
 	* non-null return address: jump there instead of returning
-	move.l	return_address,(sp)
+	move.l	return_address,(2,sp)
 	clr.l	return_address
 4:
     rte
@@ -1506,6 +1506,22 @@ compute_fg_tile_xy:
 	
 	exg		d0,d1
 	rts
+
+
+* < d0: color clut code
+osd_set_title_color:
+	lea		bg_colors,a1
+	moveq	#0,d7
+	move.b	d0,d7
+	and.b	#7,d7
+	add.w	d7,d7
+	move.w	(a1,d7.w),d7
+	lea		background_colors+30,a0		| last color is whitish (sorted)
+	move.w	D7,(a0)
+	rts
+
+bg_colors:
+	.word	0x00ff,0x000d,0x009d,0x00f0,0x0b00,0x0cb4,0x0d0d,0x0ffd
 
 osd_small_wait:
 	* empiric
