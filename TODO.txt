@@ -3,7 +3,7 @@
 - cheat infinite time
 - issue on game over (with high score): write video mem out of range
 - reach highscore check highscore screen
-- sounds!
+- sounds! write to 2101 ???
 - bg: allocate colors manually ?
 - A8DD invalid mem access after level 34 expected?
 - score BCD issue
@@ -31,9 +31,10 @@ going down: tail: 4B, tip: 49/4D
 charset decoding: 1 byte = 1 column of 8 pixels
 first bitplane: 0x1000+(8*charcode), second bitplane 0x1800+
 
-on each irq (3009) save buffers 1000-2000 for a full run (4 directions)
-create 16-byte keys for each different pattern offset(8 bytes), offset+0x800 (8 bytes)
-count how many different patterns exist for each character
+count how many different patterns exist for each character. Tag the ones with multiple patterns (nibbler body)
+try to find a shorter key to identify tile contents
+generate as many tiles as possible keys for those tiles
+trigger selective screen char update when character memory is written to
 
 
 

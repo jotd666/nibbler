@@ -112,6 +112,16 @@ p2_lives_b1 = $b1
 p1_lives_b0 = $b0
 time_a3 = $a3
 level_number_bc = $bc
+charset_source_pointer_first_plane_31 = $31
+charset_source_pointer_second_plane_33 = $33
+
+; $53: head direction
+; direction: 1 down
+; direction: 2 up
+; direction: 4 right
+; direction: 8 left
+
+nibbler_direction_53 = $53
 
 nmi_3000:    ; [global]
 3000: 78       sei
@@ -1174,11 +1184,11 @@ award_end_of_level_bonus_38dc:
 39A4: 4C 6E 4B jmp write_text_4b6e
 39A7: E6 49    inc $49
 39A9: A9 00    lda #$00
-39AB: 85 31    sta $31
+39AB: 85 31    sta charset_source_pointer_first_plane_31
 39AD: A5 BE    lda $be
 39AF: C9 10    cmp #$10
 39B1: 90 4C    bcc $39ff
-39B3: A5 53    lda $53
+39B3: A5 53    lda nibbler_direction_53
 39B5: C9 01    cmp #$01
 39B7: F0 0D    beq $39c6
 39B9: C9 02    cmp #$02
@@ -1206,7 +1216,7 @@ award_end_of_level_bonus_38dc:
 39EB: 4A       lsr a
 39EC: 4A       lsr a
 39ED: 4A       lsr a
-39EE: 85 31    sta $31
+39EE: 85 31    sta charset_source_pointer_first_plane_31
 39F0: C5 30    cmp $30
 39F2: D0 0B    bne $39ff
 39F4: A9 03    lda #$03
@@ -1257,7 +1267,7 @@ award_end_of_level_bonus_38dc:
 3A44: A9 0F    lda #$0f
 3A46: 21 5C    and ($5c, x)
 3A48: 85 17    sta head_x_value_17
-3A4A: A5 53    lda $53
+3A4A: A5 53    lda nibbler_direction_53
 3A4C: A2 0D    ldx #$0d
 3A4E: A0 00    ldy #$00
 3A50: C9 01    cmp #$01
@@ -1279,7 +1289,7 @@ award_end_of_level_bonus_38dc:
 3A70: 85 18    sta $18
 3A72: 85 4B    sta $4b
 3A74: 85 D1    sta $d1
-3A76: A5 31    lda $31
+3A76: A5 31    lda charset_source_pointer_first_plane_31
 3A78: 85 D2    sta $d2
 3A7A: 25 18    and $18
 3A7C: 85 17    sta head_x_value_17
@@ -1289,9 +1299,9 @@ award_end_of_level_bonus_38dc:
 3A84: A5 17    lda head_x_value_17
 3A86: F0 03    beq $3a8b
 3A88: 4C 66 3B jmp $3b66
-3A8B: A5 53    lda $53
+3A8B: A5 53    lda nibbler_direction_53
 3A8D: 49 0F    eor #$0f
-3A8F: 25 31    and $31
+3A8F: 25 31    and charset_source_pointer_first_plane_31
 3A91: 25 48    and $48
 3A93: 85 D4    sta $d4
 3A95: F0 38    beq $3acf
@@ -1330,7 +1340,7 @@ award_end_of_level_bonus_38dc:
 3AD5: 90 05    bcc $3adc
 3AD7: A9 B4    lda #$b4
 3AD9: 4C 87 3F jmp $3f87
-3ADC: A5 53    lda $53
+3ADC: A5 53    lda nibbler_direction_53
 3ADE: 25 18    and $18
 3AE0: F0 0C    beq $3aee
 3AE2: 4C FD 3A jmp $3afd
@@ -1398,11 +1408,11 @@ award_end_of_level_bonus_38dc:
 3B6E: A9 B5    lda #$b5
 3B70: 4C 87 3F jmp $3f87
 3B73: A5 17    lda head_x_value_17
-3B75: 25 53    and $53
+3B75: 25 53    and nibbler_direction_53
 3B77: F0 0C    beq $3b85
 3B79: A5 17    lda head_x_value_17
 3B7B: 38       sec
-3B7C: E5 53    sbc $53
+3B7C: E5 53    sbc nibbler_direction_53
 3B7E: 85 17    sta head_x_value_17
 3B80: D0 03    bne $3b85
 3B82: 4C FD 3A jmp $3afd
@@ -1447,8 +1457,8 @@ award_end_of_level_bonus_38dc:
 3BCD: 85 3D    sta $3d
 3BCF: 85 19    sta $19
 3BD1: A5 17    lda head_x_value_17
-3BD3: 85 53    sta $53
-3BD5: A5 53    lda $53
+3BD3: 85 53    sta nibbler_direction_53
+3BD5: A5 53    lda nibbler_direction_53
 3BD7: C9 03    cmp #$03
 3BD9: 10 07    bpl $3be2
 3BDB: A5 51    lda snake_row_51
@@ -1492,37 +1502,47 @@ circular_buffer_ok_3c0a:
 3C24: 8D 01 21 sta sound_2101
 3C27: A9 04    lda #$04
 3C29: 85 4F    sta $4f
-3C2B: A5 53    lda $53
+3C2B: A5 53    lda nibbler_direction_53
 3C2D: C9 01    cmp #$01
-3C2F: F0 1F    beq $3c50
+3C2F: F0 1F    beq dir_down_3c50
 3C31: C9 02    cmp #$02
-3C33: F0 2E    beq $3c63
+3C33: F0 2E    beq dir_up_3c63
 3C35: A9 88    lda #$88
 3C37: 85 1B    sta $1b
 3C39: A9 11    lda #$11
 3C3B: 85 1C    sta $1c
+; $60C0 contains a table with 8 16-bit pointers to charset data (first plane) for left/right
 3C3D: A9 C0    lda #$c0
 3C3F: 85 17    sta head_x_value_17
 3C41: A9 60    lda #$60
 3C43: 85 18    sta $18
+; $6310 contains a table with 8 16-bit pointers to charset data (second plane) for left/right
 3C45: A9 10    lda #$10
 3C47: 85 19    sta $19
 3C49: A9 63    lda #$63
 3C4B: 85 1A    sta $1a
 3C4D: 4C 7B 3C jmp $3c7b
+
+dir_down_3c50:
+; $6a00 contains a table with 8 16-bit pointers to charset data (first plane) for down
 3C50: A9 00    lda #$00
 3C52: 85 17    sta head_x_value_17
 3C54: A9 6A    lda #$6a
 3C56: 85 18    sta $18
+; $6c50 contains a table with 8 16-bit pointers to charset data (second plane) for down
 3C58: A9 50    lda #$50
 3C5A: 85 19    sta $19
 3C5C: A9 6C    lda #$6c
 3C5E: 85 1A    sta $1a
 3C60: 4C 73 3C jmp $3c73
+
+dir_up_3c63:
+; $6560 contains a table with 8 16-bit pointers to charset data (first plane) for up
 3C63: A9 60    lda #$60
 3C65: 85 17    sta head_x_value_17
 3C67: A9 65    lda #$65
 3C69: 85 18    sta $18
+; $67B0 contains a table with 8 16-bit pointers to charset data (second plane)
 3C6B: A9 B0    lda #$b0
 3C6D: 85 19    sta $19
 3C6F: A9 67    lda #$67
@@ -1533,23 +1553,24 @@ circular_buffer_ok_3c0a:
 3C79: 85 1C    sta $1c
 3C7B: A9 00    lda #$00
 3C7D: 85 EC    sta $ec
-3C7F: A5 E9    lda $e9
-3C81: 0A       asl a
+3C7F: A5 E9    lda $e9		; char data index to set
+3C81: 0A       asl a		; times 2
 3C82: A8       tay
+; fetch pointers from tables
 3C83: B1 17    lda (head_x_value_17), y
-3C85: 85 31    sta $31
+3C85: 85 31    sta charset_source_pointer_first_plane_31
 3C87: B1 19    lda ($19), y
-3C89: 85 33    sta $33
+3C89: 85 33    sta charset_source_pointer_second_plane_33
 3C8B: C8       iny
 3C8C: B1 17    lda (head_x_value_17), y
 3C8E: 85 32    sta $32
 3C90: B1 19    lda ($19), y
 3C92: 85 34    sta $34
-3C94: A5 53    lda $53
+3C94: A5 53    lda nibbler_direction_53
 3C96: C9 08    cmp #$08
-3C98: F0 1C    beq $3cb6
+3C98: F0 1C    beq dir_left_3cb6
 3C9A: A0 47    ldy #$47
-3C9C: B1 31    lda ($31), y
+3C9C: B1 31    lda (charset_source_pointer_first_plane_31), y
 3C9E: 91 1B    sta ($1b), y		; change charset (going up/right/down)
 3CA0: 88       dey
 3CA1: 10 F9    bpl $3c9c
@@ -1557,19 +1578,23 @@ circular_buffer_ok_3c0a:
 3CA5: A5 1C    lda $1c
 3CA7: 18       clc
 3CA8: 69 08    adc #$08
-3CAA: 85 1C    sta $1c
-3CAC: B1 33    lda ($33), y
+3CAA: 85 1C    sta $1c		; second plane
+3CAC: B1 33    lda (charset_source_pointer_second_plane_33), y
 3CAE: 91 1B    sta ($1b), y
 3CB0: 88       dey
 3CB1: 10 F9    bpl $3cac
 3CB3: 4C DF 3C jmp $3cdf
 
+; left is like right but as bitplane data is vertical, the game reuses
+; the data by copying it in the other direction
+; (it cannot do that for vertical up/down as bits are mixed)
+dir_left_3cb6:
 3CB6: A0 47    ldy #$47
 3CB8: 84 16    sty $16
 3CBA: 98       tya
-3CBB: 49 07    eor #$07
+3CBB: 49 07    eor #$07		; copy bytes in the other direction
 3CBD: A8       tay
-3CBE: B1 31    lda ($31), y
+3CBE: B1 31    lda (charset_source_pointer_first_plane_31), y
 3CC0: A4 16    ldy $16
 3CC2: 91 1B    sta ($1b), y		; charset when turning left
 3CC4: 88       dey
@@ -1579,30 +1604,34 @@ circular_buffer_ok_3c0a:
 3CC9: A5 1C    lda $1c
 3CCB: 18       clc
 3CCC: 69 08    adc #$08
-3CCE: 85 1C    sta $1c
+3CCE: 85 1C    sta $1c		; second bitplane pointer
 3CD0: 84 16    sty $16
 3CD2: 98       tya
 3CD3: 49 07    eor #$07
 3CD5: A8       tay
-3CD6: B1 31    lda ($31), y
+3CD6: B1 31    lda (charset_source_pointer_first_plane_31), y
 3CD8: A4 16    ldy $16
 3CDA: 91 1B    sta ($1b), y
 3CDC: 88       dey
 3CDD: 10 F1    bpl $3cd0
-3CDF: A5 53    lda $53
+3CDF: A5 53    lda nibbler_direction_53
 3CE1: C9 01    cmp #$01
-3CE3: F0 12    beq $3cf7
+3CE3: F0 12    beq dir_down_3cf7
 3CE5: C9 02    cmp #$02
-3CE7: F0 13    beq $3cfc
+3CE7: F0 13    beq dir_up_3cfc
 3CE9: C9 04    cmp #$04
-3CEB: F0 05    beq $3cf2
+3CEB: F0 05    beq dir_right_3cf2
 3CED: E6 43    inc $43
-3CEF: 4C FE 3C jmp $3cfe
+3CEF: 4C FE 3C jmp dir_left_3cfe
+dir_right_3cf2:
 3CF2: E6 42    inc $42
-3CF4: 4C FE 3C jmp $3cfe
+3CF4: 4C FE 3C jmp dir_left_3cfe
+dir_down_3cf7:
 3CF7: E6 40    inc $40
-3CF9: 4C FE 3C jmp $3cfe
+3CF9: 4C FE 3C jmp dir_left_3cfe
+dir_up_3cfc:
 3CFC: E6 41    inc $41
+dir_left_3cfe:
 3CFE: A9 9D    lda #$9d
 3D00: 85 17    sta head_x_value_17
 3D02: A9 3E    lda #$3e
@@ -1626,7 +1655,7 @@ circular_buffer_ok_3c0a:
 3D23: 85 1A    sta $1a
 3D25: A0 10    ldy #$10
 3D27: B1 17    lda (head_x_value_17), y
-3D29: 85 31    sta $31
+3D29: 85 31    sta charset_source_pointer_first_plane_31
 3D2B: A0 18    ldy #$18
 3D2D: B1 17    lda (head_x_value_17), y
 3D2F: 85 32    sta $32
@@ -1648,7 +1677,7 @@ circular_buffer_ok_3c0a:
 3D4D: C8       iny
 3D4E: B1 1D    lda ($1d), y
 3D50: 85 1C    sta $1c
-3D52: A6 31    ldx $31
+3D52: A6 31    ldx charset_source_pointer_first_plane_31
 3D54: A5 19    lda $19
 3D56: C9 1C    cmp #$1c
 3D58: 90 05    bcc $3d5f
@@ -1726,7 +1755,7 @@ circular_buffer_ok_3c0a:
 3DDA: 38       sec
 3DDB: E9 08    sbc #$08
 3DDD: 85 5E    sta $5e
-3DDF: A5 53    lda $53
+3DDF: A5 53    lda nibbler_direction_53
 3DE1: C9 01    cmp #$01
 3DE3: F0 0D    beq $3df2
 3DE5: C9 02    cmp #$02
@@ -1769,7 +1798,7 @@ circular_buffer_ok_3c0a:
 3E28: 85 4A    sta $4a
 3E2A: 4C DA 4E jmp $4eda
 
-3F57: A5 53    lda $53
+3F57: A5 53    lda nibbler_direction_53
 3F59: C9 01    cmp #$01
 3F5B: F0 0B    beq $3f68
 3F5D: C9 02    cmp #$02
@@ -2046,13 +2075,13 @@ circular_buffer_ok_3c0a:
 41BA: D0 F5    bne $41b1
 41BC: A0 15    ldy #$15
 41BE: A5 1B    lda $1b
-41C0: 85 31    sta $31
+41C0: 85 31    sta charset_source_pointer_first_plane_31
 41C2: A5 1C    lda $1c
 41C4: 18       clc
 41C5: 69 08    adc #$08
 41C7: 85 32    sta $32
 41C9: A9 00    lda #$00
-41CB: 91 31    sta ($31), y		; [video_address]
+41CB: 91 31    sta (charset_source_pointer_first_plane_31), y		; [video_address]
 41CD: 88       dey
 41CE: 10 FB    bpl $41cb
 41D0: A0 06    ldy #$06
@@ -2115,13 +2144,13 @@ circular_buffer_ok_3c0a:
 423B: 69 00    adc #$00
 423D: 85 1A    sta $1a
 423F: A5 1B    lda $1b
-4241: 85 31    sta $31
+4241: 85 31    sta charset_source_pointer_first_plane_31
 4243: A5 1C    lda $1c
 4245: 18       clc
 4246: 69 08    adc #$08
 4248: 85 32    sta $32
 424A: B1 19    lda ($19), y
-424C: 91 31    sta ($31), y		; [video_address]
+424C: 91 31    sta (charset_source_pointer_first_plane_31), y		; [video_address]
 424E: A5 19    lda $19
 4250: 18       clc
 4251: 69 01    adc #$01
@@ -2849,10 +2878,10 @@ write_credit_string_4c8a:
 4FA3: A5 ED    lda $ed
 4FA5: F0 31    beq $4fd8
 4FA7: A5 51    lda snake_row_51
-4FA9: 85 31    sta $31
+4FA9: 85 31    sta charset_source_pointer_first_plane_31
 4FAB: A5 52    lda $52
 4FAD: 85 32    sta $32
-4FAF: A5 53    lda $53
+4FAF: A5 53    lda nibbler_direction_53
 4FB1: C9 01    cmp #$01
 4FB3: F0 1A    beq $4fcf
 4FB5: C9 02    cmp #$02
@@ -2935,22 +2964,22 @@ write_credit_string_4c8a:
 505D: A5 B2    lda $b2
 505F: E5 30    sbc $30
 5061: A5 B3    lda $b3
-5063: E5 31    sbc $31
+5063: E5 31    sbc charset_source_pointer_first_plane_31
 5065: A5 B4    lda $b4
 5067: E5 32    sbc $32
 5069: A5 B5    lda $b5
-506B: E5 33    sbc $33
+506B: E5 33    sbc charset_source_pointer_second_plane_33
 506D: B0 28    bcs $5097
 506F: 4C 85 50 jmp $5085
 5072: 38       sec
 5073: A5 B6    lda $b6
 5075: E5 30    sbc $30
 5077: A5 B7    lda $b7
-5079: E5 31    sbc $31
+5079: E5 31    sbc charset_source_pointer_first_plane_31
 507B: A5 B8    lda $b8
 507D: E5 32    sbc $32
 507F: A5 B9    lda $b9
-5081: E5 33    sbc $33
+5081: E5 33    sbc charset_source_pointer_second_plane_33
 5083: B0 12    bcs $5097
 5085: A5 17    lda head_x_value_17
 5087: 18       clc
@@ -3106,9 +3135,9 @@ write_credit_string_4c8a:
 51AF: A9 06    lda #$06
 51B1: 20 00 40 jsr $4000
 51B4: A9 09    lda #$09
-51B6: 85 31    sta $31
+51B6: 85 31    sta charset_source_pointer_first_plane_31
 51B8: 85 32    sta $32
-51BA: 85 33    sta $33
+51BA: 85 33    sta charset_source_pointer_second_plane_33
 51BC: A9 0D    lda #$0d
 51BE: 85 19    sta $19
 51C0: A9 06    lda #$06
@@ -3125,7 +3154,7 @@ write_credit_string_4c8a:
 51D6: 8D 0E 0E sta $0e0e
 51D9: 8D EE 0D sta $0dee
 51DC: 8D CE 0D sta $0dce
-51DF: A5 31    lda $31
+51DF: A5 31    lda charset_source_pointer_first_plane_31
 51E1: C9 09    cmp #$09
 51E3: D0 02    bne $51e7
 51E5: A9 30    lda #$30
@@ -3135,7 +3164,7 @@ write_credit_string_4c8a:
 51EE: D0 02    bne $51f2
 51F0: A9 30    lda #$30
 51F2: 8D EE 05 sta $05ee
-51F5: A5 33    lda $33
+51F5: A5 33    lda charset_source_pointer_second_plane_33
 51F7: C9 09    cmp #$09
 51F9: D0 02    bne $51fd
 51FB: A9 30    lda #$30
@@ -3186,24 +3215,24 @@ write_credit_string_4c8a:
 5261: 25 30    and $30
 5263: F0 0F    beq $5274
 5265: A6 16    ldx $16
-5267: B5 31    lda $31, x
+5267: B5 31    lda charset_source_pointer_first_plane_31, x
 5269: 38       sec
 526A: E9 01    sbc #$01
 526C: C9 09    cmp #$09
 526E: B0 02    bcs $5272
 5270: A9 23    lda #$23
-5272: 95 31    sta $31, x
+5272: 95 31    sta charset_source_pointer_first_plane_31, x
 5274: A9 20    lda #$20
 5276: 25 30    and $30
 5278: F0 0F    beq $5289
 527A: A6 16    ldx $16
-527C: B5 31    lda $31, x
+527C: B5 31    lda charset_source_pointer_first_plane_31, x
 527E: 18       clc
 527F: 69 01    adc #$01
 5281: C9 24    cmp #$24
 5283: 90 02    bcc $5287
 5285: A9 09    lda #$09
-5287: 95 31    sta $31, x
+5287: 95 31    sta charset_source_pointer_first_plane_31, x
 5289: A9 40    lda #$40
 528B: 25 30    and $30
 528D: F0 46    beq $52d5
@@ -3311,57 +3340,57 @@ write_credit_string_4c8a:
 5351: D0 F5    bne $5348
 5353: 4C DF 51 jmp $51df
 5356: 20 DE 53 jsr $53de
-5359: A5 31    lda $31
+5359: A5 31    lda charset_source_pointer_first_plane_31
 535B: C9 13    cmp #$13
 535D: D0 11    bne $5370
 535F: A5 32    lda $32
 5361: C9 11    cmp #$11
 5363: D0 0B    bne $5370
-5365: A5 33    lda $33
+5365: A5 33    lda charset_source_pointer_second_plane_33
 5367: C9 1E    cmp #$1e
 5369: D0 05    bne $5370
 536B: A9 08    lda #$08
 536D: 20 00 40 jsr $4000
-5370: A5 31    lda $31
+5370: A5 31    lda charset_source_pointer_first_plane_31
 5372: C9 16    cmp #$16
 5374: D0 11    bne $5387
 5376: A5 32    lda $32
 5378: C9 1B    cmp #$1b
 537A: D0 0B    bne $5387
-537C: A5 33    lda $33
+537C: A5 33    lda charset_source_pointer_second_plane_33
 537E: C9 1C    cmp #$1c
 5380: D0 05    bne $5387
 5382: A9 09    lda #$09
 5384: 20 00 40 jsr $4000
-5387: A5 31    lda $31
+5387: A5 31    lda charset_source_pointer_first_plane_31
 5389: C9 1B    cmp #$1b
 538B: D0 11    bne $539e
 538D: A5 32    lda $32
 538F: C9 10    cmp #$10
 5391: D0 0B    bne $539e
-5393: A5 33    lda $33
+5393: A5 33    lda charset_source_pointer_second_plane_33
 5395: C9 1E    cmp #$1e
 5397: D0 05    bne $539e
 5399: A9 0A    lda #$0a
 539B: 20 00 40 jsr $4000
-539E: A5 31    lda $31
+539E: A5 31    lda charset_source_pointer_first_plane_31
 53A0: C9 14    cmp #$14
 53A2: D0 11    bne $53b5
 53A4: A5 32    lda $32
 53A6: C9 16    cmp #$16
 53A8: D0 0B    bne $53b5
-53AA: A5 33    lda $33
+53AA: A5 33    lda charset_source_pointer_second_plane_33
 53AC: C9 1E    cmp #$1e
 53AE: D0 05    bne $53b5
 53B0: A9 0B    lda #$0b
 53B2: 20 00 40 jsr $4000
-53B5: A5 31    lda $31
+53B5: A5 31    lda charset_source_pointer_first_plane_31
 53B7: C9 0F    cmp #$0f
 53B9: D0 11    bne $53cc
 53BB: A5 32    lda $32
 53BD: C9 13    cmp #$13
 53BF: D0 0B    bne $53cc
-53C1: A5 33    lda $33
+53C1: A5 33    lda charset_source_pointer_second_plane_33
 53C3: C9 1E    cmp #$1e
 53C5: D0 05    bne $53cc
 53C7: A9 0A    lda #$0a
@@ -3376,7 +3405,7 @@ write_credit_string_4c8a:
 53DB: 85 BE    sta $be
 53DD: 60       rts
 53DE: A0 00    ldy #$00
-53E0: A5 31    lda $31
+53E0: A5 31    lda charset_source_pointer_first_plane_31
 53E2: C9 09    cmp #$09
 53E4: D0 02    bne $53e8
 53E6: A9 30    lda #$30
@@ -3388,7 +3417,7 @@ write_credit_string_4c8a:
 53F1: A9 30    lda #$30
 53F3: 91 37    sta ($37), y
 53F5: C8       iny
-53F6: A5 33    lda $33
+53F6: A5 33    lda charset_source_pointer_second_plane_33
 53F8: C9 09    cmp #$09
 53FA: D0 02    bne $53fe
 53FC: A9 30    lda #$30
@@ -3577,7 +3606,7 @@ write_credit_string_4c8a:
 555F: 18       clc
 5560: 65 1D    adc $1d
 5562: 85 1D    sta $1d
-5564: A5 53    lda $53
+5564: A5 53    lda nibbler_direction_53
 5566: C9 01    cmp #$01
 5568: F0 57    beq $55c1
 556A: C9 02    cmp #$02
@@ -3754,7 +3783,7 @@ write_credit_string_4c8a:
 56C4: A5 52    lda $52
 56C6: C5 55    cmp $55
 56C8: D0 91    bne $565b
-56CA: A5 53    lda $53
+56CA: A5 53    lda nibbler_direction_53
 56CC: A2 42    ldx #$42
 56CE: C9 01    cmp #$01
 56D0: F0 0E    beq $56e0
@@ -4222,18 +4251,18 @@ write_credit_string_4c8a:
 5AE8: 85 16    sta $16
 color_loop_5aea:
 5AEA: A9 84    lda #$84
-5AEC: 85 31    sta $31
+5AEC: 85 31    sta charset_source_pointer_first_plane_31
 5AEE: A9 0C    lda #$0c
 5AF0: 85 32    sta $32
 5AF2: A0 06    ldy #$06
 5AF4: A5 16    lda $16
-5AF6: 91 31    sta ($31), y		; [video_address]
+5AF6: 91 31    sta (charset_source_pointer_first_plane_31), y		; [video_address]
 5AF8: 88       dey
 5AF9: 10 FB    bpl $5af6
-5AFB: A5 31    lda $31
+5AFB: A5 31    lda charset_source_pointer_first_plane_31
 5AFD: 18       clc
 5AFE: 69 20    adc #$20
-5B00: 85 31    sta $31
+5B00: 85 31    sta charset_source_pointer_first_plane_31
 5B02: A5 32    lda $32
 5B04: 69 00    adc #$00
 5B06: 85 32    sta $32
@@ -4448,7 +4477,7 @@ start_game_5bc5:
 5C96: A5 5A    lda $5a
 5C98: D0 03    bne $5c9d
 5C9A: 4C DE 5C jmp $5cde
-5C9D: A5 53    lda $53
+5C9D: A5 53    lda nibbler_direction_53
 5C9F: C9 01    cmp #$01
 5CA1: F0 2C    beq $5ccf
 5CA3: C9 02    cmp #$02
@@ -4480,7 +4509,7 @@ start_game_5bc5:
 5CD6: 10 03    bpl $5cdb
 5CD8: 4C DE 5C jmp $5cde
 5CDB: 20 00 AF jsr $af00
-5CDE: A5 53    lda $53
+5CDE: A5 53    lda nibbler_direction_53
 5CE0: C9 04    cmp #$04
 5CE2: F0 04    beq $5ce8
 5CE4: C9 08    cmp #$08
@@ -4591,7 +4620,7 @@ start_game_5bc5:
 5E04: A9 08    lda #$08
 5E06: 85 54    sta $54
 5E08: A9 04    lda #$04
-5E0A: 85 53    sta $53
+5E0A: 85 53    sta nibbler_direction_53
 5E0C: 85 56    sta $56
 5E0E: A9 01    lda #$01
 5E10: 85 42    sta $42
@@ -5383,11 +5412,11 @@ boot_7800:
 7C6F: 4C 38 7C jmp $7c38
 
 7C8D: A9 16    lda #$16
-7C8F: 85 31    sta $31
+7C8F: 85 31    sta charset_source_pointer_first_plane_31
 7C91: A9 7D    lda #$7d
 7C93: 85 32    sta $32
 7C95: A9 05    lda #$05
-7C97: 85 33    sta $33
+7C97: 85 33    sta charset_source_pointer_second_plane_33
 7C99: A9 7D    lda #$7d
 7C9B: 85 34    sta $34
 7C9D: A9 0E    lda #$0e
@@ -5398,15 +5427,15 @@ boot_7800:
 7CA7: A9 00    lda #$00
 7CA9: A8       tay
 7CAA: 85 17    sta head_x_value_17
-7CAC: B1 33    lda ($33), y
+7CAC: B1 33    lda (charset_source_pointer_second_plane_33), y
 7CAE: F0 76    beq $7d26
 7CB0: 85 18    sta $18
 7CB2: 20 8B 7D jsr $7d8b
 7CB5: A0 00    ldy #$00
-7CB7: B1 31    lda ($31), y
+7CB7: B1 31    lda (charset_source_pointer_first_plane_31), y
 7CB9: 85 17    sta head_x_value_17
 7CBB: C8       iny
-7CBC: B1 31    lda ($31), y
+7CBC: B1 31    lda (charset_source_pointer_first_plane_31), y
 7CBE: 85 18    sta $18
 7CC0: 88       dey
 7CC1: B1 35    lda ($35), y
@@ -5418,17 +5447,17 @@ boot_7800:
 7CCE: C5 1C    cmp $1c
 7CD0: D0 2D    bne $7cff
 7CD2: 20 77 7E jsr $7e77
-7CD5: A5 31    lda $31
+7CD5: A5 31    lda charset_source_pointer_first_plane_31
 7CD7: 18       clc
 7CD8: 69 02    adc #$02
-7CDA: 85 31    sta $31
+7CDA: 85 31    sta charset_source_pointer_first_plane_31
 7CDC: A5 32    lda $32
 7CDE: 69 00    adc #$00
 7CE0: 85 32    sta $32
-7CE2: A5 33    lda $33
+7CE2: A5 33    lda charset_source_pointer_second_plane_33
 7CE4: 18       clc
 7CE5: 69 01    adc #$01
-7CE7: 85 33    sta $33
+7CE7: 85 33    sta charset_source_pointer_second_plane_33
 7CE9: A5 34    lda $34
 7CEB: 69 00    adc #$00
 7CED: 85 34    sta $34
@@ -5469,7 +5498,7 @@ end_of_system_tests_7d26:   ; [global]
 7D53: 9D 00 05 sta $0500, x 		; [video_address]
 7D56: 9D 00 06 sta $0600, x 		; [video_address]
 7D59: 9D 00 07 sta $0700, x 		; [video_address]
-7D5C: A9 33    lda #$33
+7D5C: A9 33    lda #charset_source_pointer_second_plane_33
 7D5E: 9D 00 0C sta $0c00, x    		; [video_address]
 7D61: 9D 00 0D sta $0d00, x    		; [video_address]
 7D64: 9D 00 0E sta $0e00, x    		; [video_address]
@@ -5767,7 +5796,7 @@ save_debug_values_7f4d:
 7F77: A5 52    lda $52
 7F79: 9D 00 02 sta $0200, x
 7F7C: E8       inx
-7F7D: A5 53    lda $53
+7F7D: A5 53    lda nibbler_direction_53
 7F7F: 9D 00 02 sta $0200, x
 7F82: E8       inx
 7F83: A5 5A    lda $5a
@@ -5802,20 +5831,20 @@ save_debug_values_7f4d:
 A000: A5 ED    lda $ed
 A002: D0 03    bne $a007
 A004: 4C 61 A1 jmp $a161
-A007: A5 53    lda $53
+A007: A5 53    lda nibbler_direction_53
 A009: C9 04    cmp #$04
 A00B: F0 0E    beq $a01b
 A00D: A5 51    lda snake_row_51
 A00F: 18       clc
 A010: 69 02    adc #$02
-A012: 85 33    sta $33
+A012: 85 33    sta charset_source_pointer_second_plane_33
 A014: A5 51    lda snake_row_51
 A016: 85 17    sta head_x_value_17
 A018: 4C 26 A0 jmp $a026
 A01B: A5 51    lda snake_row_51
 A01D: 38       sec
 A01E: E9 02    sbc #$02
-A020: 85 33    sta $33
+A020: 85 33    sta charset_source_pointer_second_plane_33
 A022: A5 51    lda snake_row_51
 A024: 85 17    sta head_x_value_17
 A026: A5 52    lda $52
@@ -5825,26 +5854,26 @@ A02B: 69 01    adc #$01
 A02D: 85 34    sta $34
 A02F: A9 1B    lda #$1b
 A031: 38       sec
-A032: E5 33    sbc $33
+A032: E5 33    sbc charset_source_pointer_second_plane_33
 A034: 18       clc
 A035: 2A       rol a
 A036: 2A       rol a
 A037: 2A       rol a
 A038: 2A       rol a
-A039: 85 31    sta $31
+A039: 85 31    sta charset_source_pointer_first_plane_31
 A03B: A9 00    lda #$00
 A03D: 69 00    adc #$00
 A03F: 0A       asl a
-A040: 26 31    rol $31
+A040: 26 31    rol charset_source_pointer_first_plane_31
 A042: 69 04    adc #$04
 A044: 85 32    sta $32
 A046: A9 1F    lda #$1f
 A048: 38       sec
 A049: E5 34    sbc $34
 A04B: 18       clc
-A04C: 65 31    adc $31
-A04E: 85 31    sta $31
-A050: A5 53    lda $53
+A04C: 65 31    adc charset_source_pointer_first_plane_31
+A04E: 85 31    sta charset_source_pointer_first_plane_31
+A050: A5 53    lda nibbler_direction_53
 A052: C9 04    cmp #$04
 A054: F0 1B    beq $a071
 A056: A5 3B    lda move_to_row_3b
@@ -5872,7 +5901,7 @@ A080: A9 A1    lda #$a1
 A082: 85 1C    sta $1c
 A084: A0 02    ldy #$02
 A086: B1 1B    lda ($1b), y
-A088: 91 31    sta ($31), y		; [video_address]
+A088: 91 31    sta (charset_source_pointer_first_plane_31), y		; [video_address]
 A08A: 88       dey
 A08B: 10 F9    bpl $a086
 A08D: A9 58    lda #$58
@@ -5899,21 +5928,21 @@ A0B2: A9 00    lda #$00
 A0B4: 91 19    sta ($19), y
 A0B6: 88       dey
 A0B7: 10 FB    bpl $a0b4
-A0B9: A5 53    lda $53
+A0B9: A5 53    lda nibbler_direction_53
 A0BB: C9 04    cmp #$04
 A0BD: F0 10    beq $a0cf
-A0BF: A5 31    lda $31
+A0BF: A5 31    lda charset_source_pointer_first_plane_31
 A0C1: 18       clc
 A0C2: 69 60    adc #$60
-A0C4: 85 31    sta $31
+A0C4: 85 31    sta charset_source_pointer_first_plane_31
 A0C6: A5 32    lda $32
 A0C8: 69 00    adc #$00
 A0CA: 85 32    sta $32
 A0CC: 4C E3 A0 jmp $a0e3
-A0CF: A5 31    lda $31
+A0CF: A5 31    lda charset_source_pointer_first_plane_31
 A0D1: 38       sec
 A0D2: E9 60    sbc #$60
-A0D4: 85 31    sta $31
+A0D4: 85 31    sta charset_source_pointer_first_plane_31
 A0D6: A5 32    lda $32
 A0D8: E9 00    sbc #$00
 A0DA: 85 32    sta $32
@@ -5938,25 +5967,25 @@ A0FD: AA       tax
 A0FE: 18       clc
 A0FF: 69 08    adc #$08
 A101: 85 32    sta $32
-A103: B1 31    lda ($31), y		; [unchecked_address]
+A103: B1 31    lda (charset_source_pointer_first_plane_31), y		; [unchecked_address]
 A105: 29 F8    and #$f8
 A107: 09 03    ora #$03
-A109: 91 31    sta ($31), y		; [video_address]
+A109: 91 31    sta (charset_source_pointer_first_plane_31), y		; [video_address]
 A10B: 88       dey
 A10C: 10 F5    bpl $a103
 A10E: 86 32    stx $32
 A110: A0 01    ldy #$01
-A112: B1 31    lda ($31), y		; [unchecked_address]
+A112: B1 31    lda (charset_source_pointer_first_plane_31), y		; [unchecked_address]
 A114: C9 30    cmp #$30
 A116: D0 46    bne $a15e
 A118: B1 1B    lda ($1b), y
-A11A: 91 31    sta ($31), y		; [video_address]
+A11A: 91 31    sta (charset_source_pointer_first_plane_31), y		; [video_address]
 A11C: 88       dey
 A11D: B1 1B    lda ($1b), y
-A11F: 91 31    sta ($31), y		; [video_address]
+A11F: 91 31    sta (charset_source_pointer_first_plane_31), y		; [video_address]
 A121: A0 02    ldy #$02
 A123: B1 1B    lda ($1b), y
-A125: 91 31    sta ($31), y		; [video_address]
+A125: 91 31    sta (charset_source_pointer_first_plane_31), y		; [video_address]
 A127: 88       dey
 A128: A5 EC    lda $ec
 A12A: 18       clc
@@ -5977,7 +6006,7 @@ A168: 85 1B    sta $1b
 A16A: B9 C1 60 lda $60c1, y
 A16D: 85 1C    sta $1c
 A16F: B9 10 63 lda $6310, y
-A172: 85 31    sta $31
+A172: 85 31    sta charset_source_pointer_first_plane_31
 A174: B9 11 63 lda $6311, y
 A177: 85 32    sta $32
 A179: A9 73    lda #$73
@@ -6001,7 +6030,7 @@ A19A: C8       iny
 A19B: B1 17    lda (head_x_value_17), y
 A19D: 85 1F    sta $1f
 A19F: A4 16    ldy $16
-A1A1: A5 53    lda $53
+A1A1: A5 53    lda nibbler_direction_53
 A1A3: C9 08    cmp #$08
 A1A5: F0 0A    beq $a1b1
 A1A7: B1 1B    lda ($1b), y
@@ -6035,7 +6064,7 @@ A1D9: C8       iny
 A1DA: B1 19    lda ($19), y
 A1DC: 85 1E    sta $1e
 A1DE: A4 1F    ldy $1f
-A1E0: A5 53    lda $53
+A1E0: A5 53    lda nibbler_direction_53
 A1E2: C9 08    cmp #$08
 A1E4: F0 0A    beq $a1f0
 A1E6: B1 1B    lda ($1b), y
@@ -6062,10 +6091,10 @@ A209: 69 08    adc #$08
 A20B: 85 1E    sta $1e
 A20D: C6 16    dec $16
 A20F: A4 16    ldy $16
-A211: A5 53    lda $53
+A211: A5 53    lda nibbler_direction_53
 A213: C9 08    cmp #$08
 A215: F0 0A    beq $a221
-A217: B1 31    lda ($31), y
+A217: B1 31    lda (charset_source_pointer_first_plane_31), y
 A219: 91 1D    sta ($1d), y
 A21B: 88       dey
 A21C: 10 F9    bpl $a217
@@ -6074,7 +6103,7 @@ A221: 84 17    sty head_x_value_17
 A223: 98       tya
 A224: 49 07    eor #$07
 A226: A8       tay
-A227: B1 31    lda ($31), y
+A227: B1 31    lda (charset_source_pointer_first_plane_31), y
 A229: A4 17    ldy head_x_value_17
 A22B: 91 1D    sta ($1d), y
 A22D: 88       dey
@@ -6082,10 +6111,10 @@ A22E: 10 F1    bpl $a221
 A230: E6 16    inc $16
 A232: A4 1F    ldy $1f
 A234: 30 3C    bmi $a272
-A236: A5 31    lda $31
+A236: A5 31    lda charset_source_pointer_first_plane_31
 A238: 18       clc
 A239: 65 16    adc $16
-A23B: 85 31    sta $31
+A23B: 85 31    sta charset_source_pointer_first_plane_31
 A23D: A5 32    lda $32
 A23F: 69 00    adc #$00
 A241: 85 32    sta $32
@@ -6098,10 +6127,10 @@ A24C: 18       clc
 A24D: 69 08    adc #$08
 A24F: 85 1E    sta $1e
 A251: A4 1F    ldy $1f
-A253: A5 53    lda $53
+A253: A5 53    lda nibbler_direction_53
 A255: C9 08    cmp #$08
 A257: F0 0A    beq $a263
-A259: B1 31    lda ($31), y
+A259: B1 31    lda (charset_source_pointer_first_plane_31), y
 A25B: 91 1D    sta ($1d), y
 A25D: 88       dey
 A25E: 10 F9    bpl $a259
@@ -6110,7 +6139,7 @@ A263: 84 17    sty head_x_value_17
 A265: 98       tya
 A266: 49 07    eor #$07
 A268: A8       tay
-A269: B1 31    lda ($31), y
+A269: B1 31    lda (charset_source_pointer_first_plane_31), y
 A26B: A4 17    ldy head_x_value_17
 A26D: 91 1D    sta ($1d), y
 A26F: 88       dey
@@ -6120,7 +6149,7 @@ A272: 60       rts
 A300: A5 ED    lda $ed
 A302: D0 03    bne $a307
 A304: 4C A1 A4 jmp $a4a1
-A307: A5 53    lda $53
+A307: A5 53    lda nibbler_direction_53
 A309: C9 02    cmp #$02
 A30B: F0 0E    beq $a31b
 A30D: A5 52    lda $52
@@ -6140,33 +6169,33 @@ A326: A5 51    lda snake_row_51
 A328: 85 17    sta head_x_value_17
 A32A: 18       clc
 A32B: 69 01    adc #$01
-A32D: 85 33    sta $33
+A32D: 85 33    sta charset_source_pointer_second_plane_33
 A32F: A9 1B    lda #$1b
 A331: 38       sec
-A332: E5 33    sbc $33
+A332: E5 33    sbc charset_source_pointer_second_plane_33
 A334: 18       clc
 A335: 2A       rol a
 A336: 2A       rol a
 A337: 2A       rol a
 A338: 2A       rol a
-A339: 85 31    sta $31
+A339: 85 31    sta charset_source_pointer_first_plane_31
 A33B: A9 00    lda #$00
 A33D: 69 00    adc #$00
 A33F: 0A       asl a
-A340: 26 31    rol $31
+A340: 26 31    rol charset_source_pointer_first_plane_31
 A342: 69 04    adc #$04
 A344: 85 32    sta $32
 A346: A9 1F    lda #$1f
 A348: 38       sec
 A349: E5 34    sbc $34
 A34B: 18       clc
-A34C: 65 31    adc $31
-A34E: 85 31    sta $31
-A350: A5 31    lda $31
-A352: 85 33    sta $33
+A34C: 65 31    adc charset_source_pointer_first_plane_31
+A34E: 85 31    sta charset_source_pointer_first_plane_31
+A350: A5 31    lda charset_source_pointer_first_plane_31
+A352: 85 33    sta charset_source_pointer_second_plane_33
 A354: A5 32    lda $32
 A356: 85 34    sta $34
-A358: A5 53    lda $53
+A358: A5 53    lda nibbler_direction_53
 A35A: C9 02    cmp #$02
 A35C: F0 1B    beq $a379
 A35E: A5 3C    lda $3c
@@ -6195,11 +6224,11 @@ A38A: 85 1C    sta $1c
 A38C: A0 02    ldy #$02
 A38E: A2 00    ldx #$00
 A390: B1 1B    lda ($1b), y
-A392: 81 31    sta ($31, x)		; [video_address]
-A394: A5 31    lda $31
+A392: 81 31    sta (charset_source_pointer_first_plane_31, x)		; [video_address]
+A394: A5 31    lda charset_source_pointer_first_plane_31
 A396: 18       clc
 A397: 69 20    adc #$20
-A399: 85 31    sta $31
+A399: 85 31    sta charset_source_pointer_first_plane_31
 A39B: A5 32    lda $32
 A39D: 69 00    adc #$00
 A39F: 85 32    sta $32
@@ -6229,21 +6258,21 @@ A3C9: A9 00    lda #$00
 A3CB: 91 19    sta ($19), y
 A3CD: 88       dey
 A3CE: 10 FB    bpl $a3cb
-A3D0: A5 53    lda $53
+A3D0: A5 53    lda nibbler_direction_53
 A3D2: C9 02    cmp #$02
 A3D4: F0 10    beq $a3e6
-A3D6: A5 33    lda $33
+A3D6: A5 33    lda charset_source_pointer_second_plane_33
 A3D8: 18       clc
 A3D9: 69 03    adc #$03
-A3DB: 85 33    sta $33
+A3DB: 85 33    sta charset_source_pointer_second_plane_33
 A3DD: A5 34    lda $34
 A3DF: 69 00    adc #$00
 A3E1: 85 34    sta $34
 A3E3: 4C F3 A3 jmp $a3f3
-A3E6: A5 33    lda $33
+A3E6: A5 33    lda charset_source_pointer_second_plane_33
 A3E8: 38       sec
 A3E9: E9 03    sbc #$03
-A3EB: 85 33    sta $33
+A3EB: 85 33    sta charset_source_pointer_second_plane_33
 A3ED: A5 34    lda $34
 A3EF: E9 00    sbc #$00
 A3F1: 85 34    sta $34
@@ -6261,21 +6290,21 @@ A405: 69 00    adc #$00
 A407: 85 1C    sta $1c
 A409: A0 02    ldy #$02
 A40B: A2 00    ldx #$00
-A40D: A5 33    lda $33
+A40D: A5 33    lda charset_source_pointer_second_plane_33
 A40F: 48       pha
 A410: A5 34    lda $34
 A412: 48       pha
 A413: 18       clc
 A414: 69 08    adc #$08
 A416: 85 34    sta $34
-A418: A1 33    lda ($33, x)		; [unchecked_address]
+A418: A1 33    lda (charset_source_pointer_second_plane_33, x)		; [unchecked_address]
 A41A: 29 F8    and #$f8
 A41C: 09 03    ora #$03
-A41E: 81 33    sta ($33, x)		; [video_address]
-A420: A5 33    lda $33
+A41E: 81 33    sta (charset_source_pointer_second_plane_33, x)		; [video_address]
+A420: A5 33    lda charset_source_pointer_second_plane_33
 A422: 18       clc
 A423: 69 20    adc #$20
-A425: 85 33    sta $33
+A425: 85 33    sta charset_source_pointer_second_plane_33
 A427: A5 34    lda $34
 A429: 69 00    adc #$00
 A42B: 85 34    sta $34
@@ -6284,40 +6313,40 @@ A42E: 10 E8    bpl $a418
 A430: 68       pla
 A431: 85 34    sta $34
 A433: 68       pla
-A434: 85 33    sta $33
-A436: A5 33    lda $33
+A434: 85 33    sta charset_source_pointer_second_plane_33
+A436: A5 33    lda charset_source_pointer_second_plane_33
 A438: 18       clc
 A439: 69 20    adc #$20
-A43B: 85 33    sta $33
+A43B: 85 33    sta charset_source_pointer_second_plane_33
 A43D: A5 34    lda $34
 A43F: 69 00    adc #$00
 A441: 85 34    sta $34
 A443: A0 01    ldy #$01
-A445: A1 33    lda ($33, x)		; [unchecked_address]
+A445: A1 33    lda (charset_source_pointer_second_plane_33, x)		; [unchecked_address]
 A447: C9 30    cmp #$30
 A449: D0 53    bne $a49e
 A44B: B1 1B    lda ($1b), y
-A44D: 81 33    sta ($33, x)		; [video_address]
-A44F: A5 33    lda $33
+A44D: 81 33    sta (charset_source_pointer_second_plane_33, x)		; [video_address]
+A44F: A5 33    lda charset_source_pointer_second_plane_33
 A451: 18       clc
 A452: 69 20    adc #$20
-A454: 85 33    sta $33
+A454: 85 33    sta charset_source_pointer_second_plane_33
 A456: A5 34    lda $34
 A458: 69 00    adc #$00
 A45A: 85 34    sta $34
 A45C: 88       dey
 A45D: B1 1B    lda ($1b), y
-A45F: 81 33    sta ($33, x)		; [video_address]
+A45F: 81 33    sta (charset_source_pointer_second_plane_33, x)		; [video_address]
 A461: A0 02    ldy #$02
-A463: A5 33    lda $33
+A463: A5 33    lda charset_source_pointer_second_plane_33
 A465: 38       sec
 A466: E9 40    sbc #$40
-A468: 85 33    sta $33
+A468: 85 33    sta charset_source_pointer_second_plane_33
 A46A: A5 34    lda $34
 A46C: E9 00    sbc #$00
 A46E: 85 34    sta $34
 A470: B1 1B    lda ($1b), y
-A472: 81 33    sta ($33, x)		; [video_address]
+A472: 81 33    sta (charset_source_pointer_second_plane_33, x)		; [video_address]
 A474: A5 EC    lda $ec
 A476: 18       clc
 A477: 69 02    adc #$02
@@ -6333,7 +6362,7 @@ A49E: 4C 13 30 jmp $3013
 A4A1: A5 E9    lda $e9
 A4A3: 0A       asl a
 A4A4: A8       tay
-A4A5: A5 53    lda $53
+A4A5: A5 53    lda nibbler_direction_53
 A4A7: C9 01    cmp #$01
 A4A9: F0 17    beq $a4c2
 A4AB: B9 60 65 lda $6560, y
@@ -6341,7 +6370,7 @@ A4AE: 85 1B    sta $1b
 A4B0: B9 61 65 lda $6561, y
 A4B3: 85 1C    sta $1c
 A4B5: B9 B0 67 lda $67b0, y
-A4B8: 85 31    sta $31
+A4B8: 85 31    sta charset_source_pointer_first_plane_31
 A4BA: B9 B1 67 lda $67b1, y
 A4BD: 85 32    sta $32
 A4BF: 4C D6 A4 jmp $a4d6
@@ -6350,7 +6379,7 @@ A4C5: 85 1B    sta $1b
 A4C7: B9 01 6A lda $6a01, y
 A4CA: 85 1C    sta $1c
 A4CC: B9 50 6C lda $6c50, y
-A4CF: 85 31    sta $31
+A4CF: 85 31    sta charset_source_pointer_first_plane_31
 A4D1: B9 51 6C lda $6c51, y
 A4D4: 85 32    sta $32
 A4D6: A9 D0    lda #$d0
@@ -6374,7 +6403,7 @@ A4F7: C8       iny
 A4F8: B1 17    lda (head_x_value_17), y
 A4FA: 85 1F    sta $1f
 A4FC: A4 16    ldy $16
-A4FE: A5 53    lda $53
+A4FE: A5 53    lda nibbler_direction_53
 A500: C9 08    cmp #$08
 A502: F0 0A    beq $a50e
 A504: B1 1B    lda ($1b), y
@@ -6408,7 +6437,7 @@ A536: C8       iny
 A537: B1 19    lda ($19), y
 A539: 85 1E    sta $1e
 A53B: A4 1F    ldy $1f
-A53D: A5 53    lda $53
+A53D: A5 53    lda nibbler_direction_53
 A53F: C9 08    cmp #$08
 A541: F0 0A    beq $a54d
 A543: B1 1B    lda ($1b), y
@@ -6435,10 +6464,10 @@ A566: 69 08    adc #$08
 A568: 85 1E    sta $1e
 A56A: C6 16    dec $16
 A56C: A4 16    ldy $16
-A56E: A5 53    lda $53
+A56E: A5 53    lda nibbler_direction_53
 A570: C9 08    cmp #$08
 A572: F0 0A    beq $a57e
-A574: B1 31    lda ($31), y
+A574: B1 31    lda (charset_source_pointer_first_plane_31), y
 A576: 91 1D    sta ($1d), y
 A578: 88       dey
 A579: 10 F9    bpl $a574
@@ -6447,7 +6476,7 @@ A57E: 84 17    sty head_x_value_17
 A580: 98       tya
 A581: 49 07    eor #$07
 A583: A8       tay
-A584: B1 31    lda ($31), y
+A584: B1 31    lda (charset_source_pointer_first_plane_31), y
 A586: A4 17    ldy head_x_value_17
 A588: 91 1D    sta ($1d), y
 A58A: 88       dey
@@ -6455,10 +6484,10 @@ A58B: 10 F1    bpl $a57e
 A58D: E6 16    inc $16
 A58F: A4 1F    ldy $1f
 A591: 30 3C    bmi $a5cf
-A593: A5 31    lda $31
+A593: A5 31    lda charset_source_pointer_first_plane_31
 A595: 18       clc
 A596: 65 16    adc $16
-A598: 85 31    sta $31
+A598: 85 31    sta charset_source_pointer_first_plane_31
 A59A: A5 32    lda $32
 A59C: 69 00    adc #$00
 A59E: 85 32    sta $32
@@ -6471,10 +6500,10 @@ A5A9: 18       clc
 A5AA: 69 08    adc #$08
 A5AC: 85 1E    sta $1e
 A5AE: A4 1F    ldy $1f
-A5B0: A5 53    lda $53
+A5B0: A5 53    lda nibbler_direction_53
 A5B2: C9 08    cmp #$08
 A5B4: F0 0A    beq $a5c0
-A5B6: B1 31    lda ($31), y
+A5B6: B1 31    lda (charset_source_pointer_first_plane_31), y
 A5B8: 91 1D    sta ($1d), y
 A5BA: 88       dey
 A5BB: 10 F9    bpl $a5b6
@@ -6483,7 +6512,7 @@ A5C0: 84 17    sty head_x_value_17
 A5C2: 98       tya
 A5C3: 49 07    eor #$07
 A5C5: A8       tay
-A5C6: B1 31    lda ($31), y
+A5C6: B1 31    lda (charset_source_pointer_first_plane_31), y
 A5C8: A4 17    ldy head_x_value_17
 A5CA: 91 1D    sta ($1d), y
 A5CC: 88       dey
@@ -6747,7 +6776,7 @@ A7EF: 85 19    sta $19
 A7F1: A9 6E    lda #$6e
 A7F3: 85 1A    sta $1a
 A7F5: A9 30    lda #$30
-A7F7: 85 33    sta $33
+A7F7: 85 33    sta charset_source_pointer_second_plane_33
 A7F9: A9 70    lda #$70
 A7FB: 85 34    sta $34
 A7FD: 4C 23 A8 jmp $a823
@@ -6756,7 +6785,7 @@ A802: 85 19    sta $19
 A804: A9 71    lda #$71
 A806: 85 1A    sta $1a
 A808: A9 50    lda #$50
-A80A: 85 33    sta $33
+A80A: 85 33    sta charset_source_pointer_second_plane_33
 A80C: A9 73    lda #$73
 A80E: 85 34    sta $34
 A810: 4C 23 A8 jmp $a823
@@ -6765,7 +6794,7 @@ A815: 85 19    sta $19
 A817: A9 74    lda #$74
 A819: 85 1A    sta $1a
 A81B: A9 70    lda #$70
-A81D: 85 33    sta $33
+A81D: 85 33    sta charset_source_pointer_second_plane_33
 A81F: A9 76    lda #$76
 A821: 85 34    sta $34
 A823: A5 E9    lda $e9
@@ -6773,14 +6802,14 @@ A825: 0A       asl a
 A826: A8       tay
 A827: B1 19    lda ($19), y
 A829: 85 17    sta head_x_value_17
-A82B: B1 33    lda ($33), y
-A82D: 85 31    sta $31
+A82B: B1 33    lda (charset_source_pointer_second_plane_33), y
+A82D: 85 31    sta charset_source_pointer_first_plane_31
 A82F: C8       iny
 A830: B1 19    lda ($19), y
 A832: 85 18    sta $18
-A834: B1 33    lda ($33), y
+A834: B1 33    lda (charset_source_pointer_second_plane_33), y
 A836: 85 32    sta $32
-A838: A9 31    lda #$31
+A838: A9 31    lda #charset_source_pointer_first_plane_31
 A83A: 85 19    sta $19
 A83C: A9 A9    lda #$a9
 A83E: 85 1A    sta $1a
@@ -6851,7 +6880,7 @@ A8B6: A4 16    ldy $16
 A8B8: 91 1B    sta ($1b), y
 A8BA: 88       dey
 A8BB: 10 F1    bpl $a8ae
-A8BD: A9 31    lda #$31
+A8BD: A9 31    lda #charset_source_pointer_first_plane_31
 A8BF: 85 19    sta $19
 A8C1: A9 A9    lda #$a9
 A8C3: 85 1A    sta $1a
@@ -6867,7 +6896,7 @@ A8D3: A4 1D    ldy $1d
 A8D5: A5 56    lda $56
 A8D7: C9 08    cmp #$08
 A8D9: F0 0A    beq $a8e5
-A8DB: B1 31    lda ($31), y
+A8DB: B1 31    lda (charset_source_pointer_first_plane_31), y
 A8DD: 91 1B    sta ($1b), y
 A8DF: 88       dey
 A8E0: 10 F9    bpl $a8db
@@ -6876,7 +6905,7 @@ A8E5: 84 16    sty $16
 A8E7: 98       tya
 A8E8: 49 07    eor #$07
 A8EA: A8       tay
-A8EB: B1 31    lda ($31), y
+A8EB: B1 31    lda (charset_source_pointer_first_plane_31), y
 A8ED: A4 16    ldy $16
 A8EF: 91 1B    sta ($1b), y
 A8F1: 88       dey
@@ -6886,8 +6915,8 @@ A8F6: 30 38    bmi $a930
 A8F8: E6 1D    inc $1d
 A8FA: A5 1D    lda $1d
 A8FC: 18       clc
-A8FD: 65 31    adc $31
-A8FF: 85 31    sta $31
+A8FD: 65 31    adc charset_source_pointer_first_plane_31
+A8FF: 85 31    sta charset_source_pointer_first_plane_31
 A901: A5 32    lda $32
 A903: 69 00    adc #$00
 A905: 85 32    sta $32
@@ -6899,7 +6928,7 @@ A90F: A4 1E    ldy $1e
 A911: A5 56    lda $56
 A913: C9 08    cmp #$08
 A915: F0 0A    beq $a921
-A917: B1 31    lda ($31), y
+A917: B1 31    lda (charset_source_pointer_first_plane_31), y
 A919: 91 1B    sta ($1b), y
 A91B: 88       dey
 A91C: 10 F9    bpl $a917
@@ -6908,7 +6937,7 @@ A921: 84 16    sty $16
 A923: 98       tya
 A924: 49 07    eor #$07
 A926: A8       tay
-A927: B1 31    lda ($31), y
+A927: B1 31    lda (charset_source_pointer_first_plane_31), y
 A929: A4 16    ldy $16
 A92B: 91 1B    sta ($1b), y
 A92D: 88       dey
@@ -6919,7 +6948,7 @@ AA00: A5 52    lda $52
 AA02: C5 55    cmp $55
 AA04: D0 10    bne $aa16
 AA06: A9 04    lda #$04
-AA08: C5 53    cmp $53
+AA08: C5 53    cmp nibbler_direction_53
 AA0A: D0 0A    bne $aa16
 AA0C: C5 56    cmp $56
 AA0E: D0 06    bne $aa16
@@ -6998,7 +7027,7 @@ AA8B: 18       clc
 AA8C: 69 08    adc #$08
 AA8E: 85 1A    sta $1a
 AA90: A5 12    lda $12
-AA92: 85 33    sta $33
+AA92: 85 33    sta charset_source_pointer_second_plane_33
 AA94: A5 13    lda $13
 AA96: 18       clc
 AA97: 69 08    adc #$08
@@ -7028,7 +7057,7 @@ AAC4: A5 1A    lda $1a
 AAC6: C5 34    cmp $34
 AAC8: D0 D1    bne $aa9b
 AACA: A5 19    lda $19
-AACC: C5 33    cmp $33
+AACC: C5 33    cmp charset_source_pointer_second_plane_33
 AACE: D0 CB    bne $aa9b
 AAD0: A0 02    ldy #$02
 AAD2: B1 19    lda ($19), y		; [unchecked_address]
@@ -7333,13 +7362,13 @@ AD2D: A5 1A    lda $1a
 AD2F: E9 00    sbc #$00
 AD31: 85 1A    sta $1a
 AD33: A0 02    ldy #$02
-AD35: A9 33    lda #$33
+AD35: A9 33    lda #charset_source_pointer_second_plane_33
 AD37: 91 19    sta ($19), y		; [video_address]
 AD39: 88       dey
 AD3A: A9 32    lda #$32
 AD3C: 91 19    sta ($19), y		; [video_address]
 AD3E: 88       dey
-AD3F: A9 31    lda #$31
+AD3F: A9 31    lda #charset_source_pointer_first_plane_31
 AD41: 91 19    sta ($19), y		; [video_address]
 AD43: A5 1A    lda $1a
 AD45: C9 04    cmp #$04
@@ -7370,7 +7399,7 @@ AD74: 85 1A    sta $1a
 AD76: A5 12    lda $12
 AD78: 38       sec
 AD79: E9 40    sbc #$40
-AD7B: 85 33    sta $33
+AD7B: 85 33    sta charset_source_pointer_second_plane_33
 AD7D: A5 13    lda $13
 AD7F: E9 00    sbc #$00
 AD81: 18       clc
@@ -7413,7 +7442,7 @@ ADC6: A5 1A    lda $1a
 ADC8: C5 34    cmp $34
 ADCA: D0 BA    bne $ad86
 ADCC: A5 19    lda $19
-ADCE: C5 33    cmp $33
+ADCE: C5 33    cmp charset_source_pointer_second_plane_33
 ADD0: D0 B4    bne $ad86
 ADD2: A0 02    ldy #$02
 ADD4: B1 19    lda ($19), y		; [unchecked_address]
