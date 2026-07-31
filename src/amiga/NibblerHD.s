@@ -1,4 +1,4 @@
-; GnG AGA slave
+
 	INCDIR	Include:
 	INCLUDE	whdload.i
 	INCLUDE	whdmacros.i
@@ -40,15 +40,14 @@ _expmem
     dc.w    _config-_base
 ;---
 _config
-	dc.b	"C1:X:invincible:0;"
+	dc.b	"C1:X:infinite time:0;"
 	dc.b	"C1:X:infinite lives:1;"
 	dc.b	"C1:X:cheat keys:4;"
 	dc.b	"C2:X:50 Hz update:0;"
-	dc.b	"C2:X:disable long fire press for grenade:1;"
 	dc.b	"C2:X:startup menu:5;"
 
-	dc.b	"C3:L:difficulty level:easy,normal,difficult,very difficult;"
-	dc.b	"C4:L:lives:3,4,5,7;"
+	dc.b	"C3:L:difficulty level:easy,hard;"
+	dc.b	"C4:L:lives:3,4,5,6;"
 	dc.b	0
 
 	IFD BARFLY
@@ -75,7 +74,6 @@ _name	dc.b	"Nibbler"
 	dc.b	0
 _copy	dc.b	'2026 JOTD',0
 _info
-    dc.b    "Music by ??",10
     dc.b    "Original 1982 Rock'ola",0
 	dc.b	0
 _kickname   dc.b    0

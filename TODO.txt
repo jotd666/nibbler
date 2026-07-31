@@ -1,5 +1,9 @@
 - character redefine trap
 - set dip switch free play
+- cheat infinite time
+- issue on game over (with high score): write video mem out of range
+- reach highscore check highscore screen
+- sounds!
 - cheat start level (find level number)
 - bg: allocate colors manually ?
 - A8DD invalid mem access after level 34 expected?
