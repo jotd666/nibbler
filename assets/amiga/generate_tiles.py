@@ -78,6 +78,7 @@ def doit_rom_tiles(dump_it=False):
     d = {}
     color = [(0,0,0),(255,255,0XDE),(255,0,0),(255,255,0XDE)]  # clut 3
 
+    # head
     for r72_plane1,r72_plane2 in zip(rt_plane1,rt_plane2):
         data_plane1 = contents[r72_plane1-0x6000:r72_plane1-0x6000+0x48]
         data_plane2 = contents[r72_plane2-0x6000:r72_plane2-0x6000+0x48]
@@ -97,10 +98,28 @@ def doit_rom_tiles(dump_it=False):
                         palindex += 1
                     c2 >>= 1
                     imgdat[row,col] = color[palindex]
-            if dump_it:
-                imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
-                imgs.save(cdump_dir/f"pic_{r72_plane1:04x}_{i}.png")
+##            if dump_it:
+##                imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
+##                imgs.save(cdump_dir/f"head_{r72_plane1:04x}_{i}.png")
             offset += 8
+
+    # body parts
+    rt_plane1 = []
+    for address in range(0x6000,0x60C0,0x10):
+        data_plane1 = contents[address-0x6000:address-0x6000+0x8]
+        img = Image.new("RGB",(8,8))
+        imgdat = img.load()
+        for col,c1 in enumerate(data_plane1):
+            for row in range(8):
+                palindex = 2
+                if (c1 & 1):
+                    palindex += 1
+                c1 >>= 1
+                imgdat[row,col] = color[palindex]
+        if dump_it:
+            imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
+            imgs.save(cdump_dir/f"body_{address:04x}.png")
+
 
 def doit_fg_tiles(dump_it=False):
     return doit(nb_colors=4,offset=0,nb_cluts=8,kind="tiles_8x8_fg",ref_clut_index=0x0,dump_it=dump_it)
