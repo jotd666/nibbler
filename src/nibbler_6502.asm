@@ -86,6 +86,7 @@
 
 ; game state: 0: game running, $FF: not running
 game_state_fc = $fc
+frame_index_e9 = $e9
 fruits_left_ba = $ba
 countdown_timer_bd = $bd
 fast_counter_f3 = $f3
@@ -105,13 +106,19 @@ crtc_2001 = $2001
 move_to_row_3b = $3b
 snake_row_51 = $51
 move_slot_ptr_e2 = $e2
-head_x_value_17 = $17
+
 tail_ptr_58 = $58
 head_ptr_57 = $57
 p2_lives_b1 = $b1
 p1_lives_b0 = $b0
 time_a3 = $a3
 level_number_bc = $bc
+
+; wouldn't trust the names of low zero page data, they're often
+; reused and therefore generic. But sometimes they're properly named.
+; it takes more RE effort to do this.
+head_x_value_17 = $17
+charset_data_pointer_17 = $17
 charset_source_pointer_first_plane_31 = $31
 charset_source_pointer_second_plane_33 = $33
 
@@ -140,7 +147,7 @@ irq_3009:    ; [global]
 3010: 4C 87 3F jmp $3f87
 3013: 4C 16 55 jmp $5516
 3016: 4C 00 A6 jmp $a600
-3019: 4C F4 5B jmp $5bf4
+3019: 4C F4 5B jmp animate_body_chars_5bf4
 301C: 4C 06 59 jmp $5906
 
 infinite_loop_305f:
@@ -362,7 +369,7 @@ l_315b:		; [global]
 3204: A0 00    ldy #$00
 3206: 84 F3    sty fast_counter_f3
 3208: 20 00 4C jsr $4c00
-320B: 4C A7 39 jmp $39a7
+320B: 4C A7 39 jmp nibbler_movement_39a7
 
 nmi_continue_320e:
 320E: 48       pha
@@ -1182,6 +1189,9 @@ award_end_of_level_bonus_38dc:
 39A0: A9 00    lda #$00
 39A2: 85 1A    sta $1a
 39A4: 4C 6E 4B jmp write_text_4b6e
+
+; main routine, as nothing happens except nibbler movement :)
+nibbler_movement_39a7:
 39A7: E6 49    inc $49
 39A9: A9 00    lda #$00
 39AB: 85 31    sta charset_source_pointer_first_plane_31
@@ -1348,7 +1358,7 @@ award_end_of_level_bonus_38dc:
 3AEE: A5 FB    lda $fb
 3AF0: C9 02    cmp #$02
 3AF2: 10 31    bpl $3b25
-3AF4: A5 E9    lda $e9
+3AF4: A5 E9    lda frame_index_e9
 3AF6: 18       clc
 3AF7: 65 59    adc $59
 3AF9: C9 05    cmp #$05
@@ -1502,18 +1512,31 @@ circular_buffer_ok_3c0a:
 3C24: 8D 01 21 sta sound_2101
 3C27: A9 04    lda #$04
 3C29: 85 4F    sta $4f
+
+; now the fun begins. Nibbler is not a sprite but it has continuous movement even
+; if it is made of 8x8 tiles. For this, some games use a huge number of static tiles
+; but this wouldn't have been possible here as there are 8 possible frames of several tiles
+; (head, straight tail, wriggling tail left/right and diamond animated body)
+; so the game uses modifiable character RAM in $1000 and copies from character data from ROM.
+;
+; one memory optimization can be done because bits represent columns, so a tile or its mirrored
+; counterpart can be created using straight copy or copy in a different direction (using eor #7 does this)
+;
+; so we "only" need 3 sets of characters in ROM, up, down and left/right
+
 3C2B: A5 53    lda nibbler_direction_53
 3C2D: C9 01    cmp #$01
 3C2F: F0 1F    beq dir_down_3c50
 3C31: C9 02    cmp #$02
 3C33: F0 2E    beq dir_up_3c63
+; load $1188 in 1B pointer (char 0x31 onwards)
 3C35: A9 88    lda #$88
 3C37: 85 1B    sta $1b
 3C39: A9 11    lda #$11
 3C3B: 85 1C    sta $1c
 ; $60C0 contains a table with 8 16-bit pointers to charset data (first plane) for left/right
 3C3D: A9 C0    lda #$c0
-3C3F: 85 17    sta head_x_value_17
+3C3F: 85 17    sta charset_data_pointer_17
 3C41: A9 60    lda #$60
 3C43: 85 18    sta $18
 ; $6310 contains a table with 8 16-bit pointers to charset data (second plane) for left/right
@@ -1521,12 +1544,12 @@ circular_buffer_ok_3c0a:
 3C47: 85 19    sta $19
 3C49: A9 63    lda #$63
 3C4B: 85 1A    sta $1a
-3C4D: 4C 7B 3C jmp $3c7b
+3C4D: 4C 7B 3C jmp l_3c7b
 
 dir_down_3c50:
 ; $6a00 contains a table with 8 16-bit pointers to charset data (first plane) for down
 3C50: A9 00    lda #$00
-3C52: 85 17    sta head_x_value_17
+3C52: 85 17    sta charset_data_pointer_17
 3C54: A9 6A    lda #$6a
 3C56: 85 18    sta $18
 ; $6c50 contains a table with 8 16-bit pointers to charset data (second plane) for down
@@ -1534,41 +1557,47 @@ dir_down_3c50:
 3C5A: 85 19    sta $19
 3C5C: A9 6C    lda #$6c
 3C5E: 85 1A    sta $1a
-3C60: 4C 73 3C jmp $3c73
+3C60: 4C 73 3C jmp l_3c73
 
 dir_up_3c63:
 ; $6560 contains a table with 8 16-bit pointers to charset data (first plane) for up
 3C63: A9 60    lda #$60
-3C65: 85 17    sta head_x_value_17
+3C65: 85 17    sta charset_data_pointer_17
 3C67: A9 65    lda #$65
 3C69: 85 18    sta $18
-; $67B0 contains a table with 8 16-bit pointers to charset data (second plane)
+; $67B0 contains a table with 8 16-bit pointers to charset data (second plane) for up
 3C6B: A9 B0    lda #$b0
 3C6D: 85 19    sta $19
 3C6F: A9 67    lda #$67
 3C71: 85 1A    sta $1a
+l_3c73:
+; $1308: char 0x61 (nibbler body)
 3C73: A9 08    lda #$08
 3C75: 85 1B    sta $1b
 3C77: A9 13    lda #$13
 3C79: 85 1C    sta $1c
+l_3c7b:
 3C7B: A9 00    lda #$00
 3C7D: 85 EC    sta $ec
-3C7F: A5 E9    lda $e9		; char data index to set
+3C7F: A5 E9    lda frame_index_e9		; char data index to set
 3C81: 0A       asl a		; times 2
 3C82: A8       tay
 ; fetch pointers from tables
-3C83: B1 17    lda (head_x_value_17), y
+3C83: B1 17    lda (charset_data_pointer_17), y
 3C85: 85 31    sta charset_source_pointer_first_plane_31
 3C87: B1 19    lda ($19), y
 3C89: 85 33    sta charset_source_pointer_second_plane_33
 3C8B: C8       iny
-3C8C: B1 17    lda (head_x_value_17), y
+3C8C: B1 17    lda (charset_data_pointer_17), y
 3C8E: 85 32    sta $32
 3C90: B1 19    lda ($19), y
 3C92: 85 34    sta $34
 3C94: A5 53    lda nibbler_direction_53
 3C96: C9 08    cmp #$08
-3C98: F0 1C    beq dir_left_3cb6
+3C98: F0 1C    beq dir_left_special_char_copy_3cb6
+; direct copy
+; change 9 chars from character 0x61 or 0x31 depending on how $1b was loaded
+straight_char_copy_3c9a:
 3C9A: A0 47    ldy #$47
 3C9C: B1 31    lda (charset_source_pointer_first_plane_31), y
 3C9E: 91 1B    sta ($1b), y		; change charset (going up/right/down)
@@ -1583,13 +1612,15 @@ dir_up_3c63:
 3CAE: 91 1B    sta ($1b), y
 3CB0: 88       dey
 3CB1: 10 F9    bpl $3cac
-3CB3: 4C DF 3C jmp $3cdf
+3CB3: 4C DF 3C jmp charset_copy_done_3cdf
 
 ; left is like right but as bitplane data is vertical, the game reuses
 ; the data by copying it in the other direction
 ; (it cannot do that for vertical up/down as bits are mixed)
-dir_left_3cb6:
-3CB6: A0 47    ldy #$47
+; left is the only special case as up, down and right data are good to copy as is
+; in the 3 charset tables
+dir_left_special_char_copy_3cb6:
+3CB6: A0 47    ldy #$47		; change 9 chars from character 0x61
 3CB8: 84 16    sty $16
 3CBA: 98       tya
 3CBB: 49 07    eor #$07		; copy bytes in the other direction
@@ -1614,6 +1645,11 @@ dir_left_3cb6:
 3CDA: 91 1B    sta ($1b), y
 3CDC: 88       dey
 3CDD: 10 F1    bpl $3cd0
+
+; from now on, no more charset changes, but from time to time the game
+; must move nibbler head & tail (typical snake game behaviour where only
+; the start & end of the snake changes)
+charset_copy_done_3cdf:
 3CDF: A5 53    lda nibbler_direction_53
 3CE1: C9 01    cmp #$01
 3CE3: F0 12    beq dir_down_3cf7
@@ -1632,10 +1668,15 @@ dir_down_3cf7:
 dir_up_3cfc:
 3CFC: E6 41    inc $41
 dir_left_3cfe:
+; load pointer on table 3E9D:
+;     3E9D  01 01 01 01 01 01 02 02 02 01 02 01 01 01 01 01   ................
+;     3EAD  02 02 02 02 03 03 03 03 03 03 03 03 02 02 02 02   ................
+
 3CFE: A9 9D    lda #$9d
 3D00: 85 17    sta head_x_value_17
 3D02: A9 3E    lda #$3e
 3D04: 85 18    sta $18
+
 3D06: A5 3D    lda $3d
 3D08: 18       clc
 3D09: 65 17    adc head_x_value_17
@@ -1659,12 +1700,35 @@ dir_left_3cfe:
 3D2B: A0 18    ldy #$18
 3D2D: B1 17    lda (head_x_value_17), y
 3D2F: 85 32    sta $32
+; load with pointer on 3E2D pointer table:
+; 3E2D  
+;	dc.w	$3E3D
+;	dc.w	$3E49 
+;	dc.w	$3E55 
+;	dc.w	$3E61 
+;	dc.w	$3E6D 
+;	dc.w	$3E79 
+;	dc.w	$3E85 
+;	dc.w	$3E91
+
 3D31: A9 2D    lda #$2d
 3D33: 85 1D    sta $1d
 3D35: A9 3E    lda #$3e
 3D37: 85 1E    sta $1e
 3D39: A5 4A    lda $4a
 3D3B: F0 08    beq $3d45
+; 3EBD, a different pointer table
+;	dc.w	$3ECD
+;	dc.w	$3ED9
+;	dc.w	$3EE5
+;	dc.w	$3EF1 
+;	dc.w	$3EFD 
+;	dc.w	$3F09
+;	dc.w	$3F15 
+;	dc.w	$3F21
+;
+; both tables point on char indexes of the nibbler body
+;
 3D3D: A9 BD    lda #$bd
 3D3F: 85 1D    sta $1d
 3D41: A9 3E    lda #$3e
@@ -2788,17 +2852,17 @@ write_credit_string_4c8a:
 4EEE: 85 5B    sta $5b
 4EF0: A9 00    lda #$00
 4EF2: 85 ED    sta $ed
-4EF4: A5 E9    lda $e9
+4EF4: A5 E9    lda frame_index_e9
 4EF6: 18       clc
 4EF7: 65 5F    adc $5f
-4EF9: 85 E9    sta $e9
+4EF9: 85 E9    sta frame_index_e9
 4EFB: C9 08    cmp #$08
 4EFD: 30 08    bmi $4f07
 4EFF: 29 07    and #$07
-4F01: 85 E9    sta $e9
+4F01: 85 E9    sta frame_index_e9
 4F03: A9 FF    lda #$ff
 4F05: 85 ED    sta $ed
-4F07: 20 F4 5B jsr $5bf4
+4F07: 20 F4 5B jsr animate_body_chars_5bf4
 4F0A: A5 47    lda $47
 4F0C: F0 0E    beq $4f1c
 4F0E: A5 F0    lda $f0
@@ -4386,15 +4450,21 @@ start_game_5bc5:
 ; game started (real game)
 5BED: 4C 5F 30 jmp infinite_loop_305f
 
-5BF4: A5 E9    lda $e9
+; animate body (not head or tail) each frame
+; it just changes 4 tiles, making the diamond bigger or smaller
+animate_body_chars_5bf4:
+5BF4: A5 E9    lda frame_index_e9		; 0,2,4,6
 5BF6: 0A       asl a
 5BF7: 0A       asl a
-5BF8: 0A       asl a
+5BF8: 0A       asl a		; times 8
 5BF9: 85 16    sta $16
-5BFB: 0A       asl a
+5BFB: 0A       asl a		; times 16
 5BFC: 85 1F    sta $1f
 5BFE: A5 40    lda $40
 5C00: F0 1E    beq $5c20
+; load the proper charset data based from $6040, $6050, ...
+; only the second plane is changed (faster, and we don't need to change the
+; shape, only the diamond size in white)
 5C02: A9 40    lda #$40
 5C04: 18       clc
 5C05: 65 16    adc $16
@@ -4402,6 +4472,7 @@ start_game_5bc5:
 5C09: A9 60    lda #$60
 5C0B: 69 00    adc #$00
 5C0D: 85 18    sta $18
+; second plane of char 0x3F data (vertical snake body)
 5C0F: A9 F8    lda #$f8
 5C11: 85 19    sta $19
 5C13: A9 19    lda #$19
@@ -4420,6 +4491,7 @@ start_game_5bc5:
 5C2B: A9 60    lda #$60
 5C2D: 69 00    adc #$00
 5C2F: 85 18    sta $18
+; second plane of char 0x40 data (vertical snake body)
 5C31: A9 00    lda #$00
 5C33: 85 19    sta $19
 5C35: A9 1A    lda #$1a
@@ -4438,6 +4510,7 @@ start_game_5bc5:
 5C4D: A9 60    lda #$60
 5C4F: 69 00    adc #$00
 5C51: 85 18    sta $18
+; second plane of char 0x3D of snake data (horizontal snake body)
 5C53: A9 E8    lda #$e8
 5C55: 85 19    sta $19
 5C57: A9 19    lda #$19
@@ -4456,6 +4529,7 @@ start_game_5bc5:
 5C6F: A9 60    lda #$60
 5C71: 69 00    adc #$00
 5C73: 85 18    sta $18
+; second plane of char 0x3E of snake data (horizontal snake body)
 5C75: A9 F0    lda #$f0
 5C77: 85 19    sta $19
 5C79: A9 19    lda #$19
@@ -4471,6 +4545,7 @@ start_game_5bc5:
 5C8B: 88       dey
 5C8C: 10 F1    bpl $5c7f
 5C8E: 60       rts
+
 5C8F: A5 ED    lda $ed
 5C91: D0 03    bne $5c96
 5C93: 4C DE 5C jmp $5cde
@@ -4635,7 +4710,7 @@ start_game_5bc5:
 5E22: 85 3D    sta $3d
 5E24: 85 EC    sta $ec
 5E26: 85 EE    sta $ee
-5E28: 85 E9    sta $e9
+5E28: 85 E9    sta frame_index_e9
 5E2A: 85 ED    sta $ed
 5E2C: 85 BB    sta $bb
 5E2E: 85 40    sta $40
@@ -5805,7 +5880,7 @@ save_debug_values_7f4d:
 7F89: A5 5E    lda $5e
 7F8B: 9D 00 02 sta $0200, x
 7F8E: E8       inx
-7F8F: A5 E9    lda $e9
+7F8F: A5 E9    lda frame_index_e9
 7F91: 9D 00 02 sta $0200, x
 7F94: E8       inx
 7F95: A5 ED    lda $ed
@@ -5998,7 +6073,7 @@ A135: 85 EC    sta $ec
 A137: 4C 61 A1 jmp $a161
 
 A15E: 4C 13 30 jmp $3013
-A161: A5 E9    lda $e9
+A161: A5 E9    lda frame_index_e9
 A163: 0A       asl a
 A164: A8       tay
 A165: B9 C0 60 lda $60c0, y
@@ -6359,7 +6434,7 @@ A483: 4C A1 A4 jmp $a4a1
 
 A49E: 4C 13 30 jmp $3013
 
-A4A1: A5 E9    lda $e9
+A4A1: A5 E9    lda frame_index_e9
 A4A3: 0A       asl a
 A4A4: A8       tay
 A4A5: A5 53    lda nibbler_direction_53
@@ -6719,7 +6794,7 @@ A77C: A9 40    lda #$40
 A77E: 85 17    sta head_x_value_17
 A780: A9 60    lda #$60
 A782: 85 18    sta $18
-A784: A5 E9    lda $e9
+A784: A5 E9    lda frame_index_e9
 A786: 0A       asl a
 A787: 0A       asl a
 A788: 0A       asl a
@@ -6797,7 +6872,7 @@ A81B: A9 70    lda #$70
 A81D: 85 33    sta charset_source_pointer_second_plane_33
 A81F: A9 76    lda #$76
 A821: 85 34    sta $34
-A823: A5 E9    lda $e9
+A823: A5 E9    lda frame_index_e9
 A825: 0A       asl a
 A826: A8       tay
 A827: B1 19    lda ($19), y
@@ -6963,7 +7038,7 @@ AA1F: 90 05    bcc $aa26
 AA21: A9 08    lda #$08
 AA23: 8D 01 21 sta sound_2101
 AA26: A9 00    lda #$00
-AA28: 85 E9    sta $e9
+AA28: 85 E9    sta frame_index_e9
 AA2A: A5 54    lda $54
 AA2C: 85 19    sta $19
 AA2E: A5 55    lda $55
