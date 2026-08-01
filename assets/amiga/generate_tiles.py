@@ -68,28 +68,38 @@ def doit_rom_tiles(dump_it=False):
     with rom_file.open("rb") as f:
         contents = f.read()[0x3000:]  # gfx stuff starts at 0x6000
 
-    rt = []
+    rt_plane1 = []
+    rt_plane2 = []
     # collect rom tables pointing on 0x48 bytes of data (head)
-    for address in [0x6a00,0x6c50,0x6560,0x67B0,0x60C0]:
-        rt.extend(get_rom_table(contents,address,8))
+    for fp_address,sp_address in [(0x60C0,0x6310),(0x6a00,0x6c50),(0x6560,0x67B0)]:
+        rt_plane1.extend(get_rom_table(contents,fp_address,8))
+        rt_plane2.extend(get_rom_table(contents,sp_address,8))
 
     d = {}
-    for r72 in rt:
-        data = contents[r72-0x6000:r72-0x6000+0x48]
+    color = [(0,0,0),(255,255,0XDE),(255,0,0),(255,255,0XDE)]  # clut 3
+
+    for r72_plane1,r72_plane2 in zip(rt_plane1,rt_plane2):
+        data_plane1 = contents[r72_plane1-0x6000:r72_plane1-0x6000+0x48]
+        data_plane2 = contents[r72_plane2-0x6000:r72_plane2-0x6000+0x48]
         offset = 0
         for i in range(9):
-            cdata = data[offset:offset+8]  # one char data
+            cdata_plane1 = data_plane1[offset:offset+8]  # one char data
+            cdata_plane2 = data_plane2[offset:offset+8]  # one char data
             img = Image.new("RGB",(8,8))
             imgdat = img.load()
-            for col,c in enumerate(cdata):
+            for col,(c1,c2) in enumerate(zip(cdata_plane1,cdata_plane2)):
                 for row in range(8):
-                    if (c & 1):
-                        imgdat[row,col] = (255,255,255)  # ATM only one bitplane
-                    c >>= 1
-
+                    palindex = 0
+                    if (c1 & 1):
+                        palindex += 2
+                    c1 >>= 1
+                    if (c2 & 1):
+                        palindex += 1
+                    c2 >>= 1
+                    imgdat[row,col] = color[palindex]
             if dump_it:
                 imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
-                imgs.save(cdump_dir/f"pic_{r72}_{i}.png")
+                imgs.save(cdump_dir/f"pic_{r72_plane1:04x}_{i}.png")
             offset += 8
 
 def doit_fg_tiles(dump_it=False):
