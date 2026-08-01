@@ -41,3 +41,6 @@ osd_change_char_data
 
 atm only called with 3D and 40 !!! find why
 9: 31 or 61 at corners
+
+completely missing tail char copy that seems
+of variable length! see at A600

@@ -1,7 +1,7 @@
 # we're trying to work cleanly this time: instead of generating pics and storing them, we generate them
 # and return the list, it takes 1 or 2 seconds
 
-import glob,shutil,os,re,pathlib
+import glob,shutil,os,re,pathlib,struct
 from PIL import Image
 from shared import *
 import bitplanelib
@@ -55,12 +55,49 @@ def doit(nb_colors,offset,nb_cluts,kind,ref_clut_index,dump_it=False):
         rval.append(dest)
     return rval
 
+def get_rom_table(rom_data,address,size):
+    offset = address-0x6000
+    return [rom_data[i*2+offset]+256*rom_data[i*2+offset+1] for i in range(size)]
+
+def doit_rom_tiles(dump_it=False):
+    rom_file = this_dir.parent / "rom.bin"
+    if dump_it:
+        cdump_dir = dump_dir / "rom_tiles"
+        cdump_dir.mkdir(exist_ok=True)
+
+    with rom_file.open("rb") as f:
+        contents = f.read()[0x3000:]  # gfx stuff starts at 0x6000
+
+    rt = []
+    # collect rom tables pointing on 0x48 bytes of data (head)
+    for address in [0x6a00,0x6c50,0x6560,0x67B0,0x60C0]:
+        rt.extend(get_rom_table(contents,address,8))
+
+    d = {}
+    for r72 in rt:
+        data = contents[r72-0x6000:r72-0x6000+0x48]
+        offset = 0
+        for i in range(9):
+            cdata = data[offset:offset+8]  # one char data
+            img = Image.new("RGB",(8,8))
+            imgdat = img.load()
+            for col,c in enumerate(cdata):
+                for row in range(8):
+                    if (c & 1):
+                        imgdat[row,col] = (255,255,255)  # ATM only one bitplane
+                    c >>= 1
+
+            if dump_it:
+                imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
+                imgs.save(cdump_dir/f"pic_{r72}_{i}.png")
+            offset += 8
+
 def doit_fg_tiles(dump_it=False):
     return doit(nb_colors=4,offset=0,nb_cluts=8,kind="tiles_8x8_fg",ref_clut_index=0x0,dump_it=dump_it)
 def doit_bg_tiles(dump_it=False):
     return doit(nb_colors=4,offset=8,nb_cluts=8,kind="tiles_8x8_bg",ref_clut_index=0x0,dump_it=dump_it)
 
 if __name__ == "__main__":
-    doit_fg_tiles(True)
-    doit_bg_tiles(True)
-
+##    doit_fg_tiles(True)
+##    doit_bg_tiles(True)
+    doit_rom_tiles(True)

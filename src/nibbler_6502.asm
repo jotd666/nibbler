@@ -107,6 +107,13 @@ move_to_row_3b = $3b
 snake_row_51 = $51
 move_slot_ptr_e2 = $e2
 
+; 40-43: booleans (inverted logic)
+; only one can be 0 when oriented that way, others are 1
+tail_oriented_left_40 = $40
+tail_oriented_right_41 = $41
+tail_oriented_down_42 = $42
+tail_oriented_up_43 = $43
+
 tail_ptr_58 = $58
 head_ptr_57 = $57
 p2_lives_b1 = $b1
@@ -146,7 +153,7 @@ irq_3009:    ; [global]
 300D: 4C 5E 4B jmp $4b5e
 3010: 4C 87 3F jmp $3f87
 3013: 4C 16 55 jmp $5516
-3016: 4C 00 A6 jmp $a600
+3016: 4C 00 A6 jmp handle_tail_a600
 3019: 4C F4 5B jmp animate_body_chars_5bf4
 301C: 4C 06 59 jmp $5906
 
@@ -551,8 +558,9 @@ nmi_continue_320e:
 336E: 85 BA    sta fruits_left_ba
 3370: 60       rts
 
+fruit_eaten_3422:
 3422: A9 08    lda #$08
-3424: 85 BB    sta $bb
+3424: 85 BB    sta time_when_snake_gets_longer_bb
 3426: A0 00    ldy #$00
 3428: A9 30    lda #$30
 342A: 91 2D    sta ($2d), y		; [video_address]
@@ -1382,7 +1390,7 @@ nibbler_movement_39a7:
 3B1F: 20 4D 7F jsr save_debug_values_7f4d
 3B22: 4C DA 4E jmp $4eda
 3B25: A9 00    lda #$00
-3B27: 85 BB    sta $bb
+3B27: 85 BB    sta time_when_snake_gets_longer_bb
 3B29: 85 5E    sta $5e
 3B2B: C6 A4    dec $a4
 3B2D: A5 A6    lda $a6
@@ -1659,16 +1667,16 @@ charset_copy_done_3cdf:
 3CE7: F0 13    beq dir_up_3cfc
 3CE9: C9 04    cmp #$04
 3CEB: F0 05    beq dir_right_3cf2
-3CED: E6 43    inc $43
+3CED: E6 43    inc tail_oriented_up_43
 3CEF: 4C FE 3C jmp dir_left_3cfe
 dir_right_3cf2:
-3CF2: E6 42    inc $42
+3CF2: E6 42    inc tail_oriented_down_42
 3CF4: 4C FE 3C jmp dir_left_3cfe
 dir_down_3cf7:
-3CF7: E6 40    inc $40
+3CF7: E6 40    inc tail_oriented_left_40
 3CF9: 4C FE 3C jmp dir_left_3cfe
 dir_up_3cfc:
-3CFC: E6 41    inc $41
+3CFC: E6 41    inc tail_oriented_right_41
 dir_left_3cfe:
 ; load pointer on table 3E9D:
 ;     3E9D  01 01 01 01 01 01 02 02 02 01 02 01 01 01 01 01   ................
@@ -2350,7 +2358,7 @@ draw_fruits_49ab:
 4A2D: 81 2D    sta ($2d, x)		; [video_address]
 4A2F: 4C 13 4A jmp $4a13
 4A32: 84 2A    sty $2a
-4A34: 20 22 34 jsr $3422
+4A34: 20 22 34 jsr fruit_eaten_3422
 4A37: A4 2A    ldy $2a
 4A39: A2 00    ldx #$00
 4A3B: A9 00    lda #$00
@@ -2870,11 +2878,11 @@ write_credit_string_4c8a:
 4F0E: A5 F0    lda $f0
 4F10: 4A       lsr a
 4F11: B0 09    bcs $4f1c
-4F13: A5 BB    lda $bb
+4F13: A5 BB    lda time_when_snake_gets_longer_bb
 4F15: 30 36    bmi $4f4d
 4F17: D0 34    bne $4f4d
 4F19: 4C 20 4F jmp $4f20
-4F1C: A5 BB    lda $bb
+4F1C: A5 BB    lda time_when_snake_gets_longer_bb
 4F1E: D0 2D    bne $4f4d
 4F20: A5 ED    lda $ed
 4F22: F0 29    beq $4f4d
@@ -2936,11 +2944,11 @@ write_credit_string_4c8a:
 4F92: 85 58    sta tail_ptr_58
 4F94: A9 0A    lda #$0a
 4F96: 85 5B    sta $5b
-4F98: 20 00 A6 jsr $a600
-4F9B: C6 BB    dec $bb
+4F98: 20 00 A6 jsr handle_tail_a600
+4F9B: C6 BB    dec time_when_snake_gets_longer_bb
 4F9D: 10 04    bpl $4fa3
 4F9F: A9 00    lda #$00
-4FA1: 85 BB    sta $bb
+4FA1: 85 BB    sta time_when_snake_gets_longer_bb
 4FA3: A5 ED    lda $ed
 4FA5: F0 31    beq $4fd8
 4FA7: A5 51    lda snake_row_51
@@ -2967,7 +2975,7 @@ write_credit_string_4c8a:
 4FD1: D0 05    bne $4fd8
 4FD3: A9 85    lda #$85
 4FD5: 4C 87 3F jmp $3f87
-4FD8: 20 8F 5C jsr $5c8f
+4FD8: 20 8F 5C jsr animate_head_and_body_5c8f
 4FDB: 20 AB 49 jsr draw_fruits_49ab
 4FDE: A9 10    lda #$10
 4FE0: 25 F0    and $f0
@@ -4462,8 +4470,8 @@ animate_body_chars_5bf4:
 5BF9: 85 16    sta $16
 5BFB: 0A       asl a		; times 16
 5BFC: 85 1F    sta $1f
-5BFE: A5 40    lda $40
-5C00: F0 1E    beq $5c20
+5BFE: A5 40    lda tail_oriented_left_40
+5C00: F0 1E    beq l_5c20
 ; load the proper charset data based from $6040, $6050, ...
 ; only the second plane is changed (faster, and we don't need to change the
 ; shape, only the diamond size in white)
@@ -4485,8 +4493,10 @@ animate_body_chars_5bf4:
 5C1B: 91 19    sta ($19), y
 5C1D: 88       dey
 5C1E: 10 F9    bpl $5c19
-5C20: A5 41    lda $41
-5C22: F0 1E    beq $5c42
+l_5c20:
+5C20: A5 41    lda tail_oriented_right_41
+5C22: F0 1E    beq $5c42		; 0: oriented right
+; load the proper charset data based from $6080, $6090, ...
 5C24: A9 80    lda #$80
 5C26: 18       clc
 5C27: 65 16    adc $16
@@ -4505,8 +4515,9 @@ animate_body_chars_5bf4:
 5C3D: 91 19    sta ($19), y
 5C3F: 88       dey
 5C40: 10 F9    bpl $5c3b
-5C42: A5 42    lda $42
+5C42: A5 42    lda tail_oriented_down_42
 5C44: F0 1E    beq $5c64
+; load the proper charset data based from $6000, $6010, ...
 5C46: A9 00    lda #$00
 5C48: 18       clc
 5C49: 65 16    adc $16
@@ -4525,7 +4536,7 @@ animate_body_chars_5bf4:
 5C5F: 91 19    sta ($19), y
 5C61: 88       dey
 5C62: 10 F9    bpl $5c5d
-5C64: A5 43    lda $43
+5C64: A5 43    lda tail_oriented_up_43
 5C66: F0 26    beq $5c8e
 5C68: A9 00    lda #$00
 5C6A: 18       clc
@@ -4552,6 +4563,7 @@ animate_body_chars_5bf4:
 5C8C: 10 F1    bpl $5c7f
 5C8E: 60       rts
 
+animate_head_and_body_5c8f:
 5C8F: A5 ED    lda $ed
 5C91: D0 03    bne $5c96
 5C93: 4C DE 5C jmp $5cde
@@ -4704,7 +4716,7 @@ animate_body_chars_5bf4:
 5E0A: 85 53    sta nibbler_direction_53
 5E0C: 85 56    sta $56
 5E0E: A9 01    lda #$01
-5E10: 85 42    sta $42
+5E10: 85 42    sta tail_oriented_down_42
 5E12: A9 FF    lda #$ff
 5E14: 85 A9    sta $a9
 5E16: A9 00    lda #$00
@@ -4718,10 +4730,10 @@ animate_body_chars_5bf4:
 5E26: 85 EE    sta $ee
 5E28: 85 E9    sta frame_index_e9
 5E2A: 85 ED    sta $ed
-5E2C: 85 BB    sta $bb
-5E2E: 85 40    sta $40
-5E30: 85 41    sta $41
-5E32: 85 43    sta $43
+5E2C: 85 BB    sta time_when_snake_gets_longer_bb
+5E2E: 85 40    sta tail_oriented_left_40
+5E30: 85 41    sta tail_oriented_right_41
+5E32: 85 43    sta tail_oriented_up_43
 5E34: 85 20    sta $20
 5E36: 85 21    sta $21
 5E38: 85 22    sta $22
@@ -4778,13 +4790,13 @@ animate_body_chars_5bf4:
 5E99: F0 13    beq $5eae
 5E9B: C9 04    cmp #$04
 5E9D: F0 05    beq $5ea4
-5E9F: C6 43    dec $43
+5E9F: C6 43    dec tail_oriented_up_43
 5EA1: 4C B0 5E jmp $5eb0
-5EA4: C6 42    dec $42
+5EA4: C6 42    dec tail_oriented_down_42
 5EA6: 4C B0 5E jmp $5eb0
-5EA9: C6 40    dec $40
+5EA9: C6 40    dec tail_oriented_left_40
 5EAB: 4C B0 5E jmp $5eb0
-5EAE: C6 41    dec $41
+5EAE: C6 41    dec tail_oriented_right_41
 5EB0: 10 05    bpl $5eb7
 5EB2: A9 96    lda #$96
 5EB4: 4C 87 3F jmp $3f87
@@ -5078,7 +5090,7 @@ boot_7800:
 78F9: 20 13 7F jsr $7f13
 78FC: A2 20    ldx #$20
 78FE: A9 00    lda #$00
-7900: 95 40    sta $40, x
+7900: 95 40    sta tail_oriented_left_40, x
 7902: CA       dex
 7903: 10 FB    bpl $7900
 7905: A9 00    lda #$00
@@ -5087,16 +5099,16 @@ boot_7800:
 790B: 85 18    sta $18
 790D: 20 B5 7D jsr $7db5
 7910: A5 16    lda $16
-7912: 05 40    ora $40
-7914: 85 40    sta $40
+7912: 05 40    ora tail_oriented_left_40
+7914: 85 40    sta tail_oriented_left_40
 7916: A9 00    lda #$00
 7918: 85 17    sta head_x_value_17
 791A: A9 03    lda #$03
 791C: 85 18    sta $18
 791E: 20 B5 7D jsr $7db5
 7921: A5 16    lda $16
-7923: 05 40    ora $40
-7925: 85 40    sta $40
+7923: 05 40    ora tail_oriented_left_40
+7925: 85 40    sta tail_oriented_left_40
 7927: A9 00    lda #$00
 7929: 85 17    sta head_x_value_17
 792B: A9 04    lda #$04
@@ -5131,12 +5143,12 @@ boot_7800:
 7969: 29 02    and #$02
 796B: F0 04    beq $7971
 796D: A9 80    lda #$80
-796F: 85 42    sta $42
+796F: 85 42    sta tail_oriented_down_42
 7971: A5 1F    lda $1f
 7973: 29 01    and #$01
 7975: F0 04    beq $797b
 7977: A9 80    lda #$80
-7979: 85 41    sta $41
+7979: 85 41    sta tail_oriented_right_41
 797B: A9 00    lda #$00
 797D: 85 17    sta head_x_value_17
 797F: A9 08    lda #$08
@@ -5176,7 +5188,7 @@ boot_7800:
 79C7: 29 01    and #$01
 79C9: F0 04    beq $79cf
 79CB: A9 80    lda #$80
-79CD: 85 43    sta $43
+79CD: 85 43    sta tail_oriented_up_43
 79CF: A9 00    lda #$00
 79D1: 85 17    sta head_x_value_17
 79D3: A9 0C    lda #$0c
@@ -6079,6 +6091,7 @@ A135: 85 EC    sta $ec
 A137: 4C 61 A1 jmp $a161
 
 A15E: 4C 13 30 jmp $3013
+
 A161: A5 E9    lda frame_index_e9
 A163: 0A       asl a
 A164: A8       tay
@@ -6090,16 +6103,21 @@ A16F: B9 10 63 lda $6310, y
 A172: 85 31    sta charset_source_pointer_first_plane_31
 A174: B9 11 63 lda $6311, y
 A177: 85 32    sta $32
+; A273 contains a table of RAM charset addresses of tail parts
 A179: A9 73    lda #$73
 A17B: 85 19    sta $19
 A17D: A9 A2    lda #$a2
 A17F: 85 1A    sta $1a
+
 A181: A4 EC    ldy $ec
 A183: B1 19    lda ($19), y
 A185: 85 1D    sta $1d
 A187: C8       iny
 A188: B1 19    lda ($19), y
 A18A: 85 1E    sta $1e
+; A279 contains 
+; 47 80 17 2F 2F 17 FF FF FF FF FF FF FF FF FF FF
+; ????
 A18C: A9 79    lda #$79
 A18E: 85 17    sta head_x_value_17
 A190: A9 A2    lda #$a2
@@ -6113,12 +6131,13 @@ A19D: 85 1F    sta $1f
 A19F: A4 16    ldy $16
 A1A1: A5 53    lda nibbler_direction_53
 A1A3: C9 08    cmp #$08
-A1A5: F0 0A    beq $a1b1
+A1A5: F0 0A    beq dir_left_a1b1
 A1A7: B1 1B    lda ($1b), y
 A1A9: 91 1D    sta ($1d), y
 A1AB: 88       dey
 A1AC: 10 F9    bpl $a1a7
 A1AE: 4C C0 A1 jmp $a1c0
+dir_left_a1b1:
 A1B1: 84 17    sty head_x_value_17
 A1B3: 98       tya
 A1B4: 49 07    eor #$07
@@ -6144,24 +6163,26 @@ A1D7: 85 1D    sta $1d
 A1D9: C8       iny
 A1DA: B1 19    lda ($19), y
 A1DC: 85 1E    sta $1e
-A1DE: A4 1F    ldy $1f
+A1DE: A4 1F    ldy $1f		; copy size is not fixed
 A1E0: A5 53    lda nibbler_direction_53
 A1E2: C9 08    cmp #$08
-A1E4: F0 0A    beq $a1f0
+A1E4: F0 0A    beq dir_left_a1f0
 A1E6: B1 1B    lda ($1b), y
 A1E8: 91 1D    sta ($1d), y
 A1EA: 88       dey
 A1EB: 10 F9    bpl $a1e6
-A1ED: 4C FF A1 jmp $a1ff
+A1ED: 4C FF A1 jmp l_a1ff
+dir_left_a1f0:
 A1F0: 84 17    sty head_x_value_17
 A1F2: 98       tya
-A1F3: 49 07    eor #$07
+A1F3: 49 07    eor #$07			; mirrored
 A1F5: A8       tay
 A1F6: B1 1B    lda ($1b), y
 A1F8: A4 17    ldy head_x_value_17
 A1FA: 91 1D    sta ($1d), y
 A1FC: 88       dey
 A1FD: 10 F1    bpl $a1f0
+l_a1ff:
 A1FF: A4 EC    ldy $ec
 A201: B1 19    lda ($19), y
 A203: 85 1D    sta $1d
@@ -6600,7 +6621,11 @@ A5CC: 88       dey
 A5CD: 10 F1    bpl $a5c0
 A5CF: 60       rts
 
-A600: A5 BB    lda $bb
+; responsible for:
+; - tail erasure (else snake gets longer)
+; - tail wriggling animation
+handle_tail_a600:
+A600: A5 BB    lda time_when_snake_gets_longer_bb
 A602: F0 01    beq $a605
 A604: 60       rts
 A605: A5 ED    lda $ed
@@ -7229,8 +7254,8 @@ AB7D: D0 F5    bne $ab74
 AB7F: A9 00    lda #$00
 AB81: 85 ED    sta $ed
 AB83: A9 01    lda #$01
-AB85: 85 42    sta $42
-AB87: 20 00 A6 jsr $a600
+AB85: 85 42    sta tail_oriented_down_42
+AB87: 20 00 A6 jsr handle_tail_a600
 AB8A: 20 19 30 jsr $3019
 AB8D: 20 00 A0 jsr $a000
 AB90: A5 12    lda $12

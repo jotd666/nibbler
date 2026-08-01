@@ -1543,7 +1543,7 @@ change_one_char:
 	* D1: destination
 	sub.w	#0x1800,d1	| only second bitplane is affected
 	lsr.w	#3,d1		| divide by 8: get start char number
-	*BREAKPOINT	"fkfkfkfk"
+	jbsr	change_chars
 	jra		osd_change_char_data_out
 * change nine chars: snake head or tail
 change_nine_chars:
@@ -1557,9 +1557,25 @@ change_nine_chars:
 	* D1: destination
 	sub.w	#0x1000,d1	| only second bitplane is affected
 	lsr.w	#3,d1		| divide by 8: get start char number
-	BREAKPOINT	"9999999999"
+	
 osd_change_char_data_out:
 	movem.l	(a7)+,d0-d5
+	rts
+	
+* < D0: key (address)
+* < D1: start char
+* < D6: nb chars
+* < D7: mirror
+
+change_chars:
+	sub.w	#0x6000,d0		| chardata starts at 6000
+	.ifndef	RELEASE
+	jpl		0f
+	BREAKPOINT	"chardata below 6000"
+0:
+	.endif
+	lsr.w	#3,d0			| divide by 8
+	BREAKPOINT	"FUKK"
 	rts
 	
 * < d0: color clut code
