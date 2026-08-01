@@ -21,20 +21,23 @@
 trace interrupt status:
 trace mame.tr,,,{tracelog "P=%02X ",p&4}
 
-dynamic tiles: 49,4B,4D (tail)
-going left/right: head: 32, eyes: 35
-going up/down: head: 62, eyes: 65
-going left: tail: 4D, tip: 49
-going up: tail: 4D, tip: 49
-going down: tail: 4B, tip: 49/4D
 
 charset decoding: 1 byte = 1 column of 8 pixels
 first bitplane: 0x1000+(8*charcode), second bitplane 0x1800+
 
-count how many different patterns exist for each character. Tag the ones with multiple patterns (nibbler body)
-try to find a shorter key to identify tile contents
-generate as many tiles as possible keys for those tiles
-trigger selective screen char update when character memory is written to
+tag [copy_charset_data_loop=nb_chars,mirrored]
+nb_chars = 9:
+src_ptr=$31
+dst_ptr=$1b
 
+nb_chars = 1: (body)
+src_ptr=$17
+dst_ptr=$19
 
+parse tag, generate ptr load & call
+; d0 < nb_chars
+; d1.w < charset ROM address
+osd_change_char_data
 
+atm only called with 3D and 40 !!! find why
+9: 31 or 61 at corners

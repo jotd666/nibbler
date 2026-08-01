@@ -1598,6 +1598,7 @@ l_3c7b:
 ; direct copy
 ; change 9 chars from character 0x61 or 0x31 depending on how $1b was loaded
 straight_char_copy_3c9a:
+; [copy_charset_data_loop=9,false]
 3C9A: A0 47    ldy #$47
 3C9C: B1 31    lda (charset_source_pointer_first_plane_31), y
 3C9E: 91 1B    sta ($1b), y		; change charset (going up/right/down)
@@ -1620,6 +1621,7 @@ straight_char_copy_3c9a:
 ; left is the only special case as up, down and right data are good to copy as is
 ; in the 3 charset tables
 dir_left_special_char_copy_3cb6:
+; [copy_charset_data_loop=9,true] mirrored
 3CB6: A0 47    ldy #$47		; change 9 chars from character 0x61
 3CB8: 84 16    sty $16
 3CBA: 98       tya
@@ -1630,7 +1632,7 @@ dir_left_special_char_copy_3cb6:
 3CC2: 91 1B    sta ($1b), y		; charset when turning left
 3CC4: 88       dey
 3CC5: 10 F1    bpl $3cb8
-; nibbler tiles: change charset when turning left
+; second bitplane
 3CC7: A0 47    ldy #$47
 3CC9: A5 1C    lda $1c
 3CCB: 18       clc
@@ -4477,6 +4479,7 @@ animate_body_chars_5bf4:
 5C11: 85 19    sta $19
 5C13: A9 19    lda #$19
 5C15: 85 1A    sta $1a
+; [copy_charset_data_loop=1,false]
 5C17: A0 07    ldy #$07
 5C19: B1 17    lda (head_x_value_17), y
 5C1B: 91 19    sta ($19), y
@@ -4496,6 +4499,7 @@ animate_body_chars_5bf4:
 5C33: 85 19    sta $19
 5C35: A9 1A    lda #$1a
 5C37: 85 1A    sta $1a
+; [copy_charset_data_loop=1,false]
 5C39: A0 07    ldy #$07
 5C3B: B1 17    lda (head_x_value_17), y
 5C3D: 91 19    sta ($19), y
@@ -4515,6 +4519,7 @@ animate_body_chars_5bf4:
 5C55: 85 19    sta $19
 5C57: A9 19    lda #$19
 5C59: 85 1A    sta $1a
+; [copy_charset_data_loop=1,false]
 5C5B: A0 07    ldy #$07
 5C5D: B1 17    lda (head_x_value_17), y
 5C5F: 91 19    sta ($19), y
@@ -4534,6 +4539,7 @@ animate_body_chars_5bf4:
 5C77: 85 19    sta $19
 5C79: A9 19    lda #$19
 5C7B: 85 1A    sta $1a
+; [copy_charset_data_loop=1,true] mirrored
 5C7D: A0 07    ldy #$07
 5C7F: 84 1B    sty $1b
 5C81: 98       tya

@@ -83,6 +83,12 @@ def game_specific(address,lines,i):
     if "[cpu_loop]" in line:
         lines[i+2] = change_instruction("jbsr\twait_1_frame",lines,i+2)
         lines[i+3] = remove_instruction(lines,i+3)
+    elif "[copy_charset_data_loop=" in line:
+        m = re.search(r"\[copy_charset_data_loop=(\d),(\w+)]",line)
+        nb_chars = int(m.group(1))
+        is_mirror = int(m.group(2)=="true")
+        line = f"\tCHANGE_CHARS\t{nb_chars},{is_mirror} | {line}"
+
     return line
 
 
@@ -374,5 +380,11 @@ with open(source_dir / f"{gamename}.68k","w") as fw:
 \tdbf\td7,0b
 \tmoveq\t#0,d7
 \trts
+
+    .macro  CHANGE_CHARS  nb_chars,mirror
+    move.b\t#\\nb_chars,d6
+    move.b\t#\\mirror,d7
+    jbsr    osd_change_char_data
+    .endm
 """)
     fw.writelines(new_lines)

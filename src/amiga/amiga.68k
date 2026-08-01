@@ -166,6 +166,7 @@ w\@:
 	.global	osd_write_sound_2101
 	.global	osd_set_irq_return_address
 	.global	osd_small_wait
+	.global	osd_change_char_data
 	.global	osd_set_title_color
 	.global	osd_write_sound_2102
 	.global	osd_log_cpu
@@ -1504,7 +1505,63 @@ compute_fg_tile_xy:
 	exg		d0,d1
 	rts
 
+* emulate dynamic character change that we cannot reasonably
+* process in real-time because of the non-amiga format of the
+* bitplanes and the fact that characters with modified data
+* need to be redrawn (means: scan video fg memory)
 
+* < d6: nb chars to change
+* < d7: 0: no mirror, 1: mirror
+* < A6: memory
+* trashes: A0,A1,A2
+
+* nb_chars = 9:
+* src_ptr=$31	(used as key here, no data read from it)
+* dst_ptr=$1b	(used to know the start character)
+* 
+* nb_chars = 1: (body)
+* src_ptr=$17	(used as key here, no data read from it)
+* dst_ptr=$19   (used to know the start character)
+*
+
+osd_change_char_data:
+	movem.l	d0-d5,-(a7)
+	cmp.b	#1,d6
+	jeq		change_one_char
+	cmp.b	#9,d6
+	jeq		change_nine_chars
+	BREAKPOINT	"unsup"
+* change one char: snake body
+change_one_char:
+	move.b	(0x18,a6),d0
+	rol.w	#8,d0
+	move.b	(0x17,a6),d0
+	* D0: key (memory address in ROM where data is)
+	move.b	(0x1a,a6),d1
+	rol.w	#8,d1
+	move.b	(0x19,a6),d1
+	* D1: destination
+	sub.w	#0x1800,d1	| only second bitplane is affected
+	lsr.w	#3,d1		| divide by 8: get start char number
+	*BREAKPOINT	"fkfkfkfk"
+	jra		osd_change_char_data_out
+* change nine chars: snake head or tail
+change_nine_chars:
+	move.b	(0x32,a6),d0
+	rol.w	#8,d0
+	move.b	(0x31,a6),d0
+	* D0: key (memory address in ROM where data is)
+	move.b	(0x1c,a6),d1
+	rol.w	#8,d1
+	move.b	(0x1b,a6),d1
+	* D1: destination
+	sub.w	#0x1000,d1	| only second bitplane is affected
+	lsr.w	#3,d1		| divide by 8: get start char number
+	BREAKPOINT	"9999999999"
+osd_change_char_data_out:
+	movem.l	(a7)+,d0-d5
+	rts
+	
 * < d0: color clut code
 osd_set_title_color:
 	lea		bg_colors,a1
