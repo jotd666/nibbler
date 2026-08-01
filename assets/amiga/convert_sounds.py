@@ -1,76 +1,93 @@
 import subprocess,os,struct,glob,tempfile
 import shutil
 
+from shared import *
 
-gamename = "lock_and_chase"
+gamename = "vulgus"
 sox = "sox"
+
+sound_dir = this_dir / ".." / "sounds"
+
+# default channel = 3, default priority = 40
+# put below some exceptions
+sound_settings_dict = {
+0x20 : {"channel":3,"priority":50,"loops":True},   # bomb
+6: {"channel":2,"priority":50},  # power
+2: {"channel":3,"priority":100}  # explosion
+}
 
 def convert():
     if not shutil.which("sox"):
         raise Exception("sox command not in path, please install it")
     # BTW convert wav to mp3: ffmpeg -i input.wav -codec:a libmp3lame -b:a 330k output.mp3
 
-    #wav_files = glob.glob("sounds/*.wav")
+    out_dir = src_dir
 
-    this_dir = os.path.dirname(__file__)
-    sound_dir = os.path.join(this_dir,"..","sounds")
+    outfile = os.path.join(out_dir,"sounds.68k")
+    sndfile = os.path.join(out_dir,"sound_entries.68k")
 
-    this_dir = os.path.dirname(__file__)
-    src_dir = os.path.join(this_dir,"../../src/amiga")
-    outfile = os.path.join(src_dir,"sounds.68k")
-    sndfile = os.path.join(src_dir,"sound_entries.68k")
+    low_memory = False
 
-
-    hq_sample_rate = 18000
-    lq_sample_rate = 8000
+    hq_sample_rate = 10000 if low_memory else 20000  #{"aga":18004,"ecs":12000,"ocs":11025}[mode]
+    lq_sample_rate = hq_sample_rate//2 # if aga_mode else 8000
 
 
+    loop_channel = 2
 
     EMPTY_SND = "EMPTY_SND"
-    sound_dict = {
-# 2,8,4,A,
-# 4: gate closing, 1E/1F picking dots. +0x80 stop sound
-# 17: loop faster(?)
-# 25: bonus alarm (x3)
-# 8: picked hat
-# A: picked bag
-# 2: laugh after bag pick
-# B: extra life
-"CREDIT_SND"               :{"index":1,"channel":2,"sample_rate":hq_sample_rate,"priority":40},
-"KILLED_SND"               :{"index":0x42,"channel":1,"sample_rate":lq_sample_rate,"priority":60},
-"LOOP_FASTEST_SND"               :{"index":0x19,"channel":3,"sample_rate":lq_sample_rate,"priority":40,"loops":True},
-"LOOP_FASTER_SND"               :{"index":0x18,"channel":3,"sample_rate":lq_sample_rate,"priority":40,"loops":True},
-"LOOP_FAST_SND"               :{"index":0x17,"channel":3,"sample_rate":lq_sample_rate,"priority":40,"loops":True},
-"LOOP_SND"               :{"index":0x16,"channel":3,"sample_rate":lq_sample_rate,"priority":40,"loops":True},
-"ENGINE_SND"               :{"index":0x1D,"channel":3,"sample_rate":hq_sample_rate,"priority":40,"loops":True},
-"BANG_SND"               :{"index":3,"channel":1,"sample_rate":hq_sample_rate,"priority":40},  # red gates/enter letter sound
-"GATE_CLOSING_SND"               :{"index":4,"channel":1,"sample_rate":hq_sample_rate,"priority":40},
-"START_MUSIC_SND"               :{"index":0x41,"channel":0,"sample_rate":lq_sample_rate,"priority":40},
-"HAPPY_SND"               :{"index":2,"channel":0,"sample_rate":lq_sample_rate,"priority":50},  # ignore, just play after "bag picked", else repeats a lot/super fast and causes issues
-"BAG_PICKED_SND"               :{"index":0xA,"channel":0,"sample_rate":hq_sample_rate,"priority":50},
-"HAT_PICKED_SND"               :{"index":8,"channel":0,"sample_rate":hq_sample_rate,"priority":50},
-"COPS_LOCKED_SND"               :{"index":9,"channel":1,"sample_rate":hq_sample_rate,"priority":50},
-"NO_MORE_GATES_SND"               :{"index":0x24,"channel":1,"sample_rate":hq_sample_rate,"priority":30},#
-"BAG_TO_PICK_SND"               :{"index":0x25,"channel":2,"sample_rate":hq_sample_rate,"priority":50,"loops":True},#
-"EXTRA_LIFE_SND"               :{"index":0xB,"channel":1,"sample_rate":lq_sample_rate,"priority":50},#
-"STEP_1_SND"               :{"index":0X1E,"channel":1,"sample_rate":hq_sample_rate,"priority":30},#
-"STEP_2_SND"               :{"index":0X1F,"channel":1,"sample_rate":hq_sample_rate,"priority":30},#
-##"HIGHSCORE_END_SND"               :{"index":15,"channel":3,"sample_rate":lq_sample_rate,"priority":50},#
 
-#"BONUS_STAGE_TUNE_SND"                :{"index":0x28,"pattern":0x15,"volume":32,'loops':True},
-
-
+    dummy_sounds = {
+    0,
+    3,
+    9,
+    0xB
     }
+
+
+    sound_dict = {}
+    sfx_list = set()
+    snd_chan = 0
+    # scan directory for speech
+    for f in sound_dir.glob("*.wav"):
+        sound_name = f.stem
+        parts = sound_name.rsplit("_",maxsplit=1)
+
+        if len(parts)>1:
+            try:
+                index = int(parts[1],16)
+                if index not in dummy_sounds:
+                    sfx_list.add(index)
+                    # auto-declare according to name suffix
+                    entry = f"{sound_name}_SND"
+                    # fix channel to avoid overlap
+                    extra_info = sound_settings_dict.get(index) or dict()
+
+                    sfx_sample_rate = extra_info.get("sample_rate",lq_sample_rate)
+
+
+                    sound_dict[entry] = {"channel":extra_info.get("channel",snd_chan+2),  # default: not auto!
+                    "priority":extra_info.get("priority",40),"index":index,"sample_rate":sfx_sample_rate,
+                    "loops":extra_info.get("loops",False)}
+                    snd_chan  = (snd_chan + 1) % 2
+            except ValueError:
+                pass
+
+
+
+
+
 
 
     with open(os.path.join(src_dir,"..","sounds.inc"),"w") as f:
         for k,v in sorted(sound_dict.items(),key = lambda x:x[1]["index"]):
-            f.write(f"\t.equ\t{k},  0x{v['index']:x}\n")
+            f.write(f"\t.equ\t{k.upper()},  0x{v['index']:x}\n")
 
-    max_sound = 0x80  # max(x["index"] for x in sound_dict.values())+1
+    max_sound = 0x100  # max(x["index"] for x in sound_dict.values())+1
     sound_table = [""]*max_sound
     sound_table_set_1 = ["\t.long\t0,0"]*max_sound
 
+    for d in dummy_sounds:
+        sound_table_set_1[d] = "\t.word\t3,0,0,0   | valid but muted"
 
 
 
@@ -83,15 +100,18 @@ def convert():
     # longword: sample data pointer if sample, 0 if no entry and
     # 2 words: 0/1 noloop/loop followed by duration in ticks
     #
+    # SOUND_ENTRY macro defines a ptplayer-compatible structure, with added the number
+    # of ticks (PAL) giving the duration of the sample (offset 0xA)
     FXFREQBASE = 3579564
 
-        .macro    SOUND_ENTRY    sound_name,size,channel,soundfreq,volume,priority
+        .macro    SOUND_ENTRY    sound_name,size,channel,soundfreq,volume,priority,ticks
     \sound_name\()_sound:
         .long    \sound_name\()_raw
         .word   \size
         .word   FXFREQBASE/\soundfreq,\volume
         .byte    \channel
         .byte    \priority
+        .word    \ticks
         .endm
 
     """
@@ -113,7 +133,10 @@ def convert():
         fst.write(snd_header)
 
         fw.write("\t.section\t.datachip\n")
-        fw.write("\t.global\t{}\n".format(music_module_label))
+
+        fw.write("\t.global\tmodule_table\n")
+        fw.write(f"\t.global\t{music_module_label}\n")
+
 
         for wav_file,details in sound_dict.items():
             wav_name = os.path.basename(wav_file).lower()[:-4]
@@ -121,23 +144,33 @@ def convert():
                 fw.write("\t.global\t{}_raw\n".format(wav_name))
 
 
+        # write the table index => module (there are several modules now)
+
+
         for wav_entry,details in sound_dict.items():
             sound_index = details["index"]
 
             channel = details.get("channel")
             if channel is None:
-                if details.get('silent'):
-                    pass
-                else:
+
+                same_as = details.get("same_as")
+                if same_as is None:
                     # if music loops, ticks are set to 1 so sound orders only can happen once (else music is started 50 times per second!!)
-                    sound_table_set_1[sound_index] = "\t.word\t{},{},{}\n\t.byte\t{},{}".format(2,details["pattern"],details.get("ticks",0),details["volume"],int(details["loops"]))
+
+                    sound_table_set_1[sound_index] = "\t.word\t{},{},{}\n\t.byte\t{},{}".format(2,details["pattern"],0,details["volume"],int(details.get("loops",0)))
+                else:
+                    # aliased sound: reuse sample for a different sound index
+                    wav_entry = same_as
+                    details = sound_dict[same_as]
+                    wav_name = os.path.basename(wav_entry).lower()[:-4]
+                    wav = os.path.splitext(wav_name)[0]
+                    sound_table_set_1[sound_index] = f"\t.word\t1,{int(details.get('loops',0))}\n\t.long\t{wav}_sound"
             else:
                 wav_name = os.path.basename(wav_entry).lower()[:-4]
                 wav_file = os.path.join(sound_dir,wav_name+".wav")
 
                 def get_sox_cmd(sr,output):
-                    return [sox,"--volume","2.0",wav_file,"--channels","1","-D","--bits","8","-r",str(sr),"--encoding","signed-integer",output]
-
+                    return [sox,"--volume","3.3",wav_file,"--channels","1","-D","--bits","8","-r",str(sr),"--encoding","signed-integer",output]
 
                 used_sampling_rate = details["sample_rate"]
                 used_priority = details.get("priority",1)
@@ -155,24 +188,25 @@ def convert():
                 maxsigned = max(signed_data)
                 minsigned = min(signed_data)
 
-                amp_ratio = max(maxsigned,abs(minsigned))/128
+                amp_ratio = max(maxsigned,abs(minsigned))/32
 
-                # JOTD: for that one, I'm using maxxed out sfx by no9, no amp
-                amp_ratio = 0.9
+                print(f"amp_ratio: {amp_ratio}")
 
                 wav = os.path.splitext(wav_name)[0]
                 if amp_ratio > 1:
                     print(f"{wav}: volume peaked {amp_ratio}")
                     amp_ratio = 1
-                sound_table[sound_index] = "    SOUND_ENTRY {},{},{},{},{},{}\n".format(wav,len(signed_data)//2,channel,used_sampling_rate,int(64*amp_ratio),used_priority)
+
+                sound_table[sound_index] = "    SOUND_ENTRY {},{},{},{},{},{},{}\n".format(wav,len(signed_data)//2,channel,
+                            used_sampling_rate,int(64*amp_ratio),used_priority,0)
                 sound_table_set_1[sound_index] = f"\t.word\t1,{int(details.get('loops',0))}\n\t.long\t{wav}_sound"
 
-##                if amp_ratio > 0:
-##                    maxed_contents = [int(x/amp_ratio) for x in signed_data]
-##                else:
-##                    maxed_contents = signed_data
+                if amp_ratio > 0:
+                    maxed_contents = [int(x/amp_ratio) for x in signed_data]
+                else:
+                    maxed_contents = signed_data
 
-                maxed_contents = signed_data
+
 
                 signed_contents = bytes([x if x >= 0 else 256+x for x in maxed_contents])
                 # pre-pad with 0W, used by ptplayer for idling
@@ -197,11 +231,8 @@ def convert():
 
 
         # make sure next section will be aligned
-##        with open(os.path.join(sound_dir,f"{gamename}_conv.mod"),"rb") as f:
-##            contents = f.read()
-##
-##        fw.write("{}:".format(music_module_label))
-##        write_asm(contents,fw)
+
+
         fw.write("\t.align\t8\n")
 
 
@@ -209,9 +240,13 @@ def convert():
         fst.write("\n\t.global\t{0}\n\n{0}:\n".format("sound_table"))
         for i,st in enumerate(sound_table_set_1):
             fst.write(st)
-            fst.write(" | {}\n".format(i))
+            fst.write(f" | 0x{i:02x}\n")
 
 
+
+    unused_indexes = set(range(0,0x3E))-sfx_list-dummy_sounds
+    print("Unmapped sound indexes: ")
+    print(sorted(hex(x) for x in unused_indexes))
 convert()
 
 

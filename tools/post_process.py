@@ -11,7 +11,7 @@ input_dict = {
 "crtc_2000":"",
 "crtc_2001":"",
 "sound_2100":"write_sound_2100",
-"sound_2101":"write_sound_2101",
+"sound_2101":"sound_start",
 "sound_2102":"write_sound_2102",
 }
 

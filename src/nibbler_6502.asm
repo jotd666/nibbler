@@ -86,6 +86,7 @@
 
 ; game state: 0: game running, $FF: not running
 game_state_fc = $fc
+time_when_snake_gets_longer_bb = $bb
 frame_index_e9 = $e9
 fruits_left_ba = $ba
 countdown_timer_bd = $bd

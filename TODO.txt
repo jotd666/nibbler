@@ -26,7 +26,7 @@ charset decoding: 1 byte = 1 column of 8 pixels
 first bitplane: 0x1000+(8*charcode), second bitplane 0x1800+
 
 tag [copy_charset_data_loop=nb_chars,mirrored]
-nb_chars = 9:
+nb_chars = 9 (head)
 src_ptr=$31
 dst_ptr=$1b
 
