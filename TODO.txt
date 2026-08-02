@@ -1,10 +1,15 @@
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
 - character redefine trap for body at first
+- rip F sound
+- level 4: sometimes restarts from level 1 in the middle of the level!
 - issue on game over (with high score): write video mem out of range
 - cheat add 10000 to score 
-- reach highscore check highscore screen
-- sounds! write to 2101: add more sounds
+- reach highscore check highscore screen: write video out
+  of range in 512B
+- sounds! write to 2101: add more sounds:
+  loop blocked sound and stop loop as soon as another sound
+  arrives
 - A8DD invalid mem access after level 34 expected?
 - score BCD issue
   

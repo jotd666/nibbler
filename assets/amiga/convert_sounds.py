@@ -8,12 +8,12 @@ sox = "sox"
 
 sound_dir = this_dir / ".." / "sounds"
 
-# default channel = 3, default priority = 40
+# default channel = -1 (auto), default priority = 40
 # put below some exceptions
 sound_settings_dict = {
-0x20 : {"channel":3,"priority":50,"loops":True},   # bomb
-6: {"channel":2,"priority":50},  # power
-2: {"channel":3,"priority":100}  # explosion
+0xc : {"channel":3,"priority":50,"loops":True},   # blocked
+0x8 : {"channel":2,"priority":50},   # start overrides killed
+0xe : {"channel":2,},   # killed
 }
 
 def convert():
@@ -38,15 +38,15 @@ def convert():
 
     dummy_sounds = {
     0,
-    3,
     9,
-    0xB
+    0xB,
+    0xF,  # ????
     }
 
 
     sound_dict = {}
     sfx_list = set()
-    snd_chan = 0
+
     # scan directory for speech
     for f in sound_dir.glob("*.wav"):
         sound_name = f.stem
@@ -65,10 +65,9 @@ def convert():
                     sfx_sample_rate = extra_info.get("sample_rate",lq_sample_rate)
 
 
-                    sound_dict[entry] = {"channel":extra_info.get("channel",snd_chan+2),  # default: not auto!
+                    sound_dict[entry] = {"channel":extra_info.get("channel",-1),  # default: not auto!
                     "priority":extra_info.get("priority",40),"index":index,"sample_rate":sfx_sample_rate,
                     "loops":extra_info.get("loops",False)}
-                    snd_chan  = (snd_chan + 1) % 2
             except ValueError:
                 pass
 
