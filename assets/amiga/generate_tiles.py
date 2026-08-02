@@ -113,7 +113,7 @@ def doit_rom_tiles(dump_it=False):
     body_pics = {}
     for address in range(0x6000,0x60C0,0x10):
         img_list = []
-        key = address-0x6000
+        key = address
         data_plane1 = contents[key:key+0x8]
 
         for clut_index,color in enumerate(cluts):

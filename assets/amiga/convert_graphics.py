@@ -486,8 +486,21 @@ fg_replacement_dict = {(0,184,151):(0,0,222)
 apply_color_replacement(fg_tile_set_list,fg_replacement_dict)
 
 # also change colors of ROM tiles
-for key,img_list in rom_tiles_dict["body"].items():
-    apply_color_replacement([img_list],fg_replacement_dict)
+apply_color_replacement(rom_tiles_dict["body"].values(),fg_replacement_dict)
+
+# fg_tile_set_list is a 8x256 matrix (clut x tile)
+# rom_tiles_dict is a dictionary: tile_data_address => 8 cluts
+# to use the same data to asm file routines, we need to "transpose" the data to have
+# a table of 8 cluts pointing to each tile. The addresses are not indexes, so it's more complex
+# but they can still be sorted
+
+# create a structure
+rom_tile_set_list = [[] for _ in range(8)]
+for key,data in sorted(rom_tiles_dict["body"].items()):
+    for d,outl in zip(data,rom_tile_set_list):
+        outl.append(d)
+
+
 
 # recompute new fg palette
 fg_tile_palette = set()
@@ -579,11 +592,9 @@ is_bob=False, nb_cluts=BG_NB_CLUTS, mask_color=magenta)
 tile_plane_cache = {}
 
 fg_tile_table,next_cache_id = read_tileset(fg_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache, is_bob=False, mask_color=black, nb_cluts=FG_NB_CLUTS)
+rom_tile_table,_ = read_tileset(rom_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache,
+is_bob=False, nb_cluts=FG_NB_CLUTS, mask_color=black, next_cache_id=next_cache_id)
 
-rom_tiles = [None]*0x800
-for key,img_list in rom_tiles_dict["body"].items():
-    rom_tile_table,next_cache_id = read_tileset([img_list],fg_tile_palette,[True,False,False,False],cache=tile_plane_cache, is_bob=False, mask_color=black, nb_cluts=FG_NB_CLUTS, next_cache_id=next_cache_id)
-    rom_tiles[key] = rom_tile_table
 
 with open(src_dir / "palette.68k","w") as f:
     f.write(generated_message)
@@ -604,21 +615,31 @@ with open(src_dir / "graphics.68k","w") as f:
 
     offset = dump_tile_layer(fg_tile_table,"fg_")
 
-    # ROM tables
-##    f.write("rom_character_table:\n")
-##    for key,tiles in enumerate(rom_tiles):
-##        f.write("\t.long\t")
-##        if tiles:
-##            f.write(f"rom_char_{key:04x}")
-##        else:
-##            f.write("0")
-##        f.write(f"   | 0x{key+0x6000:04x}\n")
+    # ROM tables, not as easy as fg/bg tiles, more convoluted because we want to
+    # use the same tile dump system with reusable planes, etc. but we don't have
+    # the same start structure
+    # the game copies data from one address starting at 0x6000 (the key here) to
+    # potentially any character
+    # key is address-0x6000 divided by 8
+
+    address_table = [None]*0x200  # should be enough
+
+    f.write("rom_character_table:\n")
+    for idx,(address,tiles) in enumerate(zip(sorted(rom_tiles_dict["body"]),rom_tile_table)):
+        key = (address-0x6000)//8
+        address_table[key] = f"rom_tile_index_table+0x{idx*4:02x} | 0x{address:04x}"
+
+    for a in address_table:
+        f.write("\t.long\t")
+        if a:
+            f.write(a)
+        else:
+            f.write("0")
+        f.write("\n")
 
     f.write("\n* ROM tiles\n\n")
-    for key,tiles in enumerate(rom_tiles):
-        if tiles:
-            f.write(f"rom_{key+0x6000:04x}_tiles:\n")
-            dump_tile_layer(tiles,f"rom_{key+0x6000:04x}_",tile_plane_prefix="fg_")
+    f.write("rom_tile_index_table:\n")
+    dump_tile_layer(rom_tile_table,f"rom_body_",tile_plane_prefix="fg_")
 
     for k,v in tile_plane_cache.items():
         f.write(f"fg_tile_plane_{v:02d}:")
