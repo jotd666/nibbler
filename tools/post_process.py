@@ -88,6 +88,13 @@ def game_specific(address,lines,i):
         nb_chars = int(m.group(1))
         is_mirror = int(m.group(2)=="true")
         line = f"\tCHANGE_CHARS\t{nb_chars},{is_mirror} | {line}"
+    elif address == 0x4FF7:
+        line = "\t.endif\n"+line
+    elif address == 0x4FEB:
+        line = """\t.ifdef\t__amiga__
+\tjbsr\tosd_set_time_color   | faster & also allows to use original blue
+\t.else
+"""
 
     return line
 

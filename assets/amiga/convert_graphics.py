@@ -318,8 +318,9 @@ def read_tileset(img_set_list,palette,plane_orientation_flags,cache,is_bob,nb_cl
     return new_tile_table,next_cache_id
 
 
-def dump_tile_layer(tile_table,prefix,relative_root=None):
+def dump_tile_layer(tile_table,prefix,tile_plane_prefix=None,relative_root=None):
     item_decl = "\t.long\t"
+    tile_plane_prefix = tile_plane_prefix or prefix
     if relative_root:
         f.write(f"{relative_root}:\n")
     for i,tile_entry in enumerate(tile_table):
@@ -361,7 +362,7 @@ def dump_tile_layer(tile_table,prefix,relative_root=None):
                             for bitplane_id in data["bitplanes"]:
                                 f.write(item_decl)
                                 if bitplane_id:
-                                    f.write(f"{prefix}tile_plane_{bitplane_id:02d}")
+                                    f.write(f"{tile_plane_prefix}tile_plane_{bitplane_id:02d}")
                                     if relative_root:
                                         f.write(f"-{relative_root}")
                                 else:
@@ -454,7 +455,7 @@ fg_tile_palette = set()
 
 fg_tile_sheet_dict = {i:img for i,img in enumerate(generate_tiles.doit_fg_tiles())}
 
-
+rom_tiles_dict = generate_tiles.doit_rom_tiles()
 ###############
 # foreground
 ###############
@@ -478,10 +479,15 @@ for i,tsd in fg_tile_sheet_dict.items():
 
     fg_tile_set_list.append(upper_tile_set)
 
+
 # we'll quantize manually, 21 FG colors => 18
 fg_replacement_dict = {(0,184,151):(0,0,222)
 }
 apply_color_replacement(fg_tile_set_list,fg_replacement_dict)
+
+# also change colors of ROM tiles
+for key,img_list in rom_tiles_dict["body"].items():
+    apply_color_replacement([img_list],fg_replacement_dict)
 
 # recompute new fg palette
 fg_tile_palette = set()
@@ -572,9 +578,12 @@ is_bob=False, nb_cluts=BG_NB_CLUTS, mask_color=magenta)
 
 tile_plane_cache = {}
 
-fg_tile_table,_ = read_tileset(fg_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache, is_bob=False, mask_color=black, nb_cluts=FG_NB_CLUTS)
+fg_tile_table,next_cache_id = read_tileset(fg_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache, is_bob=False, mask_color=black, nb_cluts=FG_NB_CLUTS)
 
-
+rom_tiles = [None]*0x800
+for key,img_list in rom_tiles_dict["body"].items():
+    rom_tile_table,next_cache_id = read_tileset([img_list],fg_tile_palette,[True,False,False,False],cache=tile_plane_cache, is_bob=False, mask_color=black, nb_cluts=FG_NB_CLUTS, next_cache_id=next_cache_id)
+    rom_tiles[key] = rom_tile_table
 
 with open(src_dir / "palette.68k","w") as f:
     f.write(generated_message)
@@ -589,11 +598,27 @@ with open(src_dir / "graphics.68k","w") as f:
     f.write(generated_message)
     f.write("\t.global\tfg_character_table\n")
     f.write("\t.global\tbg_character_table\n")
+    f.write("\t.global\trom_character_table\n")
     f.write("\t.global\tend_tables\n")
     f.write("fg_character_table:\n")
 
     offset = dump_tile_layer(fg_tile_table,"fg_")
 
+    # ROM tables
+##    f.write("rom_character_table:\n")
+##    for key,tiles in enumerate(rom_tiles):
+##        f.write("\t.long\t")
+##        if tiles:
+##            f.write(f"rom_char_{key:04x}")
+##        else:
+##            f.write("0")
+##        f.write(f"   | 0x{key+0x6000:04x}\n")
+
+    f.write("\n* ROM tiles\n\n")
+    for key,tiles in enumerate(rom_tiles):
+        if tiles:
+            f.write(f"rom_{key+0x6000:04x}_tiles:\n")
+            dump_tile_layer(tiles,f"rom_{key+0x6000:04x}_",tile_plane_prefix="fg_")
 
     for k,v in tile_plane_cache.items():
         f.write(f"fg_tile_plane_{v:02d}:")

@@ -15,7 +15,7 @@ def doit(nb_colors,offset,nb_cluts,kind,ref_clut_index,dump_it=False):
     tilegen = dump_dir / "tilegen" / kind
     pal4_file = sheets_path / f"{kind}_color_{ref_clut_index:02x}.png"  # reference sheet with all colors represented
 
-    cluts = cluts[offset:]
+    cluts = cluts[offset:offset+nb_cluts]
 
     rval = []
     if dump_it:
@@ -26,8 +26,7 @@ def doit(nb_colors,offset,nb_cluts,kind,ref_clut_index,dump_it=False):
     # this reference clut has all 4 colors different. We can use that to generate
     # the other cluts (mame gfx save only saves up to 32 cluts, we need 64)
     ref_clut = cluts[ref_clut_index]
-    for i in range(0,nb_cluts):
-        this_clut = cluts[i]
+    for i,this_clut in enumerate(cluts):
         dest = Image.new("RGB",source.size)
         if len(set(this_clut))>1:  # avoid all black
             rep_dict = {k:v for k,v in zip(ref_clut,this_clut)}
@@ -60,6 +59,13 @@ def get_rom_table(rom_data,address,size):
     return [rom_data[i*2+offset]+256*rom_data[i*2+offset+1] for i in range(size)]
 
 def doit_rom_tiles(dump_it=False):
+    rval = {}
+    cluts = gen_cluts.doit(4)  # 4 colors
+
+    offset = 0
+    nb_cluts = 8
+
+    cluts = cluts[offset:offset+nb_cluts]
     rom_file = this_dir.parent / "rom.bin"
     if dump_it:
         cdump_dir = dump_dir / "rom_tiles"
@@ -104,22 +110,31 @@ def doit_rom_tiles(dump_it=False):
             offset += 8
 
     # body parts
-    rt_plane1 = []
+    body_pics = {}
     for address in range(0x6000,0x60C0,0x10):
-        data_plane1 = contents[address-0x6000:address-0x6000+0x8]
-        img = Image.new("RGB",(8,8))
-        imgdat = img.load()
-        for col,c1 in enumerate(data_plane1):
-            for row in range(8):
-                palindex = 2
-                if (c1 & 1):
-                    palindex += 1
-                c1 >>= 1
-                imgdat[row,col] = color[palindex]
-        if dump_it:
-            imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
-            imgs.save(cdump_dir/f"body_{address:04x}.png")
+        img_list = []
+        key = address-0x6000
+        data_plane1 = contents[key:key+0x8]
 
+        for clut_index,color in enumerate(cluts):
+            img = Image.new("RGB",(8,8))
+            imgdat = img.load()
+            for col,c1 in enumerate(data_plane1):
+                for row in range(8):
+                    palindex = 2
+                    if (c1 & 1):
+                        palindex += 1
+                    c1 >>= 1
+                    imgdat[row,col] = color[palindex]
+            if dump_it:
+                imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
+                imgs.save(cdump_dir/f"body_{address:04x}_{clut_index}.png")
+            img_list.append(img)
+        body_pics[key] = img_list
+
+    rval["body"] = body_pics
+
+    return rval
 
 def doit_fg_tiles(dump_it=False):
     return doit(nb_colors=4,offset=0,nb_cluts=8,kind="tiles_8x8_fg",ref_clut_index=0x0,dump_it=dump_it)

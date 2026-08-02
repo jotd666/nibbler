@@ -2982,8 +2982,9 @@ write_credit_string_4c8a:
 4FE0: 25 F0    and $f0
 4FE2: F0 05    beq $4fe9
 4FE4: A9 05    lda #$05
-4FE6: 4C EB 4F jmp $4feb
+4FE6: 4C EB 4F jmp time_blink_4feb
 4FE9: A9 02    lda #$02
+time_blink_4feb:
 4FEB: 8D A3 0C sta $0ca3
 4FEE: 8D C3 0C sta $0cc3
 4FF1: 8D E3 0C sta $0ce3

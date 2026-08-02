@@ -167,6 +167,7 @@ w\@:
 	.global	osd_set_irq_return_address
 	.global	osd_small_wait
 	.global	osd_change_char_data
+	.global	osd_set_time_color
 	.global	osd_set_title_color
 	.global	osd_write_sound_2102
 	.global	osd_log_cpu
@@ -1566,6 +1567,7 @@ osd_change_char_data_out:
 * < D1: start char
 * < D6: nb chars
 * < D7: mirror
+* destroys: A0,A1,D5
 
 change_chars:
 	sub.w	#0x6000,d0		| chardata starts at 6000
@@ -1575,7 +1577,34 @@ change_chars:
 0:
 	.endif
 	lsr.w	#3,d0			| divide by 8
-	*BREAKPOINT	"FUKK"
+	cmp.b	#1,d6
+	jeq		change_1_char
+	rts
+
+* change nibbler body. 4 possible chars 3D-40 depending on
+* direction, 8 positions. Corners are always empty
+* only white (second) bitplane is affected	
+change_1_char:
+	lea		fg_character_table,a0
+	moveq	#0,D5
+	move.b	d1,D5
+	add.w	D5,D5
+	add.w	D5,D5
+	move.l	(a0,d5.w),d5
+	jeq		10f
+	move.l	d5,a0		| pointer on clut list
+	rts
+10:
+	BREAKPOINT	"unmapped char in D1"
+	rts
+	
+osd_set_time_color:
+	move.w	#0x00B,d7
+	cmp.b	#2,d0
+	jeq		0f
+	move.w	#0xFF0,d7
+0:
+	move.w	d7,time_color
 	rts
 	
 * < d0: color clut code
@@ -3062,7 +3091,15 @@ game_sprites:
 game_sprites_end:
 
 
-
+	.word	0x3C01,0xFFFE          | just before "TIME" row
+	.word	color+(8+1)*2,0x0b9    | missing color for score
+	.word	color+(8+6)*2
+time_color:
+	.word	0x0ff0   | yellow or blue
+	.word	0x4401,0xFFFE
+	.word	color+9*2,0x000d
+	.word	color+(8+6)*2,0x0ff0   | restore yellow color
+	
 	* mid-line wait & extra interrupt
 	.word	0x8001,0xFFFE
 pal_intreq_block_game:
