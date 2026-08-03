@@ -111,7 +111,7 @@ def doit_rom_tiles(dump_it=False):
 
     # body parts
     body_pics = {}
-    for address in range(0x6000,0x60C0,0x10):
+    for address in range(0x6000,0x60C0,0x8):
         img_list = []
         key = address
         data_plane1 = contents[key:key+0x8]
