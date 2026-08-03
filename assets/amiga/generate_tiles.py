@@ -165,7 +165,9 @@ def doit_rom_tiles(dump_it=False):
             if dump_it:
                 imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
                 imgs.save(cdump_dir/f"body_{address:04x}_{clut_index}.png")
-            img_list.append(ImageOps.flip(img))
+            # append the pic, but apply mirror + flip because we probably read
+            # the data the wrong way
+            img_list.append(ImageOps.flip(ImageOps.mirror(img)))
         body_pics[key] = img_list
 
     rval["body"] = body_pics

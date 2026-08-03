@@ -1616,9 +1616,16 @@ change_body_char:
 	rts
 0:
 	move.l	d5,a0
-	* TODO: loop on 8 cluts, change only 1st plane
-	move.l 	(a0),d5		| pointer on list of cluts (8 pointers)
-	move.l	d5,(a1)		| change chars in fg_character_table
+	* loop on 8 cluts, change only 1st plane (which has the diamonds)
+	move.l 	(a0),a0		| pointer on list of cluts (8 pointers)
+	move.l	(a1),a1		| pointer on list of dest cluts
+	moveq	#7,d0
+0:
+	move.l	(a0)+,a2
+	move.l	(a1)+,a3
+	move.l	(a2),(4,a3)	| change first plane
+	dbf		d0,0b		| for each clut
+	
 	* now we need to update screen to redraw chars that are
 	* already present
 	jbsr	redraw_chars
@@ -3167,12 +3174,12 @@ game_sprites_end:
 
 
 	.word	0x3C01,0xFFFE          | just before "TIME" row
-	.word	color+(8+7)*2,0x0b9    | missing color for score
+	.word	color+(8+1)*2,0x0b9    | missing color for score
 	.word	color+(8+6)*2
 time_color:
 	.word	0x0ff0   | yellow or blue
 	.word	0x4401,0xFFFE
-	.word	color+(8+7)*2,0x000d
+	.word	color+(8+1)*2,0x000d
 	.word	color+(8+6)*2,0x0ff0   | restore yellow color
 	
 	* mid-line wait & extra interrupt
