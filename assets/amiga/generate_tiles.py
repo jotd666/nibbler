@@ -65,6 +65,34 @@ def doit_rom_tiles(dump_it=False):
     # 3D-3E: 2 horizontal body tiles (left/right), first row always black
     # 3F-40: 2 vertical body tiles (up/down), last column is always black
     # 49/4B/4D: 3 tail tiles
+    #
+    # we need "blank" fg tiles as input for body tiles (3D-3E) as we only change
+    # the white plane
+    # we cheat as they're very simple to generate
+
+#; 3D & 3E: 1 row of black, 7 of foreground (red)
+#;
+#; BBBBBBB(B) (the last bit on each row is never changed)
+#; WWWWWWW(W)
+#; WWWWWWW(W)
+#; WWWWWWW(W)
+#; WWWWWWW(W)
+#; WWWWWWW(W)
+#; WWWWWWW(W)
+#; WWWWWWW(W)
+#;
+#; 3F & 40: 7 columns of foreground, 1 column of black
+#;
+#; WWWWWWW(B) (the last bit on each row is never changed)
+#; WWWWWWW(B)
+#; WWWWWWW(B)
+#; WWWWWWW(B)
+#; WWWWWWW(B)
+#; WWWWWWW(B)
+#; WWWWWWW(B)
+#; WWWWWWW(B)
+
+# but that forces us to generate 2 tiles for each pattern yay
 
     rval = {}
     cluts = gen_cluts.doit(4)  # 4 colors
@@ -132,8 +160,6 @@ def doit_rom_tiles(dump_it=False):
                     palindex = 0
                     if (c1 & 1):
                         palindex = 3
-                    if (c1 & 2):
-                        palindex = 2
                     c1 >>= 1
                     imgdat[row,col] = color[palindex]
             if dump_it:
@@ -152,6 +178,6 @@ def doit_bg_tiles(dump_it=False):
     return doit(nb_colors=4,offset=8,nb_cluts=8,kind="tiles_8x8_bg",ref_clut_index=0x0,dump_it=dump_it)
 
 if __name__ == "__main__":
-##    doit_fg_tiles(True)
+##    doit_fg_tiles(False)
 ##    doit_bg_tiles(True)
     doit_rom_tiles(True)

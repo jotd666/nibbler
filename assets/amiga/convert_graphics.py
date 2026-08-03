@@ -495,9 +495,9 @@ apply_color_replacement(rom_tiles_dict["body"].values(),fg_replacement_dict)
 # but they can still be sorted
 
 # create a structure
-rom_tile_set_list = [[] for _ in range(8)]
+rom_body_tile_set_list = [[] for _ in range(8)]
 for key,data in sorted(rom_tiles_dict["body"].items()):
-    for d,outl in zip(data,rom_tile_set_list):
+    for d,outl in zip(data,rom_body_tile_set_list):
         outl.append(d)
 
 
@@ -593,7 +593,7 @@ is_bob=False, nb_cluts=BG_NB_CLUTS, mask_color=magenta)
 tile_plane_cache = {}
 
 fg_tile_table,next_cache_id = read_tileset(fg_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache, is_bob=False, mask_color=black, nb_cluts=FG_NB_CLUTS)
-rom_tile_table,_ = read_tileset(rom_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache,
+rom_body_tile_table,_ = read_tileset(rom_body_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache,
 is_bob=False, nb_cluts=FG_NB_CLUTS, mask_color=black, next_cache_id=next_cache_id)
 
 
@@ -610,7 +610,7 @@ with open(src_dir / "graphics.68k","w") as f:
     f.write(generated_message)
     f.write("\t.global\tfg_character_table\n")
     f.write("\t.global\tbg_character_table\n")
-    f.write("\t.global\trom_character_table\n")
+    f.write("\t.global\trom_body_character_table\n")
     f.write("\t.global\tend_tables\n")
     f.write("fg_character_table:\n")
 
@@ -625,10 +625,10 @@ with open(src_dir / "graphics.68k","w") as f:
 
     address_table = [None]*0x200  # should be enough
 
-    f.write("rom_character_table:\n")
-    for idx,(address,tiles) in enumerate(zip(sorted(rom_tiles_dict["body"]),rom_tile_table)):
+    f.write("rom_body_character_table:\n")
+    for idx,(address,tiles) in enumerate(zip(sorted(rom_tiles_dict["body"]),rom_body_tile_table)):
         key = (address-0x6000)//8
-        address_table[key] = f"rom_tile_index_table+0x{idx*4:02x} | 0x{address:04x}"
+        address_table[key] = f"rom_body_tile_index_table+0x{idx*4:02x} | 0x{address:04x}"
 
     for a in address_table:
         f.write("\t.long\t")
@@ -638,9 +638,9 @@ with open(src_dir / "graphics.68k","w") as f:
             f.write("0")
         f.write("\n")
 
-    f.write("\n* ROM tiles\n\n")
-    f.write("rom_tile_index_table:\n")
-    dump_tile_layer(rom_tile_table,f"rom_body_",tile_plane_prefix="fg_")
+    f.write("\n* ROM tiles (body)\n\n")
+    f.write("rom_body_tile_index_table:\n")
+    dump_tile_layer(rom_body_tile_table,f"rom_body_",tile_plane_prefix="fg_")
 
     for k,v in tile_plane_cache.items():
         f.write(f"fg_tile_plane_{v:02d}:")

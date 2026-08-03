@@ -1588,21 +1588,54 @@ change_chars:
 	.endif
 	lsr.w	#3,d0			| divide by 8 to get the "key"
 	cmp.b	#1,d6
-	jeq		change_1_char
+	jeq		change_body_char
 	rts
 
 * change nibbler body. 4 possible chars 3D-40 depending on
 * direction, 8 positions. Corners are always empty
-* only white (second) bitplane is affected	
+* only white (second) bitplane is affected, so we preserve
+* the body shape
+*
 * D7 (mirror) is ignored here (todo?)
-change_1_char:
+change_body_char:
 	lea		fg_character_table,a0
 	moveq	#0,D5
 	move.b	d1,D5
 	add.w	D5,D5
 	add.w	D5,D5
 	lea	(a0,d5.w),a1	| pointer on clut list (destination)
-	lea		rom_character_table,a0
+	lea		rom_body_character_table,a0
+	add.w	d0,d0
+	add.w	d0,d0		| key times 4
+	move.l	(a0,d0.w),d5
+	jne		0f
+	move.w	d0,d5
+	add.w	d5,d5
+	add.w	#0x6000,d5
+	BREAKPOINT	"key not found (in D5)"
+	rts
+0:
+	move.l	d5,a0
+	* TODO: loop on 8 cluts, change only 1st plane
+	move.l 	(a0),d5		| pointer on list of cluts (8 pointers)
+	move.l	d5,(a1)		| change chars in fg_character_table
+	* now we need to update screen to redraw chars that are
+	* already present
+	jbsr	redraw_chars
+	rts
+10:
+	BREAKPOINT	"unmapped char in D1"
+	rts
+* change nibbler head. 9*2 possible chars 31-39/61-69 
+* D7 (mirror) is ignored here (todo)
+change_head_chars:
+	lea		fg_character_table,a0
+	moveq	#0,D5
+	move.b	d1,D5
+	add.w	D5,D5
+	add.w	D5,D5
+	lea	(a0,d5.w),a1	| pointer on clut list (destination)
+	lea		rom_body_character_table,a0
 	add.w	d0,d0
 	add.w	d0,d0		| key times 4
 	move.l	(a0,d0.w),d5
