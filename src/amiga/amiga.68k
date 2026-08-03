@@ -1641,6 +1641,7 @@ change_body_char:
 	rts
 * change nibbler head. 9*2 possible chars 31-39/61-69 
 * D7 (mirror) is ignored here (todo)
+*
 change_head_chars:
 	lea		fg_character_table,a0
 	moveq	#0,D5

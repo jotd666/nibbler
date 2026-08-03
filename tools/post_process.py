@@ -84,6 +84,8 @@ def game_specific(address,lines,i):
         lines[i+2] = change_instruction("jbsr\twait_1_frame",lines,i+2)
         lines[i+3] = remove_instruction(lines,i+3)
     elif "[copy_charset_data_loop=" in line:
+        # we disabled all charset copy changes but the diamond 1 tile body
+        # as tail and head continuous shifting is too complex. Too bad
         m = re.search(r"\[copy_charset_data_loop=(\d),(\w+)]",line)
         nb_chars = int(m.group(1))
         is_mirror = int(m.group(2)=="true")

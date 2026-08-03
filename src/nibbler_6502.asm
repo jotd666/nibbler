@@ -107,6 +107,8 @@ crtc_2001 = $2001
 move_to_row_3b = $3b
 snake_row_51 = $51
 move_slot_ptr_e2 = $e2
+frame_index_wrapped_ed = $ed
+pixel_speed_5f = $5F
 
 ; 40-43: booleans (inverted logic)
 ; only one can be 0 when oriented that way, others are 1
@@ -361,7 +363,7 @@ l_315b:		; [global]
 31E2: 65 59    adc $59
 31E4: 88       dey
 31E5: D0 FB    bne $31e2
-31E7: 85 5F    sta $5f
+31E7: 85 5F    sta pixel_speed_5f
 31E9: A9 08    lda #$08
 31EB: 2D 05 21 and in1_2105
 31EE: F0 03    beq $31f3
@@ -2851,28 +2853,28 @@ write_credit_string_4c8a:
 4ED7: 4C 26 4E jmp $4e26
 4EDA: A5 5E    lda $5e
 4EDC: 38       sec
-4EDD: E5 5F    sbc $5f
+4EDD: E5 5F    sbc pixel_speed_5f
 4EDF: 10 02    bpl $4ee3
 4EE1: A9 00    lda #$00
 4EE3: 85 5E    sta $5e
 4EE5: A5 5B    lda $5b
 4EE7: 38       sec
-4EE8: E5 5F    sbc $5f
+4EE8: E5 5F    sbc pixel_speed_5f
 4EEA: 10 02    bpl $4eee
 4EEC: A9 00    lda #$00
 4EEE: 85 5B    sta $5b
 4EF0: A9 00    lda #$00
-4EF2: 85 ED    sta $ed
+4EF2: 85 ED    sta frame_index_wrapped_ed
 4EF4: A5 E9    lda frame_index_e9
 4EF6: 18       clc
-4EF7: 65 5F    adc $5f
+4EF7: 65 5F    adc pixel_speed_5f
 4EF9: 85 E9    sta frame_index_e9
 4EFB: C9 08    cmp #$08
 4EFD: 30 08    bmi $4f07
-4EFF: 29 07    and #$07
-4F01: 85 E9    sta frame_index_e9
+4EFF: 29 07    and #$07					; modulus 8
+4F01: 85 E9    sta frame_index_e9		; wrap frame index
 4F03: A9 FF    lda #$ff
-4F05: 85 ED    sta $ed
+4F05: 85 ED    sta frame_index_wrapped_ed
 4F07: 20 F4 5B jsr animate_body_chars_5bf4
 4F0A: A5 47    lda $47
 4F0C: F0 0E    beq $4f1c
@@ -2885,7 +2887,7 @@ write_credit_string_4c8a:
 4F19: 4C 20 4F jmp $4f20
 4F1C: A5 BB    lda time_when_snake_gets_longer_bb
 4F1E: D0 2D    bne $4f4d
-4F20: A5 ED    lda $ed
+4F20: A5 ED    lda frame_index_wrapped_ed
 4F22: F0 29    beq $4f4d
 4F24: A5 56    lda $56
 4F26: C9 01    cmp #$01
@@ -2950,7 +2952,7 @@ write_credit_string_4c8a:
 4F9D: 10 04    bpl $4fa3
 4F9F: A9 00    lda #$00
 4FA1: 85 BB    sta time_when_snake_gets_longer_bb
-4FA3: A5 ED    lda $ed
+4FA3: A5 ED    lda frame_index_wrapped_ed
 4FA5: F0 31    beq $4fd8
 4FA7: A5 51    lda snake_row_51
 4FA9: 85 31    sta charset_source_pointer_first_plane_31
@@ -4596,7 +4598,7 @@ l_5c20:
 5C8E: 60       rts
 
 animate_head_and_body_5c8f:
-5C8F: A5 ED    lda $ed
+5C8F: A5 ED    lda frame_index_wrapped_ed
 5C91: D0 03    bne $5c96
 5C93: 4C DE 5C jmp $5cde
 5C96: A5 5A    lda $5a
@@ -4636,11 +4638,13 @@ animate_head_and_body_5c8f:
 5CDB: 20 00 AF jsr $af00
 5CDE: A5 53    lda nibbler_direction_53
 5CE0: C9 04    cmp #$04
-5CE2: F0 04    beq $5ce8
+5CE2: F0 04    beq move_horizontally_5ce8	; right
 5CE4: C9 08    cmp #$08
-5CE6: D0 03    bne $5ceb
-5CE8: 4C 00 A0 jmp $a000
-5CEB: 4C 00 A3 jmp $a300
+5CE6: D0 03    bne move_vertically_5ceb		; not left
+move_horizontally_5ce8:
+5CE8: 4C 00 A0 jmp nibbler_horizontal_movement_a000
+move_vertically_5ceb:
+5CEB: 4C 00 A3 jmp nibbler_vertical_movement_a300
 5CEE: A5 BE    lda $be
 5CF0: C9 30    cmp #$30
 5CF2: 30 13    bmi $5d07
@@ -4761,7 +4765,7 @@ animate_head_and_body_5c8f:
 5E24: 85 EC    sta $ec
 5E26: 85 EE    sta $ee
 5E28: 85 E9    sta frame_index_e9
-5E2A: 85 ED    sta $ed
+5E2A: 85 ED    sta frame_index_wrapped_ed
 5E2C: 85 BB    sta time_when_snake_gets_longer_bb
 5E2E: 85 40    sta tail_oriented_left_40
 5E30: 85 41    sta tail_oriented_right_41
@@ -5933,7 +5937,7 @@ save_debug_values_7f4d:
 7F8F: A5 E9    lda frame_index_e9
 7F91: 9D 00 02 sta $0200, x
 7F94: E8       inx
-7F95: A5 ED    lda $ed
+7F95: A5 ED    lda frame_index_wrapped_ed
 7F97: 9D 00 02 sta $0200, x
 7F9A: E8       inx
 7F9B: A5 48    lda $48
@@ -5953,7 +5957,8 @@ save_debug_values_7f4d:
 7FB8: E8       inx
 7FB9: 60       rts
 
-A000: A5 ED    lda $ed
+nibbler_horizontal_movement_a000:
+A000: A5 ED    lda frame_index_wrapped_ed
 A002: D0 03    bne $a007
 A004: 4C 61 A1 jmp $a161
 A007: A5 53    lda nibbler_direction_53
@@ -6280,9 +6285,12 @@ A26F: 88       dey
 A270: 10 F1    bpl $a263
 A272: 60       rts
 
-A300: A5 ED    lda $ed
+* called every frame when head is going up or down
+nibbler_vertical_movement_a300:
+A300: A5 ED    lda frame_index_wrapped_ed
 A302: D0 03    bne $a307
 A304: 4C A1 A4 jmp $a4a1
+
 A307: A5 53    lda nibbler_direction_53
 A309: C9 02    cmp #$02
 A30B: F0 0E    beq $a31b
@@ -6358,6 +6366,8 @@ A38A: 85 1C    sta $1c
 A38C: A0 02    ldy #$02
 A38E: A2 00    ldx #$00
 A390: B1 1B    lda ($1b), y
+; direction down: top right head tile
+; direction up: bottom right head tile
 A392: 81 31    sta (charset_source_pointer_first_plane_31, x)		; [video_address]
 A394: A5 31    lda charset_source_pointer_first_plane_31
 A396: 18       clc
@@ -6493,12 +6503,13 @@ A483: 4C A1 A4 jmp $a4a1
 
 A49E: 4C 13 30 jmp $3013
 
+; linear head move using shifted frames
 A4A1: A5 E9    lda frame_index_e9
 A4A3: 0A       asl a
 A4A4: A8       tay
 A4A5: A5 53    lda nibbler_direction_53
 A4A7: C9 01    cmp #$01
-A4A9: F0 17    beq $a4c2
+A4A9: F0 17    beq dir_down_a4c2
 A4AB: B9 60 65 lda $6560, y
 A4AE: 85 1B    sta $1b
 A4B0: B9 61 65 lda $6561, y
@@ -6508,14 +6519,18 @@ A4B8: 85 31    sta charset_source_pointer_first_plane_31
 A4BA: B9 B1 67 lda $67b1, y
 A4BD: 85 32    sta $32
 A4BF: 4C D6 A4 jmp $a4d6
-A4C2: B9 00 6A lda $6a00, y
+
+dir_down_a4c2:
+; Y cycles 0/4/8/C (8 positions, but 2 pixels at a time)
+A4C2: B9 00 6A lda $6a00, y		; charset ROM data tables
 A4C5: 85 1B    sta $1b
 A4C7: B9 01 6A lda $6a01, y
 A4CA: 85 1C    sta $1c
-A4CC: B9 50 6C lda $6c50, y
+A4CC: B9 50 6C lda $6c50, y		; charset ROM data tables
 A4CF: 85 31    sta charset_source_pointer_first_plane_31
 A4D1: B9 51 6C lda $6c51, y
 A4D4: 85 32    sta $32
+; A5D0: table on addresses of charset 0x61,0x67,0x64
 A4D6: A9 D0    lda #$d0
 A4D8: 85 19    sta $19
 A4DA: A9 A5    lda #$a5
@@ -6539,21 +6554,22 @@ A4FA: 85 1F    sta $1f
 A4FC: A4 16    ldy $16
 A4FE: A5 53    lda nibbler_direction_53
 A500: C9 08    cmp #$08
-A502: F0 0A    beq $a50e
+A502: F0 0A    beq dir_left_a50e
 A504: B1 1B    lda ($1b), y
 A506: 91 1D    sta ($1d), y
 A508: 88       dey
 A509: 10 F9    bpl $a504
 A50B: 4C 1D A5 jmp $a51d
-A50E: 84 17    sty head_x_value_17
+dir_left_a50e:
+A50E: 84 17    sty head_x_value_17		; save number of rows
 A510: 98       tya
-A511: 49 07    eor #$07
+A511: 49 07    eor #$07		; mirror offset
 A513: A8       tay
 A514: B1 1B    lda ($1b), y
-A516: A4 17    ldy head_x_value_17
+A516: A4 17    ldy head_x_value_17		; restore number of rows
 A518: 91 1D    sta ($1d), y
 A51A: 88       dey
-A51B: 10 F1    bpl $a50e
+A51B: 10 F1    bpl dir_left_a50e
 A51D: E6 16    inc $16
 A51F: A4 1F    ldy $1f
 A521: 30 39    bmi $a55c
@@ -6573,12 +6589,13 @@ A539: 85 1E    sta $1e
 A53B: A4 1F    ldy $1f
 A53D: A5 53    lda nibbler_direction_53
 A53F: C9 08    cmp #$08
-A541: F0 0A    beq $a54d
+A541: F0 0A    beq dir_left_a54d
 A543: B1 1B    lda ($1b), y
 A545: 91 1D    sta ($1d), y
 A547: 88       dey
 A548: 10 F9    bpl $a543
 A54A: 4C 5C A5 jmp $a55c
+dir_left_a54d:
 A54D: 84 17    sty head_x_value_17
 A54F: 98       tya
 A550: 49 07    eor #$07
@@ -6587,7 +6604,7 @@ A553: B1 1B    lda ($1b), y
 A555: A4 17    ldy head_x_value_17
 A557: 91 1D    sta ($1d), y
 A559: 88       dey
-A55A: 10 F1    bpl $a54d
+A55A: 10 F1    bpl dir_left_a54d
 A55C: A4 EC    ldy $ec
 A55E: B1 19    lda ($19), y
 A560: 85 1D    sta $1d
@@ -6600,12 +6617,13 @@ A56A: C6 16    dec $16
 A56C: A4 16    ldy $16
 A56E: A5 53    lda nibbler_direction_53
 A570: C9 08    cmp #$08
-A572: F0 0A    beq $a57e
+A572: F0 0A    beq dir_left_a57e
 A574: B1 31    lda (charset_source_pointer_first_plane_31), y
 A576: 91 1D    sta ($1d), y
 A578: 88       dey
 A579: 10 F9    bpl $a574
 A57B: 4C 8D A5 jmp $a58d
+dir_left_a57e:
 A57E: 84 17    sty head_x_value_17
 A580: 98       tya
 A581: 49 07    eor #$07
@@ -6614,7 +6632,7 @@ A584: B1 31    lda (charset_source_pointer_first_plane_31), y
 A586: A4 17    ldy head_x_value_17
 A588: 91 1D    sta ($1d), y
 A58A: 88       dey
-A58B: 10 F1    bpl $a57e
+A58B: 10 F1    bpl dir_left_a57e
 A58D: E6 16    inc $16
 A58F: A4 1F    ldy $1f
 A591: 30 3C    bmi $a5cf
@@ -6660,7 +6678,7 @@ handle_tail_a600:
 A600: A5 BB    lda time_when_snake_gets_longer_bb
 A602: F0 01    beq $a605
 A604: 60       rts
-A605: A5 ED    lda $ed
+A605: A5 ED    lda frame_index_wrapped_ed
 A607: D0 03    bne $a60c
 A609: 4C E3 A7 jmp $a7e3
 A60C: A5 54    lda $54
@@ -7284,12 +7302,12 @@ AB79: D0 F9    bne $ab74
 AB7B: C6 18    dec $18
 AB7D: D0 F5    bne $ab74
 AB7F: A9 00    lda #$00
-AB81: 85 ED    sta $ed
+AB81: 85 ED    sta frame_index_wrapped_ed
 AB83: A9 01    lda #$01
 AB85: 85 42    sta tail_oriented_down_42
 AB87: 20 00 A6 jsr handle_tail_a600
 AB8A: 20 19 30 jsr $3019
-AB8D: 20 00 A0 jsr $a000
+AB8D: 20 00 A0 jsr nibbler_horizontal_movement_a000
 AB90: A5 12    lda $12
 AB92: 18       clc
 AB93: 69 40    adc #$40
