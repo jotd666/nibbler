@@ -1,13 +1,7 @@
-- diamond shape: check if loop loops on 8 bytes or 7 bytes!
-  diamond patterns are ok but red body seems to be too wide
-  in MAME 3D->40 have a black border (top or left)
-  => for 1-char changes we should only change the bitplane that matches the diamond
-    (first one now that palette is reordered)
-  => keep current change routine for head
+- eliminate unused cluts for nibbler body
   
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
-- character redefine trap for body at first
 - rip F sound
 - level 4: sometimes restarts from level 1 in the middle of the level!
 - issue on game over (with high score): write video mem out of range

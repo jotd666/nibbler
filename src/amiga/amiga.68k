@@ -1563,7 +1563,7 @@ change_nine_chars:
 	* D1: destination
 	sub.w	#0x1000,d1	| only second bitplane is affected
 	lsr.w	#3,d1		| divide by 8: get start char number
-	
+	jbsr	change_chars	
 osd_change_char_data_out:
 	movem.l	(a7)+,d0-d5
 	rts
@@ -1573,12 +1573,14 @@ osd_change_char_data_out:
 * < D6: nb chars
 * < D7: mirror
 * destroys: A0,A1,D5
+*
+* this was an absolute nightmare to make right as we have
+* to predict & pre-convert the character full data 
+* (or only one of its bitplanes)
+* given the source address of the game graphical data that we
+* cannot convert on the fly like MAME does
 
 change_chars:
-	move.b	d1,0x111
-	move.w	d0,0x112
-	
-	
 	sub.w	#0x6000,d0		| chardata starts at 6000
 	.ifndef	RELEASE
 	jpl		0f
@@ -1589,6 +1591,8 @@ change_chars:
 	lsr.w	#3,d0			| divide by 8 to get the "key"
 	cmp.b	#1,d6
 	jeq		change_body_char
+	cmp.b	#9,d6
+	jeq		change_head_chars
 	rts
 
 * change nibbler body. 4 possible chars 3D-40 depending on
@@ -1596,7 +1600,7 @@ change_chars:
 * only white (second) bitplane is affected, so we preserve
 * the body shape
 *
-* D7 (mirror) is ignored here (todo?)
+* D7 (mirror) is ignored here, we don't need it
 change_body_char:
 	lea		fg_character_table,a0
 	moveq	#0,D5
@@ -1604,10 +1608,11 @@ change_body_char:
 	add.w	D5,D5
 	add.w	D5,D5
 	lea	(a0,d5.w),a1	| pointer on clut list (destination)
-	lea		rom_body_character_table,a0
+	lea		rom_character_table,a0
 	add.w	d0,d0
 	add.w	d0,d0		| key times 4
 	move.l	(a0,d0.w),d5
+	.ifndef	RELEASE
 	jne		0f
 	move.w	d0,d5
 	add.w	d5,d5
@@ -1615,6 +1620,7 @@ change_body_char:
 	BREAKPOINT	"key not found (in D5)"
 	rts
 0:
+	.endif
 	move.l	d5,a0
 	* loop on 8 cluts, change only 1st plane (which has the diamonds)
 	move.l 	(a0),a0		| pointer on list of cluts (8 pointers)
@@ -1623,7 +1629,7 @@ change_body_char:
 0:
 	move.l	(a0)+,a2
 	move.l	(a1)+,a3
-	move.l	(a2),(4,a3)	| change first plane
+	move.l	(a2),(4,a3)	| change first plane (plane order is different on rom tiles)
 	dbf		d0,0b		| for each clut
 	
 	* now we need to update screen to redraw chars that are
@@ -1642,7 +1648,7 @@ change_head_chars:
 	add.w	D5,D5
 	add.w	D5,D5
 	lea	(a0,d5.w),a1	| pointer on clut list (destination)
-	lea		rom_body_character_table,a0
+	lea		rom_character_table,a0
 	add.w	d0,d0
 	add.w	d0,d0		| key times 4
 	move.l	(a0,d0.w),d5
@@ -1653,9 +1659,13 @@ change_head_chars:
 	BREAKPOINT	"key not found (in D5)"
 	rts
 0:
+	moveq	#8,d0		| 9 times (consecutive data, fortunately)
 	move.l	d5,a0
-	move.l 	(a0),d5		| pointer on list of cluts (8 pointers)
-	move.l	d5,(a1)		| change chars in fg_character_table
+1:
+	move.l 	(a0)+,(a1)+		| pointer on list of cluts (8 pointers)
+							| change chars in fg_character_table
+	dbf		d0,1b
+	
 	* now we need to update screen to redraw chars that are
 	* already present
 	jbsr	redraw_chars
