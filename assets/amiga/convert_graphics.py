@@ -517,7 +517,8 @@ for tile_set in fg_tile_set_list:
 
 
 fg_tile_palette = sorted(fg_tile_palette)
-
+# swap white (last one) in 2nd position so it has one separate bitplane
+fg_tile_palette[1],fg_tile_palette[7] = fg_tile_palette[7],fg_tile_palette[1]
 ###############
 # background
 ###############

@@ -1,3 +1,6 @@
+- diamond shape: check if loop loops on 8 bytes or 7 bytes!
+  diamond patterns are ok but red body seems to be too wide
+  in MAME 3D->40 have a black border (top or left)
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
 - character redefine trap for body at first
@@ -7,14 +10,8 @@
 - cheat add 10000 to score 
 - reach highscore check highscore screen: write video out
   of range in 512B
-- sounds! write to 2101: add more sounds:
-  loop blocked sound and stop loop as soon as another sound
-  arrives
 - A8DD invalid mem access after level 34 expected?
 - score BCD issue
-  
-- remove double buffering
-
 
 - cheat infinite time
 

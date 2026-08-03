@@ -3134,12 +3134,12 @@ game_sprites_end:
 
 
 	.word	0x3C01,0xFFFE          | just before "TIME" row
-	.word	color+(8+1)*2,0x0b9    | missing color for score
+	.word	color+(8+7)*2,0x0b9    | missing color for score
 	.word	color+(8+6)*2
 time_color:
 	.word	0x0ff0   | yellow or blue
 	.word	0x4401,0xFFFE
-	.word	color+9*2,0x000d
+	.word	color+(8+7)*2,0x000d
 	.word	color+(8+6)*2,0x0ff0   | restore yellow color
 	
 	* mid-line wait & extra interrupt

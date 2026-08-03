@@ -2,7 +2,7 @@
 # and return the list, it takes 1 or 2 seconds
 
 import glob,shutil,os,re,pathlib,struct
-from PIL import Image
+from PIL import Image,ImageOps
 from shared import *
 import bitplanelib
 import gen_cluts
@@ -114,22 +114,25 @@ def doit_rom_tiles(dump_it=False):
     for address in range(0x6000,0x60C0,0x8):
         img_list = []
         key = address
-        data_plane1 = contents[key:key+0x8]
+        offset = key-0x6000
+        data_plane1 = contents[offset:offset+0x8]
 
         for clut_index,color in enumerate(cluts):
             img = Image.new("RGB",(8,8))
             imgdat = img.load()
-            for col,c1 in enumerate(data_plane1):
-                for row in range(8):
-                    palindex = 2
+            for row,c1 in enumerate(data_plane1):
+                for col in range(8):
+                    palindex = 0
                     if (c1 & 1):
-                        palindex += 1
+                        palindex = 3
+                    if (c1 & 2):
+                        palindex = 2
                     c1 >>= 1
                     imgdat[row,col] = color[palindex]
             if dump_it:
                 imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
                 imgs.save(cdump_dir/f"body_{address:04x}_{clut_index}.png")
-            img_list.append(img)
+            img_list.append(ImageOps.flip(img))
         body_pics[key] = img_list
 
     rval["body"] = body_pics
