@@ -4477,6 +4477,36 @@ animate_body_chars_5bf4:
 ; load the proper charset data based from $6040, $6050, ...
 ; only the second plane is changed (faster, and we don't need to change the
 ; shape, only the diamond size in white)
+;
+; note that copies are done on 7 columns last column is not
+; changed, a small optimization rendered possible because
+; initial snake data (base charset) already has the red body
+; shape right, we only have to draw the diamonds in it
+;
+; remember: each 8-bit byte data corresponds to a column (vertical)
+;
+; 3D & 3E: 1 row of black, 7 of foreground (red)
+;
+; BBBBBBB(B) (the last bit on each row is never changed)
+; WWWWWWW(W)
+; WWWWWWW(W)
+; WWWWWWW(W)
+; WWWWWWW(W)
+; WWWWWWW(W)
+; WWWWWWW(W)
+; WWWWWWW(W)
+;
+; 3F & 40: 7 columns of foreground, 1 column of black
+;
+; WWWWWWW(B) (the last bit on each row is never changed)
+; WWWWWWW(B)
+; WWWWWWW(B)
+; WWWWWWW(B)
+; WWWWWWW(B)
+; WWWWWWW(B)
+; WWWWWWW(B)
+; WWWWWWW(B)
+
 5C02: A9 40    lda #$40
 5C04: 18       clc
 5C05: 65 16    adc $16
@@ -4490,7 +4520,7 @@ animate_body_chars_5bf4:
 5C13: A9 19    lda #$19
 5C15: 85 1A    sta $1a
 ; [copy_charset_data_loop=1,false]
-5C17: A0 07    ldy #$07
+5C17: A0 07    ldy #$07		; 7 columns not 8!
 5C19: B1 17    lda (head_x_value_17), y
 5C1B: 91 19    sta ($19), y
 5C1D: 88       dey
@@ -4512,7 +4542,7 @@ l_5c20:
 5C35: A9 1A    lda #$1a
 5C37: 85 1A    sta $1a
 ; [copy_charset_data_loop=1,false]
-5C39: A0 07    ldy #$07
+5C39: A0 07    ldy #$07		; 7 columns not 8!
 5C3B: B1 17    lda (head_x_value_17), y
 5C3D: 91 19    sta ($19), y
 5C3F: 88       dey
@@ -4533,7 +4563,7 @@ l_5c20:
 5C57: A9 19    lda #$19
 5C59: 85 1A    sta $1a
 ; [copy_charset_data_loop=1,false]
-5C5B: A0 07    ldy #$07
+5C5B: A0 07    ldy #$07		; only 7 columns
 5C5D: B1 17    lda (head_x_value_17), y
 5C5F: 91 19    sta ($19), y
 5C61: 88       dey
@@ -4553,7 +4583,7 @@ l_5c20:
 5C79: A9 19    lda #$19
 5C7B: 85 1A    sta $1a
 ; [copy_charset_data_loop=1,true] mirrored
-5C7D: A0 07    ldy #$07
+5C7D: A0 07    ldy #$07		; only 7 columns
 5C7F: 84 1B    sty $1b
 5C81: 98       tya
 5C82: 49 07    eor #$07

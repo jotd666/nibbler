@@ -59,6 +59,13 @@ def get_rom_table(rom_data,address,size):
     return [rom_data[i*2+offset]+256*rom_data[i*2+offset+1] for i in range(size)]
 
 def doit_rom_tiles(dump_it=False):
+    # rom tiles layout is the following
+    # 31-39: 9 tiles for head (0x48 bytes of data copied each time)
+    # 61-69: 9 tiles for head
+    # 3D-3E: 2 horizontal body tiles (left/right), first row always black
+    # 3F-40: 2 vertical body tiles (up/down), last column is always black
+    # 49/4B/4D: 3 tail tiles
+
     rval = {}
     cluts = gen_cluts.doit(4)  # 4 colors
 
