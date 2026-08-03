@@ -30,23 +30,15 @@ def ensure_empty(d):
     else:
         d.mkdir(parents=True)
 
-def is_pre_mirrored(prefix,context):
-    return False
 
-    pc = sprites_per_level.get(prefix)
-    if not pc:
-        # not listed: pre-mirror to avoid issues
-        return True
-    pre_mirror = pc["pre_mirror"]
-    if pre_mirror is None:
-        # never pre-mirror
-        return False
-    if pre_mirror == True:
-        # always pre-mirror
-        return True
-    # pre-mirror only in some levels
-    return context in pre_mirror
-
+possible_hw_sprites = set()
+sprite_names = {}
+for i in range(4):
+    sprite_names[i] = "head"
+for i in range(4,8):
+    sprite_names[i] = "tail_straight"
+for i in range(8,12):
+    sprite_names[i] = "tail_crooked"
 
 def dump_bob_layer(sprite_table,f,relative_root=None,context=None):
     if relative_root:
@@ -127,7 +119,7 @@ def dump_bob_layer(sprite_table,f,relative_root=None,context=None):
                                         f.write("0")
                                     f.write("\n")
 
-                        if nonzero_written and is_pre_mirrored(prefix,context):
+                        if nonzero_written and False:
                             # tell the game engine that it has to mirror the bitplanes
                             # at start/file load and put them here
                             # (except if tile has 0 data because it's blank)
@@ -488,8 +480,8 @@ apply_color_replacement(fg_tile_set_list,fg_replacement_dict)
 # also change colors of ROM tiles
 apply_color_replacement(rom_tiles_dict["body"].values(),fg_replacement_dict)
 # also change colors of ROM tiles
-for p in rom_tiles_dict["head"].values():
-    apply_color_replacement(p,fg_replacement_dict)
+##for p in rom_tiles_dict["head"].values():
+##    apply_color_replacement(p,fg_replacement_dict)
 
 # fg_tile_set_list is a 8x256 matrix (clut x tile)
 # rom_tiles_dict is a dictionary: tile_data_address => 8 cluts
@@ -509,10 +501,10 @@ for key,data in sorted(rom_tiles_dict["body"].items()):
 # clut => image sets (8 cluts, 24 different possible image sets, 9 images per set)
 # we should flatten the 2 last dimensions to remain compatible with the dumping tools
 # result: 8*216 pic matrix
-rom_head_tile_set_list = [[] for _ in range(8)]
-for key,data in sorted(rom_tiles_dict["head"].items()):
-    for d,outl in zip(data,rom_head_tile_set_list):
-        outl.extend(d)
+##rom_head_tile_set_list = [[] for _ in range(8)]
+##for key,data in sorted(rom_tiles_dict["head"].items()):
+##    for d,outl in zip(data,rom_head_tile_set_list):
+##        outl.extend(d)
 
 
 # recompute new fg palette
@@ -531,6 +523,28 @@ for tile_set in fg_tile_set_list:
 # don't change the white position leave it as last else game colors
 # will be screwed (copper dyn change + bitplane change on diamond snake body)
 fg_tile_palette = sorted(fg_tile_palette)
+
+# kill head/tail tiles
+for t in list(range(0x31,0x3A))+list(range(0x61,0x6A))+[0x4B,0x49,0x4D]:
+    for fg_tile_set in fg_tile_set_list:
+        fg_tile_set[t] = None
+
+# load pics for head & tail
+
+def load_pic(name):
+    img_right = Image.open(sheets_path / name)
+    img_list = [img_right]
+    img_list.append(img_right.transpose(Image.Transpose.FLIP_LEFT_RIGHT))  # face left
+    img_list.append(img_right.transpose(Image.Transpose.ROTATE_90))  # face up
+    img_list.append(img_right.transpose(Image.Transpose.FLIP_TOP_BOTTOM))  # down
+    return img_list
+
+sprite_images = load_pic("head.png") + load_pic("tail_straight.png") + load_pic("tail_crooked.png")
+
+bob_plane_cache = {}
+
+sprite_table,_ = read_tileset([sprite_images],fg_tile_palette,plane_orientation_flags=[True,False,False,False],
+                    cache=bob_plane_cache,is_bob=True,nb_cluts=1,mask_color=black)
 
 ###############
 # background
@@ -609,8 +623,8 @@ fg_tile_table,next_cache_id = read_tileset(fg_tile_set_list,fg_tile_palette,[Tru
 mask_color=black, nb_cluts=FG_NB_CLUTS)
 rom_body_tile_table,next_cache_id = read_tileset(rom_body_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache,
 is_bob=False, nb_cluts=FG_NB_CLUTS, mask_color=black, next_cache_id=next_cache_id)
-rom_head_tile_table,next_cache_id = read_tileset(rom_head_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache,
-is_bob=False, nb_cluts=FG_NB_CLUTS, mask_color=black, next_cache_id=next_cache_id)
+##rom_head_tile_table,next_cache_id = read_tileset(rom_head_tile_set_list,fg_tile_palette,[True,False,False,False],cache=tile_plane_cache,
+##is_bob=False, nb_cluts=FG_NB_CLUTS, mask_color=black, next_cache_id=next_cache_id)
 
 
 with open(src_dir / "palette.68k","w") as f:
@@ -627,6 +641,7 @@ with open(src_dir / "graphics.68k","w") as f:
     f.write("\t.global\tfg_character_table\n")
     f.write("\t.global\tbg_character_table\n")
     f.write("\t.global\trom_character_table\n")
+    f.write("\t.global\tbob_table\n")
     f.write("\t.global\tend_tables\n")
     f.write("fg_character_table:\n")
 
@@ -649,11 +664,11 @@ with open(src_dir / "graphics.68k","w") as f:
         address_table[key] = f"rom_body_tile_index_table+0x{idx*4:02x} | 0x{address:04x} (body)"
 
     # for head parts there are 9 pics per address (mirroring not supported right now)
-    for idx,address in enumerate(sorted(rom_tiles_dict["head"])):
-        key = (address-0x6000)//8
-        for i in range(9):
-            offset = (idx*9+i)*4
-            address_table[key+i] = f"rom_head_tile_index_table+0x{offset:02x} | 0x{address+8*i:04x} (head_char_index={i})"
+##    for idx,address in enumerate(sorted(rom_tiles_dict["head"])):
+##        key = (address-0x6000)//8
+##        for i in range(9):
+##            offset = (idx*9+i)*4
+##            address_table[key+i] = f"rom_head_tile_index_table+0x{offset:02x} | 0x{address+8*i:04x} (head_char_index={i})"
 
     for a in address_table:
         f.write("\t.long\t")
@@ -666,9 +681,9 @@ with open(src_dir / "graphics.68k","w") as f:
     f.write("\n* ROM tiles (body)\n\n")
     f.write("rom_body_tile_index_table:\n")
     dump_tile_layer(rom_body_tile_table,f"rom_body_",tile_plane_prefix="fg_")
-    f.write("\n* ROM tiles (head)\n\n")
-    f.write("rom_head_tile_index_table:\n")
-    dump_tile_layer(rom_head_tile_table,f"rom_head_",tile_plane_prefix="fg_")
+##    f.write("\n* ROM tiles (head)\n\n")
+##    f.write("rom_head_tile_index_table:\n")
+##    dump_tile_layer(rom_head_tile_table,f"rom_head_",tile_plane_prefix="fg_")
 
     for k,v in tile_plane_cache.items():
         f.write(f"fg_tile_plane_{v:02d}:")
@@ -680,6 +695,7 @@ with open(src_dir / "graphics.68k","w") as f:
         f.write(f"bg_tile_plane_{v:02d}:")
         dump_asm_bytes(k,f)
 
-
+    f.write("bob_table:\n")
+    dump_bob_layer(sprite_table,f)
 
 

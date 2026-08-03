@@ -120,39 +120,39 @@ def doit_rom_tiles(dump_it=False):
 
 
     # head
-    head_pics = {}
-    for r72_plane1,r72_plane2 in zip(rt_plane1,rt_plane2):
-        data_plane1 = contents[r72_plane1-0x6000:r72_plane1-0x6000+0x48]
-        data_plane2 = contents[r72_plane2-0x6000:r72_plane2-0x6000+0x48]
-        key = r72_plane1
-
-        img_img_list = []
-        for clut_index,color in enumerate(cluts):
-            offset = 0
-            img_list = []
-            for i in range(9):  # head has 9 following char data worth starting from char 0x31 or 0x61
-                cdata_plane1 = data_plane1[offset:offset+8]  # one char data
-                cdata_plane2 = data_plane2[offset:offset+8]  # one char data
-                img = Image.new("RGB",(8,8))
-                imgdat = img.load()
-                for row,(c1,c2) in enumerate(zip(cdata_plane1,cdata_plane2)):
-                    for col in range(8):
-                        palindex = 0
-                        if (c1 & 1):
-                            palindex += 2
-                        c1 >>= 1
-                        if (c2 & 1):
-                            palindex += 1
-                        c2 >>= 1
-                        imgdat[row,col] = color[palindex]
-                if dump_it:
-                    imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
-                    imgs.save(cdump_dir/f"head_{r72_plane1:04x}_{i}_{clut_index}.png")
-                offset += 8
-                img_list.append(ImageOps.mirror(ImageOps.flip(img)))
-
-            img_img_list.append(img_list)
-        head_pics[key] = img_img_list
+##    head_pics = {}
+##    for r72_plane1,r72_plane2 in zip(rt_plane1,rt_plane2):
+##        data_plane1 = contents[r72_plane1-0x6000:r72_plane1-0x6000+0x48]
+##        data_plane2 = contents[r72_plane2-0x6000:r72_plane2-0x6000+0x48]
+##        key = r72_plane1
+##
+##        img_img_list = []
+##        for clut_index,color in enumerate(cluts):
+##            offset = 0
+##            img_list = []
+##            for i in range(9):  # head has 9 following char data worth starting from char 0x31 or 0x61
+##                cdata_plane1 = data_plane1[offset:offset+8]  # one char data
+##                cdata_plane2 = data_plane2[offset:offset+8]  # one char data
+##                img = Image.new("RGB",(8,8))
+##                imgdat = img.load()
+##                for row,(c1,c2) in enumerate(zip(cdata_plane1,cdata_plane2)):
+##                    for col in range(8):
+##                        palindex = 0
+##                        if (c1 & 1):
+##                            palindex += 2
+##                        c1 >>= 1
+##                        if (c2 & 1):
+##                            palindex += 1
+##                        c2 >>= 1
+##                        imgdat[row,col] = color[palindex]
+##                if dump_it:
+##                    imgs = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
+##                    imgs.save(cdump_dir/f"head_{r72_plane1:04x}_{i}_{clut_index}.png")
+##                offset += 8
+##                img_list.append(ImageOps.mirror(ImageOps.flip(img)))
+##
+##            img_img_list.append(img_list)
+##        head_pics[key] = img_img_list
 
     # body parts, we extract only one bitplane (white drawing), the other is fixed
     body_pics = {}
@@ -181,7 +181,7 @@ def doit_rom_tiles(dump_it=False):
         body_pics[key] = img_list
 
     rval["body"] = body_pics
-    rval["head"] = head_pics
+##    rval["head"] = head_pics
 
     return rval
 
