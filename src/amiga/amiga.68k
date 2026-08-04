@@ -2561,6 +2561,7 @@ osd_read_high_scores:
 	
 * < A6: game memory
 osd_display_vertical_head:
+	rts
 	lea	(0x31,a6,d1.w),a0
 	move.b	(1,a0),d7
 	rol.w	#8,d7
@@ -2579,6 +2580,9 @@ osd_display_vertical_head:
 	lsl.w	#3,d0	| times 8
 	
 	moveq	#0,d7
+	move.b	(frame_index_e9,a6),d7
+	add.w	d7,d1
+	
 	lea		bob_table,a0
 	lea		direction2order_table,a1
 	move.b	(nibbler_direction_53,a6),d7
@@ -2591,10 +2595,11 @@ osd_display_vertical_head:
 	move.w	#NB_FG_PLANES,d3
 	move.w	(a0)+,d2			| width in bytes
 	move.w	(a0)+,d5			| offset
+	moveq	#0,d5     | TEMP
 	add.w	d5,d1
 	addq	#2,a0
 	* now a0 contains bitplanes
-	lea		(NB_FG_PLANES*4,a0),a3
+	lea		(NB_FG_PLANES*4,a0),a3		| mask
 	move.l		playfield_drawn_screen_ptr,a1
 	jbsr	blit_planes_any_internal_cookie_cut
 	

@@ -100,6 +100,8 @@ def game_specific(address,lines,i):
     elif address == 0xA392:
         # hook to display vertical head
         line = change_instruction("jbsr\tosd_display_vertical_head",lines,i)
+    elif address in {0x3472,0x3478,0x347e}:
+        line = line.replace("addx.b","abcd")  # score
     return line
 
 

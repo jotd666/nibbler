@@ -124,6 +124,12 @@ p1_lives_b0 = $b0
 time_a3 = $a3
 level_number_bc = $bc
 
+score_hundred_ten_b2 = $b2
+score_thousands_b3 = $b3
+score_hundred_thousands_b4 = $b4
+score_ten_million_b5 = $b5
+
+
 ; wouldn't trust the names of low zero page data, they're often
 ; reused and therefore generic. But sometimes they're properly named.
 ; it takes more RE effort to do this.
@@ -581,7 +587,7 @@ fruit_eaten_3422:
 3441: A4 BC    ldy level_number_bc
 3443: A5 BE    lda $be
 3445: C9 30    cmp #$30
-3447: 30 1E    bmi $3467
+3447: 30 1E    bmi add_to_score_3467
 3449: B9 90 34 lda $3490, y
 344C: F8       sed
 344D: 18       clc
@@ -597,20 +603,22 @@ fruit_eaten_3422:
 3460: 69 00    adc #$00
 3462: 85 B9    sta $b9
 3464: 4C 82 34 jmp $3482
+
+add_to_score_3467:
 3467: B9 90 34 lda $3490, y
 346A: F8       sed
 346B: 18       clc
-346C: 65 B2    adc $b2
-346E: 85 B2    sta $b2
-3470: A5 B3    lda $b3
+346C: 65 B2    adc score_hundred_ten_b2
+346E: 85 B2    sta score_hundred_ten_b2
+3470: A5 B3    lda score_thousands_b3
 3472: 69 00    adc #$00
-3474: 85 B3    sta $b3
-3476: A5 B4    lda $b4
+3474: 85 B3    sta score_thousands_b3
+3476: A5 B4    lda score_hundred_thousands_b4
 3478: 69 00    adc #$00
-347A: 85 B4    sta $b4
-347C: A5 B5    lda $b5
+347A: 85 B4    sta score_hundred_thousands_b4
+347C: A5 B5    lda score_ten_million_b5
 347E: 69 00    adc #$00
-3480: 85 B5    sta $b5
+3480: 85 B5    sta score_ten_million_b5
 3482: D8       cld
 3483: A5 BA    lda fruits_left_ba
 3485: D0 05    bne $348c
@@ -631,17 +639,17 @@ fruit_eaten_3422:
 3502: B9 90 34 lda $3490, y
 3505: F8       sed
 3506: 18       clc
-3507: 65 B2    adc $b2
-3509: 85 B2    sta $b2
-350B: A5 B3    lda $b3
+3507: 65 B2    adc score_hundred_ten_b2
+3509: 85 B2    sta score_hundred_ten_b2
+350B: A5 B3    lda score_thousands_b3
 350D: 69 00    adc #$00
-350F: 85 B3    sta $b3
-3511: A5 B4    lda $b4
+350F: 85 B3    sta score_thousands_b3
+3511: A5 B4    lda score_hundred_thousands_b4
 3513: 69 00    adc #$00
-3515: 85 B4    sta $b4
-3517: A5 B5    lda $b5
+3515: 85 B4    sta score_hundred_thousands_b4
+3517: A5 B5    lda score_ten_million_b5
 3519: 69 00    adc #$00
-351B: 85 B5    sta $b5
+351B: 85 B5    sta score_ten_million_b5
 351D: D8       cld
 351E: C6 BA    dec fruits_left_ba
 3520: A0 00    ldy #$00
@@ -654,23 +662,24 @@ fruit_eaten_3422:
 352E: 85 BF    sta $bf
 3530: 28       plp
 3531: 60       rts
+
 3532: A9 FF    lda #$ff
 3534: 85 CB    sta $cb
 3536: A9 00    lda #$00
 3538: 85 CA    sta $ca
-353A: A5 B2    lda $b2
+353A: A5 B2    lda score_hundred_ten_b2
 353C: 20 90 4B jsr split_a_digits_4b90
 353F: 86 C9    stx $c9
 3541: 85 C8    sta $c8
-3543: A5 B3    lda $b3
+3543: A5 B3    lda score_thousands_b3
 3545: 20 90 4B jsr split_a_digits_4b90
 3548: 86 C6    stx $c6
 354A: 85 C5    sta $c5
-354C: A5 B4    lda $b4
+354C: A5 B4    lda score_hundred_thousands_b4
 354E: 20 90 4B jsr split_a_digits_4b90
 3551: 86 C4    stx $c4
 3553: 85 C2    sta $c2
-3555: A5 B5    lda $b5
+3555: A5 B5    lda score_ten_million_b5
 3557: 20 90 4B jsr split_a_digits_4b90
 355A: 86 C1    stx $c1
 355C: 85 C0    sta $c0
@@ -1140,17 +1149,17 @@ award_end_of_level_bonus_38dc:
 3926: B9 90 34 lda $3490, y
 3929: F8       sed
 392A: 18       clc
-392B: 65 B2    adc $b2
-392D: 85 B2    sta $b2
-392F: A5 B3    lda $b3
+392B: 65 B2    adc score_hundred_ten_b2
+392D: 85 B2    sta score_hundred_ten_b2
+392F: A5 B3    lda score_thousands_b3
 3931: 69 00    adc #$00
-3933: 85 B3    sta $b3
-3935: A5 B4    lda $b4
+3933: 85 B3    sta score_thousands_b3
+3935: A5 B4    lda score_hundred_thousands_b4
 3937: 69 00    adc #$00
-3939: 85 B4    sta $b4
-393B: A5 B5    lda $b5
+3939: 85 B4    sta score_hundred_thousands_b4
+393B: A5 B5    lda score_ten_million_b5
 393D: 69 00    adc #$00
-393F: 85 B5    sta $b5
+393F: 85 B5    sta score_ten_million_b5
 3941: D8       cld
 3942: 20 32 35 jsr $3532
 3945: 20 72 39 jsr $3972
@@ -2998,13 +3007,13 @@ time_blink_4feb:
 5000: A9 40    lda #$40
 5002: 85 BE    sta $be
 5004: 38       sec
-5005: A5 B2    lda $b2
+5005: A5 B2    lda score_hundred_ten_b2
 5007: ED B4 02 sbc $02b4
-500A: A5 B3    lda $b3
+500A: A5 B3    lda score_thousands_b3
 500C: ED B5 02 sbc $02b5
-500F: A5 B4    lda $b4
+500F: A5 B4    lda score_hundred_thousands_b4
 5011: ED B6 02 sbc $02b6
-5014: A5 B5    lda $b5
+5014: A5 B5    lda score_ten_million_b5
 5016: ED B7 02 sbc $02b7
 5019: B0 1E    bcs $5039
 501B: A9 41    lda #$41
@@ -3039,13 +3048,13 @@ time_blink_4feb:
 5058: C9 40    cmp #$40
 505A: D0 16    bne $5072
 505C: 38       sec
-505D: A5 B2    lda $b2
+505D: A5 B2    lda score_hundred_ten_b2
 505F: E5 30    sbc $30
-5061: A5 B3    lda $b3
+5061: A5 B3    lda score_thousands_b3
 5063: E5 31    sbc charset_source_pointer_first_plane_31
-5065: A5 B4    lda $b4
+5065: A5 B4    lda score_hundred_thousands_b4
 5067: E5 32    sbc $32
-5069: A5 B5    lda $b5
+5069: A5 B5    lda score_ten_million_b5
 506B: E5 33    sbc charset_source_pointer_second_plane_33
 506D: B0 28    bcs $5097
 506F: 4C 85 50 jmp $5085
@@ -4443,10 +4452,10 @@ exit_irq_5b61:
 
 start_game_5bc5:
 5BC5: A9 00    lda #$00
-5BC7: 85 B2    sta $b2
-5BC9: 85 B3    sta $b3
-5BCB: 85 B4    sta $b4
-5BCD: 85 B5    sta $b5
+5BC7: 85 B2    sta score_hundred_ten_b2
+5BC9: 85 B3    sta score_thousands_b3
+5BCB: 85 B4    sta score_hundred_thousands_b4
+5BCD: 85 B5    sta score_ten_million_b5
 5BCF: 85 B6    sta $b6
 5BD1: 85 B7    sta $b7
 5BD3: 85 B8    sta $b8

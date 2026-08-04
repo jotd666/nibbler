@@ -19,7 +19,7 @@
 - reach highscore check highscore screen: write video out
   of range in 512B
 - A8DD invalid mem access after level 34 expected?
-- score BCD issue
+
 
 - cheat infinite time
 
