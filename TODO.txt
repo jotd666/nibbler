@@ -1,5 +1,15 @@
 - eliminate unused cluts for nibbler body
-  
+- remove call with 9 chars (change_chars)
+- optim: remove copy char data when moving nibbler
+- for starters: blit when moving up & down: A392 hook
+  $31+X contains screen pointer, direction is known 
+  frame_index_e9 contains pixel offset to add/sub
+  nibbler_direction_53 : ; direction: 1 down
+; direction: 2 up
+; direction: 4 right
+; direction: 8 left
+- when killed, intercept & remove routine that does the
+  color flash, do it using copper
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
 - rip F sound

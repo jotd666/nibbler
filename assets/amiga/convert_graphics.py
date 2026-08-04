@@ -533,6 +533,16 @@ for t in list(range(0x31,0x3A))+list(range(0x61,0x6A))+[0x4B,0x49,0x4D]:
 
 def load_pic(name):
     img_right = Image.open(sheets_path / name)
+    x_padded,y_padded = img_right.size
+    if x_padded % 16:
+        x_padded = ((x_padded//16)+1)*16
+    if y_padded % 16:
+        y_padded = ((y_padded//16)+1)*16
+
+    nimg = Image.new("RGB",(x_padded,y_padded))
+    nimg.paste(img_right)
+    img_right = nimg
+
     img_list = [img_right]
     img_list.append(img_right.transpose(Image.Transpose.FLIP_LEFT_RIGHT))  # face left
     img_list.append(img_right.transpose(Image.Transpose.ROTATE_90))  # face up

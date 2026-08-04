@@ -97,7 +97,9 @@ def game_specific(address,lines,i):
 \tjbsr\tosd_set_time_color   | faster & also allows to use original blue
 \t.else
 """
-
+    elif address == 0xA392:
+        # hook to display vertical head
+        line = change_instruction("jbsr\tosd_display_vertical_head",lines,i)
     return line
 
 
