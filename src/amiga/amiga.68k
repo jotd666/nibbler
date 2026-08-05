@@ -171,8 +171,7 @@ w\@:
 	.global	osd_set_title_color
 	.global	osd_write_sound_2102
 	.global	osd_log_cpu
-	.global osd_display_vertical_head
-	.global osd_display_horizontal_head
+	.global osd_display_head
 	
 	.global	is_game_playing
 		
@@ -1554,6 +1553,8 @@ change_one_char:
 	jra		osd_change_char_data_out
 * change nine chars: snake head or tail
 change_nine_chars:
+	rts
+	
 	move.b	(0x32,a6),d0
 	rol.w	#8,d0
 	move.b	(0x31,a6),d0
@@ -2560,65 +2561,80 @@ osd_read_high_scores:
 	rts
 	
 * < A6: game memory
-osd_display_vertical_head:
-	rts
-	lea	(0x31,a6,d1.w),a0
-	move.b	(1,a0),d7
-	rol.w	#8,d7
-	move.b	(a0),d7		| screen address
-	and.w	#0x3FF,d7
-	lea	fg_tile_address_table,a0
-	add.w	d7,d7
-	move.w	(a0,d7.w),d7		| get coords
+osd_display_head:
 	movem.l	D0-D2,-(a7)
 	moveq	#0,d0
 	moveq	#0,d1
-	move.b	d7,d1	| char X
+	move.b	(snake_row_51,a6),d0	| char X
+	move.b	(snake_col_52,a6),d1	| char Y
+	addq	#4,d0
+	neg.w	d1
+	add.w	#0x20,d1
 	lsl.w	#3,d1	| times 8
-	rol.w	#8,d7
-	move.b	d7,d0	| char Y
 	lsl.w	#3,d0	| times 8
 	
-	moveq	#0,d7
-	move.b	(frame_index_e9,a6),d7
-	add.w	d7,d1
 	
 	lea		bob_table,a0
 	lea		direction2order_table,a1
+	moveq	#0,d7
 	move.b	(nibbler_direction_53,a6),d7
-	* TODO: add offset depending on direction for X
-	add.b	d7,d7
-	move.w	(a1,d7.w),d7
+	lsl.b	#3,d7
+	add.w	(2,a1,d7.w),d0		| X offset
+	add.w	(4,a1,d7.w),d1		| Y offset
+	moveq	#0,d6
+	move.b	(frame_index_e9,a6),d6
+	move.w	(6,a1,d7.w),a2
+	add.w	a1,a2
+	jsr		(a2)
+	
+	* TODO add/sub with proper routine
+
+	move.w	(a1,d7.w),d7		| offset
 	move.l	(a0,d7.w),a0		| BOB structure
 	move.l	(a0),a0				| only one clut
 	move.w	(a0)+,d4			| height
-	move.w	#NB_FG_PLANES,d3
 	move.w	(a0)+,d2			| width in bytes
-	move.w	(a0)+,d5			| offset
-	moveq	#0,d5     | TEMP
-	add.w	d5,d1
+	add.w	(a0)+,d1			| add offset to Y
+	move.w	#NB_FG_PLANES,d3	| nb planes
+	moveq	#0,d5				| no offset to bitmap, no clipping
 	addq	#2,a0
 	* now a0 contains bitplanes
-	lea		(NB_FG_PLANES*4,a0),a3		| mask
+	move.l		(NB_FG_PLANES*4,a0),a3		| mask
 	move.l		playfield_drawn_screen_ptr,a1
 	jbsr	blit_planes_any_internal_cookie_cut
 	
 	movem.l	(a7)+,d0-d2
 	rts
 	
+
+	
 * nibbler_direction_53 contains 1,2,4,8
 * convert this offset into offset in bob table
 direction2order_table:
-	.word	-1
-	.word	8		| down
-	.word	12		| up
-	.word	-1
-	.word	0		| right
-	.word	-1
-	.word	-1
-	.word	-1
-	.word	4		| left
-	
+	.word	-1,0,0,0
+	* bob_frame_offset,offset_x,offset_y,is_horizontal       
+	.word	12,-8,-24,add_y_displacement-direction2order_table		| down
+	.word	8,-8,-16,sub_y_displacement-direction2order_table		| up
+	.word	-1,0,0,0
+	.word	0,-16,-16,add_x_displacement-direction2order_table		| right
+	.word	-1,0,0,0
+	.word	-1,0,0,0
+	.word	-1,0,0,0
+	.word	4,-16,-16,sub_x_displacement-direction2order_table		| left
+
+add_y_displacement:
+	add.w	d6,d1
+	rts
+add_x_displacement:
+	add.w	d6,d0
+	rts
+sub_y_displacement:
+	sub.w	d6,d1
+	rts
+sub_x_displacement:
+	sub.w	d6,d0
+	rts
+
 osd_write_high_scores:
 	movem.l	d0-d7/a0-a6,-(a7)
 	.ifdef	RELEASE

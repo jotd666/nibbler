@@ -545,8 +545,14 @@ def load_pic(name):
 
     img_list = [img_right]
     img_list.append(img_right.transpose(Image.Transpose.FLIP_LEFT_RIGHT))  # face left
-    img_list.append(img_right.transpose(Image.Transpose.ROTATE_90))  # face up
-    img_list.append(img_right.transpose(Image.Transpose.FLIP_TOP_BOTTOM))  # down
+    img_list.append(img_right.transpose(Image.Transpose.ROTATE_90))  # face down
+    img_list.append(img_list[-1].transpose(Image.Transpose.FLIP_TOP_BOTTOM))  # up
+    if dump_it:
+        part_dir = dump_dir / "parts"
+        part_dir.mkdir(exist_ok=True)
+        for i,img in enumerate(img_list):
+            img = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
+            img.save(part_dir / f"{pathlib.Path(name).stem}_{i}.png")
     return img_list
 
 sprite_images = load_pic("head.png") + load_pic("tail_straight.png") + load_pic("tail_crooked.png")

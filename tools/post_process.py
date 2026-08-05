@@ -83,7 +83,7 @@ def game_specific(address,lines,i):
     if "[cpu_loop]" in line:
         lines[i+2] = change_instruction("jbsr\twait_1_frame",lines,i+2)
         lines[i+3] = remove_instruction(lines,i+3)
-    elif "[copy_charset_data_loop=" in line:
+    elif "[copy_charset_data_loop=1" in line:
         # we disabled all charset copy changes but the diamond 1 tile body
         # as tail and head continuous shifting is too complex. Too bad
         m = re.search(r"\[copy_charset_data_loop=(\d),(\w+)]",line)
@@ -97,9 +97,9 @@ def game_specific(address,lines,i):
 \tjbsr\tosd_set_time_color   | faster & also allows to use original blue
 \t.else
 """
-    elif address == 0xA392:
+    elif address in {0xA5CF,0xA272}:
         # hook to display vertical head
-        line = change_instruction("jbsr\tosd_display_vertical_head",lines,i)
+        line = change_instruction("jbra\tosd_display_head",lines,i)
     elif address in {0x3472,0x3478,0x347e}:
         line = line.replace("addx.b","abcd")  # score
     return line

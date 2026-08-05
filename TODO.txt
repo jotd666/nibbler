@@ -1,19 +1,13 @@
 - eliminate unused cluts for nibbler body
-- remove call with 9 chars (change_chars)
+- implement fine pixel displacement
 - optim: remove copy char data when moving nibbler
-- for starters: blit when moving up & down: A392 hook
-  $31+X contains screen pointer, direction is known 
-  frame_index_e9 contains pixel offset to add/sub
-  nibbler_direction_53 : ; direction: 1 down
-; direction: 2 up
-; direction: 4 right
-; direction: 8 left
 - when killed, intercept & remove routine that does the
-  color flash, do it using copper
+  color flash / tile update, do it using copper / palette changes
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
 - rip F sound
 - level 4: sometimes restarts from level 1 in the middle of the level!
+ => breakpoint on game start
 - issue on game over (with high score): write video mem out of range
 - cheat add 10000 to score 
 - reach highscore check highscore screen: write video out
