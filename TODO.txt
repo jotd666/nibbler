@@ -1,5 +1,5 @@
 - eliminate unused cluts for nibbler body
-- implement fine pixel displacement
+- RE tail animation
 - optim: remove copy char data when moving nibbler
 - when killed, intercept & remove routine that does the
   color flash / tile update, do it using copper / palette changes

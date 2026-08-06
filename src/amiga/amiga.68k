@@ -2613,7 +2613,7 @@ osd_display_head:
 direction2order_table:
 	.word	-1,0,0,0
 	* bob_frame_offset,offset_x,offset_y,is_horizontal       
-	.word	12,-8,-24,add_y_displacement-direction2order_table		| down
+	.word	11,-8,-24,add_y_displacement-direction2order_table		| down
 	.word	8,-8,-16,sub_y_displacement-direction2order_table		| up
 	.word	-1,0,0,0
 	.word	0,-16,-16,add_x_displacement-direction2order_table		| right
