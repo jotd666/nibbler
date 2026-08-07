@@ -2574,7 +2574,7 @@ osd_display_head:
 	lsl.w	#3,d0	| times 8
 	
 	
-	lea		bob_table,a0
+	lea		bob_table,a4
 	lea		head_direction2order_table,a1
 	moveq	#0,d7
 	move.b	(snake_head_direction_53,a6),d7
@@ -2587,8 +2587,8 @@ osd_display_head:
 	add.w	a1,a2
 	jsr		(a2)
 	
-	move.w	(a1,d7.w),d7		| offset
-	move.l	(a0,d7.w),a0		| BOB structure
+	move.w	(a1,d7.w),d6		| offset
+	move.l	(a4,d6.w),a0		| BOB structure
 	move.l	(a0),a0				| only one clut
 	move.w	(a0)+,d4			| height
 	move.w	(a0)+,d2			| width in bytes
@@ -2597,7 +2597,10 @@ osd_display_head:
 	moveq	#0,d5				| no offset to bitmap, no clipping
 	addq	#2,a0
 	* now a0 contains bitplanes
-	move.l		(NB_FG_PLANES*4,a0),a3		| mask
+
+	move.l	(12*4,a4,d6.w),a3		| BOB structure of mask
+	move.l	(a3),a3				| only one clut
+	move.l		(8,a3),a3		| mask (any plane matches with the palette we chose)
 	move.l		playfield_drawn_screen_ptr,a1
 	jbsr	blit_planes_any_internal_cookie_cut
 	
@@ -2617,7 +2620,7 @@ osd_display_tail:
 	lsl.w	#3,d0	| times 8
 	
 	
-	lea		bob_table,a0
+	lea		bob_table,a4
 	lea		tail_direction2order_table,a1
 	moveq	#0,d7
 	move.b	(snake_tail_direction_56,a6),d7
@@ -2630,8 +2633,8 @@ osd_display_tail:
 	add.w	a1,a2
 	jsr		(a2)
 	
-	move.w	(a1,d7.w),d7		| offset
-	move.l	(a0,d7.w),a0		| BOB structure
+	move.w	(a1,d7.w),d6		| offset
+	move.l	(a4,d6.w),a0		| BOB structure
 	move.l	(a0),a0				| only one clut
 	move.w	(a0)+,d4			| height
 	move.w	(a0)+,d2			| width in bytes
@@ -2654,8 +2657,8 @@ osd_display_tail:
 head_direction2order_table:
 	.word	-1,0,0,0
 	* bob_frame_offset,offset_x,offset_y,is_horizontal       
-	.word	12,-8,-24,add_y_displacement-head_direction2order_table		| down
-	.word	8,-8,-16,sub_y_displacement-head_direction2order_table		| up
+	.word	12,-9,-24,add_y_displacement-head_direction2order_table		| down
+	.word	8,-9,-16,sub_y_displacement-head_direction2order_table		| up
 	.word	-1,0,0,0
 	.word	0,-16,-16,add_x_displacement-head_direction2order_table		| right
 	.word	-1,0,0,0

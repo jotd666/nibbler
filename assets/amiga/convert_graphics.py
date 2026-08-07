@@ -32,21 +32,14 @@ def ensure_empty(d):
 
 
 possible_hw_sprites = set()
-sprite_names = {}
-for i in range(4):
-    sprite_names[i] = "head"
-for i in range(4,8):
-    sprite_names[i] = "tail_straight"
-for i in range(8,12):
-    sprite_names[i] = "tail_crooked"
 
-def dump_bob_layer(sprite_table,f,relative_root=None,context=None):
+def dump_bob_layer(sprite_table,f,default_prefix="bob",sprite_names=None,relative_root=None,context=None):
     if relative_root:
         f.write(f"{relative_root}:\n")
     for i,tile_entry in enumerate(sprite_table):
         f.write("\t.long\t")
         if i not in possible_hw_sprites and any(tile_entry):
-            prefix = sprite_names.get(i,"bob")
+            prefix = default_prefix if not sprite_names else sprite_names.get(i,default_prefix)
             f.write(f"{prefix}_{i:02x}")
             if relative_root:
                 f.write(f"-{relative_root}")
@@ -58,7 +51,7 @@ def dump_bob_layer(sprite_table,f,relative_root=None,context=None):
 
     for i,tile_entry in enumerate(sprite_table):
         if i not in possible_hw_sprites and any(tile_entry):
-            prefix = sprite_names.get(i,"bob")
+            prefix = default_prefix if not sprite_names else sprite_names.get(i,default_prefix)
             if True:
                 f.write(f"{prefix}_{i:02x}:\n")
                 for j,t in enumerate(tile_entry):
@@ -555,12 +548,13 @@ def load_pic(name):
             img.save(part_dir / f"{pathlib.Path(name).stem}_{i}.png")
     return img_list
 
-sprite_images = load_pic("head.png") + load_pic("tail_straight.png") + load_pic("tail_crooked.png")
+sprite_images = load_pic("head.png") + load_pic("tail_straight.png") + load_pic("tail_crooked.png") + load_pic("head_mask.png") + load_pic("tail_mask.png")
 
 bob_plane_cache = {}
 
 sprite_table,_ = read_tileset([sprite_images],fg_tile_palette,plane_orientation_flags=[True,False,False,False],
                     cache=bob_plane_cache,is_bob=True,nb_cluts=1,mask_color=black)
+
 
 ###############
 # background
@@ -712,6 +706,18 @@ with open(src_dir / "graphics.68k","w") as f:
         dump_asm_bytes(k,f)
 
     f.write("bob_table:\n")
-    dump_bob_layer(sprite_table,f)
+    sprite_names = {}
+    for i in range(4):
+        sprite_names[i] = "head"
+    for i in range(4,8):
+        sprite_names[i] = "tail_straight"
+    for i in range(8,12):
+        sprite_names[i] = "tail_crooked"
+    for i in range(12,16):
+        sprite_names[i] = "head_mask"
+    for i in range(16,20):
+        sprite_names[i] = "tail_mask"
+    dump_bob_layer(sprite_table,f,sprite_names=sprite_names)
+
 
 
