@@ -119,16 +119,18 @@ tail_oriented_down_42 = $42
 tail_oriented_up_43 = $43
 
 ; row: $1-$19
-snake_row_51 = $51
+snake_head_row_51 = $51
 ; col: $2-$1A
-snake_col_52 = $52
+snake_head_col_52 = $52
 ; $53: head direction
 ; direction: 1 down
 ; direction: 2 up
 ; direction: 4 right
 ; direction: 8 left
-nibbler_direction_53 = $53
-
+snake_head_direction_53 = $53
+snake_tail_row_54 = $54
+snake_tail_col_55 = $55
+snake_tail_direction_56 = $56
 
 tail_ptr_58 = $58
 head_ptr_57 = $57
@@ -1224,7 +1226,7 @@ nibbler_movement_39a7:
 39AD: A5 BE    lda $be
 39AF: C9 10    cmp #$10
 39B1: 90 4C    bcc $39ff
-39B3: A5 53    lda nibbler_direction_53
+39B3: A5 53    lda snake_head_direction_53
 39B5: C9 01    cmp #$01
 39B7: F0 0D    beq $39c6
 39B9: C9 02    cmp #$02
@@ -1262,7 +1264,7 @@ nibbler_movement_39a7:
 39FC: 8D 01 21 sta sound_2101
 39FF: A9 1B    lda #$1b
 3A01: 38       sec
-3A02: E5 51    sbc snake_row_51
+3A02: E5 51    sbc snake_head_row_51
 3A04: 18       clc
 3A05: 2A       rol a
 3A06: 2A       rol a
@@ -1277,7 +1279,7 @@ nibbler_movement_39a7:
 3A14: 85 5D    sta $5d
 3A16: A9 1F    lda #$1f
 3A18: 38       sec
-3A19: E5 52    sbc snake_col_52
+3A19: E5 52    sbc snake_head_col_52
 3A1B: 18       clc
 3A1C: 65 5C    adc $5c
 3A1E: 85 5C    sta $5c
@@ -1303,7 +1305,7 @@ nibbler_movement_39a7:
 3A44: A9 0F    lda #$0f
 3A46: 21 5C    and ($5c, x)
 3A48: 85 17    sta head_x_value_17
-3A4A: A5 53    lda nibbler_direction_53
+3A4A: A5 53    lda snake_head_direction_53
 3A4C: A2 0D    ldx #$0d
 3A4E: A0 00    ldy #$00
 3A50: C9 01    cmp #$01
@@ -1335,7 +1337,7 @@ nibbler_movement_39a7:
 3A84: A5 17    lda head_x_value_17
 3A86: F0 03    beq $3a8b
 3A88: 4C 66 3B jmp $3b66
-3A8B: A5 53    lda nibbler_direction_53
+3A8B: A5 53    lda snake_head_direction_53
 3A8D: 49 0F    eor #$0f
 3A8F: 25 31    and charset_source_pointer_first_plane_31
 3A91: 25 48    and $48
@@ -1376,7 +1378,7 @@ nibbler_movement_39a7:
 3AD5: 90 05    bcc $3adc
 3AD7: A9 B4    lda #$b4
 3AD9: 4C 87 3F jmp $3f87
-3ADC: A5 53    lda nibbler_direction_53
+3ADC: A5 53    lda snake_head_direction_53
 3ADE: 25 18    and $18
 3AE0: F0 0C    beq $3aee
 3AE2: 4C FD 3A jmp $3afd
@@ -1444,11 +1446,11 @@ nibbler_movement_39a7:
 3B6E: A9 B5    lda #$b5
 3B70: 4C 87 3F jmp $3f87
 3B73: A5 17    lda head_x_value_17
-3B75: 25 53    and nibbler_direction_53
+3B75: 25 53    and snake_head_direction_53
 3B77: F0 0C    beq $3b85
 3B79: A5 17    lda head_x_value_17
 3B7B: 38       sec
-3B7C: E5 53    sbc nibbler_direction_53
+3B7C: E5 53    sbc snake_head_direction_53
 3B7E: 85 17    sta head_x_value_17
 3B80: D0 03    bne $3b85
 3B82: 4C FD 3A jmp $3afd
@@ -1493,14 +1495,14 @@ nibbler_movement_39a7:
 3BCD: 85 3D    sta $3d
 3BCF: 85 19    sta $19
 3BD1: A5 17    lda head_x_value_17
-3BD3: 85 53    sta nibbler_direction_53
-3BD5: A5 53    lda nibbler_direction_53
+3BD3: 85 53    sta snake_head_direction_53
+3BD5: A5 53    lda snake_head_direction_53
 3BD7: C9 03    cmp #$03
 3BD9: 10 07    bpl $3be2
-3BDB: A5 51    lda snake_row_51
+3BDB: A5 51    lda snake_head_row_51
 3BDD: 85 17    sta head_x_value_17
 3BDF: 4C E6 3B jmp $3be6
-3BE2: A5 52    lda snake_col_52
+3BE2: A5 52    lda snake_head_col_52
 3BE4: 85 17    sta head_x_value_17
 3BE6: A5 17    lda head_x_value_17
 3BE8: A4 57    ldy head_ptr_57
@@ -1526,9 +1528,9 @@ circular_buffer_ok_3c0a:
 3C0A: A9 0F    lda #$0f
 3C0C: 85 5E    sta $5e
 3C0E: 85 5A    sta $5a
-3C10: A5 51    lda snake_row_51
+3C10: A5 51    lda snake_head_row_51
 3C12: 85 3B    sta move_to_row_3b
-3C14: A5 52    lda snake_col_52
+3C14: A5 52    lda snake_head_col_52
 3C16: 85 3C    sta $3c
 3C18: A9 10    lda #$10
 3C1A: 20 4D 7F jsr save_debug_values_7f4d
@@ -1550,7 +1552,7 @@ circular_buffer_ok_3c0a:
 ;
 ; so we "only" need 3 sets of characters in ROM, up, down and left/right
 
-3C2B: A5 53    lda nibbler_direction_53
+3C2B: A5 53    lda snake_head_direction_53
 3C2D: C9 01    cmp #$01
 3C2F: F0 1F    beq dir_down_3c50
 3C31: C9 02    cmp #$02
@@ -1618,7 +1620,7 @@ l_3c7b:
 3C8E: 85 32    sta $32
 3C90: B1 19    lda ($19), y
 3C92: 85 34    sta $34
-3C94: A5 53    lda nibbler_direction_53
+3C94: A5 53    lda snake_head_direction_53
 3C96: C9 08    cmp #$08
 3C98: F0 1C    beq dir_left_special_char_copy_3cb6
 ; direct copy
@@ -1678,7 +1680,7 @@ dir_left_special_char_copy_3cb6:
 ; must move nibbler head & tail (typical snake game behaviour where only
 ; the start & end of the snake changes)
 charset_copy_done_3cdf:
-3CDF: A5 53    lda nibbler_direction_53
+3CDF: A5 53    lda snake_head_direction_53
 3CE1: C9 01    cmp #$01
 3CE3: F0 12    beq dir_down_3cf7
 3CE5: C9 02    cmp #$02
@@ -1715,12 +1717,12 @@ dir_left_3cfe:
 3D13: A0 00    ldy #$00
 3D15: B1 17    lda (head_x_value_17), y
 3D17: 18       clc
-3D18: 65 51    adc snake_row_51
+3D18: 65 51    adc snake_head_row_51
 3D1A: 85 19    sta $19
 3D1C: A0 08    ldy #$08
 3D1E: B1 17    lda (head_x_value_17), y
 3D20: 18       clc
-3D21: 65 52    adc snake_col_52
+3D21: 65 52    adc snake_head_col_52
 3D23: 85 1A    sta $1a
 3D25: A0 10    ldy #$10
 3D27: B1 17    lda (head_x_value_17), y
@@ -1847,23 +1849,23 @@ dir_left_3cfe:
 3DDA: 38       sec
 3DDB: E9 08    sbc #$08
 3DDD: 85 5E    sta $5e
-3DDF: A5 53    lda nibbler_direction_53
+3DDF: A5 53    lda snake_head_direction_53
 3DE1: C9 01    cmp #$01
 3DE3: F0 0D    beq $3df2
 3DE5: C9 02    cmp #$02
 3DE7: F0 0E    beq $3df7
 3DE9: C9 04    cmp #$04
 3DEB: F0 0F    beq $3dfc
-3DED: C6 51    dec snake_row_51
+3DED: C6 51    dec snake_head_row_51
 3DEF: 4C FE 3D jmp $3dfe
-3DF2: C6 52    dec snake_col_52
+3DF2: C6 52    dec snake_head_col_52
 3DF4: 4C FE 3D jmp $3dfe
-3DF7: E6 52    inc snake_col_52
+3DF7: E6 52    inc snake_head_col_52
 3DF9: 4C FE 3D jmp $3dfe
-3DFC: E6 51    inc snake_row_51
+3DFC: E6 51    inc snake_head_row_51
 3DFE: A9 1B    lda #$1b
 3E00: 38       sec
-3E01: E5 51    sbc snake_row_51
+3E01: E5 51    sbc snake_head_row_51
 3E03: 18       clc
 3E04: 2A       rol a
 3E05: 2A       rol a
@@ -1878,7 +1880,7 @@ dir_left_3cfe:
 3E13: 85 29    sta $29
 3E15: A9 1F    lda #$1f
 3E17: 38       sec
-3E18: E5 52    sbc snake_col_52
+3E18: E5 52    sbc snake_head_col_52
 3E1A: 18       clc
 3E1B: 65 28    adc $28
 3E1D: 85 28    sta $28
@@ -1890,20 +1892,20 @@ dir_left_3cfe:
 3E28: 85 4A    sta $4a
 3E2A: 4C DA 4E jmp $4eda
 
-3F57: A5 53    lda nibbler_direction_53
+3F57: A5 53    lda snake_head_direction_53
 3F59: C9 01    cmp #$01
 3F5B: F0 0B    beq $3f68
 3F5D: C9 02    cmp #$02
 3F5F: F0 0A    beq $3f6b
 3F61: C9 04    cmp #$04
 3F63: F0 09    beq $3f6e
-3F65: E6 51    inc snake_row_51
+3F65: E6 51    inc snake_head_row_51
 3F67: 60       rts
-3F68: E6 52    inc snake_col_52
+3F68: E6 52    inc snake_head_col_52
 3F6A: 60       rts
-3F6B: C6 52    dec snake_col_52
+3F6B: C6 52    dec snake_head_col_52
 3F6D: 60       rts
-3F6E: C6 51    dec snake_row_51
+3F6E: C6 51    dec snake_head_row_51
 3F70: 60       rts
 3F71: C9 01    cmp #$01
 3F73: F0 11    beq $3f86
@@ -2904,23 +2906,23 @@ write_credit_string_4c8a:
 4F1E: D0 2D    bne $4f4d
 4F20: A5 ED    lda unknown_ed
 4F22: F0 29    beq $4f4d
-4F24: A5 56    lda $56
+4F24: A5 56    lda snake_tail_direction_56
 4F26: C9 01    cmp #$01
 4F28: F0 1A    beq $4f44
 4F2A: C9 02    cmp #$02
 4F2C: F0 10    beq $4f3e
 4F2E: C9 04    cmp #$04
 4F30: F0 06    beq $4f38
-4F32: C6 54    dec $54
+4F32: C6 54    dec snake_tail_row_54
 4F34: D0 17    bne $4f4d
 4F36: F0 10    beq $4f48
-4F38: E6 54    inc $54
+4F38: E6 54    inc snake_tail_row_54
 4F3A: D0 11    bne $4f4d
 4F3C: F0 0A    beq $4f48
-4F3E: E6 55    inc $55
+4F3E: E6 55    inc snake_tail_col_55
 4F40: D0 0B    bne $4f4d
 4F42: F0 04    beq $4f48
-4F44: C6 55    dec $55
+4F44: C6 55    dec snake_tail_col_55
 4F46: D0 05    bne $4f4d
 4F48: A9 82    lda #$82
 4F4A: 4C 87 3F jmp $3f87
@@ -2929,7 +2931,7 @@ write_credit_string_4c8a:
 4F51: D0 03    bne $4f56
 4F53: 4C 98 4F jmp $4f98
 4F56: A4 58    ldy tail_ptr_58
-4F58: A5 56    lda $56
+4F58: A5 56    lda snake_tail_direction_56
 4F5A: C9 01    cmp #$01
 4F5C: F0 20    beq $4f7e
 4F5E: C9 02    cmp #$02
@@ -2937,19 +2939,19 @@ write_credit_string_4c8a:
 4F62: C9 04    cmp #$04
 4F64: F0 08    beq $4f6e
 4F66: B1 E2    lda ($e2), y
-4F68: C5 54    cmp $54
+4F68: C5 54    cmp snake_tail_row_54
 4F6A: 30 2C    bmi $4f98
 4F6C: 10 16    bpl $4f84
-4F6E: A5 54    lda $54
+4F6E: A5 54    lda snake_tail_row_54
 4F70: D1 E2    cmp ($e2), y
 4F72: 30 24    bmi $4f98
 4F74: 10 0E    bpl $4f84
-4F76: A5 55    lda $55
+4F76: A5 55    lda snake_tail_col_55
 4F78: D1 E2    cmp ($e2), y
 4F7A: 30 1C    bmi $4f98
 4F7C: 10 06    bpl $4f84
 4F7E: B1 E2    lda ($e2), y
-4F80: C5 55    cmp $55
+4F80: C5 55    cmp snake_tail_col_55
 4F82: 30 14    bmi $4f98
 4F84: 20 91 5E jsr $5e91
 4F87: A9 00    lda #$00
@@ -2969,27 +2971,27 @@ write_credit_string_4c8a:
 4FA1: 85 BB    sta time_when_snake_gets_longer_bb
 4FA3: A5 ED    lda unknown_ed
 4FA5: F0 31    beq $4fd8
-4FA7: A5 51    lda snake_row_51
+4FA7: A5 51    lda snake_head_row_51
 4FA9: 85 31    sta charset_source_pointer_first_plane_31
-4FAB: A5 52    lda snake_col_52
+4FAB: A5 52    lda snake_head_col_52
 4FAD: 85 32    sta $32
-4FAF: A5 53    lda nibbler_direction_53
+4FAF: A5 53    lda snake_head_direction_53
 4FB1: C9 01    cmp #$01
 4FB3: F0 1A    beq $4fcf
 4FB5: C9 02    cmp #$02
 4FB7: F0 10    beq $4fc9
 4FB9: C9 04    cmp #$04
 4FBB: F0 06    beq $4fc3
-4FBD: C6 51    dec snake_row_51
+4FBD: C6 51    dec snake_head_row_51
 4FBF: D0 17    bne $4fd8
 4FC1: F0 10    beq $4fd3
-4FC3: E6 51    inc snake_row_51
+4FC3: E6 51    inc snake_head_row_51
 4FC5: D0 11    bne $4fd8
 4FC7: F0 0A    beq $4fd3
-4FC9: E6 52    inc snake_col_52
+4FC9: E6 52    inc snake_head_col_52
 4FCB: D0 0B    bne $4fd8
 4FCD: F0 04    beq $4fd3
-4FCF: C6 52    dec snake_col_52
+4FCF: C6 52    dec snake_head_col_52
 4FD1: D0 05    bne $4fd8
 4FD3: A9 85    lda #$85
 4FD5: 4C 87 3F jmp $3f87
@@ -3680,7 +3682,7 @@ time_blink_4feb:
 5540: 4C 17 56 jmp $5617
 5543: A9 1B    lda #$1b
 5545: 38       sec
-5546: E5 51    sbc snake_row_51
+5546: E5 51    sbc snake_head_row_51
 5548: 18       clc
 5549: 2A       rol a
 554A: 2A       rol a
@@ -3695,11 +3697,11 @@ time_blink_4feb:
 5558: 85 1E    sta $1e
 555A: A9 1F    lda #$1f
 555C: 38       sec
-555D: E5 52    sbc snake_col_52
+555D: E5 52    sbc snake_head_col_52
 555F: 18       clc
 5560: 65 1D    adc $1d
 5562: 85 1D    sta $1d
-5564: A5 53    lda nibbler_direction_53
+5564: A5 53    lda snake_head_direction_53
 5566: C9 01    cmp #$01
 5568: F0 57    beq $55c1
 556A: C9 02    cmp #$02
@@ -3790,7 +3792,7 @@ time_blink_4feb:
 5624: D0 F9    bne $561f
 5626: A9 1B    lda #$1b
 5628: 38       sec
-5629: E5 54    sbc $54
+5629: E5 54    sbc snake_tail_row_54
 562B: 18       clc
 562C: 2A       rol a
 562D: 2A       rol a
@@ -3805,7 +3807,7 @@ time_blink_4feb:
 563B: 85 1C    sta $1c
 563D: A9 1F    lda #$1f
 563F: 38       sec
-5640: E5 55    sbc $55
+5640: E5 55    sbc snake_tail_col_55
 5642: 18       clc
 5643: 65 1B    adc $1b
 5645: 85 1B    sta $1b
@@ -3828,23 +3830,23 @@ time_blink_4feb:
 5668: A0 10    ldy #$10
 566A: B9 D7 58 lda $58d7, y
 566D: 85 EF    sta $ef
-566F: A5 56    lda $56
+566F: A5 56    lda snake_tail_direction_56
 5671: C9 01    cmp #$01
 5673: F0 0D    beq $5682
 5675: C9 02    cmp #$02
 5677: F0 0E    beq $5687
 5679: C9 04    cmp #$04
 567B: F0 0F    beq $568c
-567D: C6 54    dec $54
+567D: C6 54    dec snake_tail_row_54
 567F: 4C 8E 56 jmp $568e
-5682: C6 55    dec $55
+5682: C6 55    dec snake_tail_col_55
 5684: 4C 8E 56 jmp $568e
-5687: E6 55    inc $55
+5687: E6 55    inc snake_tail_col_55
 5689: 4C 8E 56 jmp $568e
-568C: E6 54    inc $54
+568C: E6 54    inc snake_tail_row_54
 568E: A9 1B    lda #$1b
 5690: 38       sec
-5691: E5 54    sbc $54
+5691: E5 54    sbc snake_tail_row_54
 5693: 18       clc
 5694: 2A       rol a
 5695: 2A       rol a
@@ -3859,7 +3861,7 @@ time_blink_4feb:
 56A3: 85 1C    sta $1c
 56A5: A9 1F    lda #$1f
 56A7: 38       sec
-56A8: E5 55    sbc $55
+56A8: E5 55    sbc snake_tail_col_55
 56AA: 18       clc
 56AB: 65 1B    adc $1b
 56AD: 85 1B    sta $1b
@@ -3870,13 +3872,13 @@ time_blink_4feb:
 56B7: C5 58    cmp tail_ptr_58
 56B9: F0 03    beq $56be
 56BB: 4C 78 58 jmp $5878
-56BE: A5 51    lda snake_row_51
-56C0: C5 54    cmp $54
+56BE: A5 51    lda snake_head_row_51
+56C0: C5 54    cmp snake_tail_row_54
 56C2: D0 97    bne $565b
-56C4: A5 52    lda snake_col_52
-56C6: C5 55    cmp $55
+56C4: A5 52    lda snake_head_col_52
+56C6: C5 55    cmp snake_tail_col_55
 56C8: D0 91    bne $565b
-56CA: A5 53    lda nibbler_direction_53
+56CA: A5 53    lda snake_head_direction_53
 56CC: A2 42    ldx #$42
 56CE: C9 01    cmp #$01
 56D0: F0 0E    beq $56e0
@@ -4079,7 +4081,7 @@ time_blink_4feb:
 5874: 20 00 AA jsr $aa00
 5877: 60       rts
 5878: A4 58    ldy tail_ptr_58
-587A: A5 56    lda $56
+587A: A5 56    lda snake_tail_direction_56
 587C: C9 01    cmp #$01
 587E: F0 23    beq $58a3
 5880: C9 02    cmp #$02
@@ -4087,19 +4089,19 @@ time_blink_4feb:
 5884: C9 04    cmp #$04
 5886: F0 09    beq $5891
 5888: B9 C0 03 lda $03c0, y
-588B: C5 54    cmp $54
+588B: C5 54    cmp snake_tail_row_54
 588D: 30 45    bmi $58d4
 588F: 10 19    bpl $58aa
-5891: A5 54    lda $54
+5891: A5 54    lda snake_tail_row_54
 5893: D9 C0 03 cmp $03c0, y
 5896: 30 3C    bmi $58d4
 5898: 10 10    bpl $58aa
-589A: A5 55    lda $55
+589A: A5 55    lda snake_tail_col_55
 589C: D9 C0 03 cmp $03c0, y
 589F: 30 33    bmi $58d4
 58A1: 10 07    bpl $58aa
 58A3: B9 C0 03 lda $03c0, y
-58A6: C5 55    cmp $55
+58A6: C5 55    cmp snake_tail_col_55
 58A8: 30 2A    bmi $58d4
 58AA: C8       iny
 58AB: B9 C0 03 lda $03c0, y
@@ -4118,7 +4120,7 @@ time_blink_4feb:
 58C6: C9 06    cmp #$06
 58C8: 10 02    bpl $58cc
 58CA: A2 08    ldx #$08
-58CC: 86 56    stx $56
+58CC: 86 56    stx snake_tail_direction_56
 58CE: C8       iny
 58CF: 98       tya
 58D0: 29 3F    and #$3f
@@ -4619,7 +4621,7 @@ animate_head_and_body_5c8f:
 5C96: A5 5A    lda $5a
 5C98: D0 03    bne $5c9d
 5C9A: 4C DE 5C jmp $5cde
-5C9D: A5 53    lda nibbler_direction_53
+5C9D: A5 53    lda snake_head_direction_53
 5C9F: C9 01    cmp #$01
 5CA1: F0 2C    beq $5ccf
 5CA3: C9 02    cmp #$02
@@ -4628,17 +4630,17 @@ animate_head_and_body_5c8f:
 5CA9: F0 0C    beq $5cb7
 5CAB: A5 3B    lda move_to_row_3b
 5CAD: 38       sec
-5CAE: E5 51    sbc snake_row_51
+5CAE: E5 51    sbc snake_head_row_51
 5CB0: C9 02    cmp #$02
 5CB2: 10 27    bpl $5cdb
 5CB4: 4C DE 5C jmp $5cde
-5CB7: A5 51    lda snake_row_51
+5CB7: A5 51    lda snake_head_row_51
 5CB9: 38       sec
 5CBA: E5 3B    sbc move_to_row_3b
 5CBC: C9 02    cmp #$02
 5CBE: 10 1B    bpl $5cdb
 5CC0: 4C DE 5C jmp $5cde
-5CC3: A5 52    lda snake_col_52
+5CC3: A5 52    lda snake_head_col_52
 5CC5: 38       sec
 5CC6: E5 3C    sbc $3c
 5CC8: C9 02    cmp #$02
@@ -4646,12 +4648,12 @@ animate_head_and_body_5c8f:
 5CCC: 4C DE 5C jmp $5cde
 5CCF: A5 3C    lda $3c
 5CD1: 38       sec
-5CD2: E5 52    sbc snake_col_52
+5CD2: E5 52    sbc snake_head_col_52
 5CD4: C9 02    cmp #$02
 5CD6: 10 03    bpl $5cdb
 5CD8: 4C DE 5C jmp $5cde
 5CDB: 20 00 AF jsr $af00
-5CDE: A5 53    lda nibbler_direction_53
+5CDE: A5 53    lda snake_head_direction_53
 5CE0: C9 04    cmp #$04
 5CE2: F0 04    beq move_horizontally_5ce8	; right
 5CE4: C9 08    cmp #$08
@@ -4757,15 +4759,15 @@ move_vertically_5ceb:
 
 5DF9: 08       php
 5DFA: A9 02    lda #$02
-5DFC: 85 52    sta snake_col_52
-5DFE: 85 55    sta $55
+5DFC: 85 52    sta snake_head_col_52
+5DFE: 85 55    sta snake_tail_col_55
 5E00: A9 10    lda #$10
-5E02: 85 51    sta snake_row_51
+5E02: 85 51    sta snake_head_row_51
 5E04: A9 08    lda #$08
-5E06: 85 54    sta $54
+5E06: 85 54    sta snake_tail_row_54
 5E08: A9 04    lda #$04
-5E0A: 85 53    sta nibbler_direction_53
-5E0C: 85 56    sta $56
+5E0A: 85 53    sta snake_head_direction_53
+5E0C: 85 56    sta snake_tail_direction_56
 5E0E: A9 01    lda #$01
 5E10: 85 42    sta tail_oriented_down_42
 5E12: A9 FF    lda #$ff
@@ -4834,7 +4836,7 @@ move_vertically_5ceb:
 5E8C: C6 18    dec $18
 5E8E: D0 F5    bne $5e85
 5E90: 60       rts
-5E91: A5 56    lda $56
+5E91: A5 56    lda snake_tail_direction_56
 5E93: C9 01    cmp #$01
 5E95: F0 12    beq $5ea9
 5E97: C9 02    cmp #$02
@@ -4851,9 +4853,9 @@ move_vertically_5ceb:
 5EB0: 10 05    bpl $5eb7
 5EB2: A9 96    lda #$96
 5EB4: 4C 87 3F jmp $3f87
-5EB7: A5 54    lda $54
+5EB7: A5 54    lda snake_tail_row_54
 5EB9: 85 19    sta $19
-5EBB: A5 55    lda $55
+5EBB: A5 55    lda snake_tail_col_55
 5EBD: 85 1A    sta $1a
 5EBF: A9 1B    lda #$1b
 5EC1: 38       sec
@@ -4894,7 +4896,7 @@ move_vertically_5ceb:
 5F00: C9 05    cmp #$05
 5F02: F0 20    beq $5f24
 5F04: A9 04    lda #$04
-5F06: 85 56    sta $56
+5F06: 85 56    sta snake_tail_direction_56
 5F08: A5 17    lda head_x_value_17
 5F0A: 38       sec
 5F0B: E9 21    sbc #$21
@@ -4910,7 +4912,7 @@ move_vertically_5ceb:
 5F1F: 85 1A    sta $1a
 5F21: 4C 81 5F jmp $5f81
 5F24: A9 08    lda #$08
-5F26: 85 56    sta $56
+5F26: 85 56    sta snake_tail_direction_56
 5F28: A5 17    lda head_x_value_17
 5F2A: 38       sec
 5F2B: E9 21    sbc #$21
@@ -4926,7 +4928,7 @@ move_vertically_5ceb:
 5F3F: 85 1A    sta $1a
 5F41: 4C 81 5F jmp $5f81
 5F44: A9 01    lda #$01
-5F46: 85 56    sta $56
+5F46: 85 56    sta snake_tail_direction_56
 5F48: A5 17    lda head_x_value_17
 5F4A: 38       sec
 5F4B: E9 21    sbc #$21
@@ -4942,7 +4944,7 @@ move_vertically_5ceb:
 5F5F: 85 1A    sta $1a
 5F61: 4C 81 5F jmp $5f81
 5F64: A9 02    lda #$02
-5F66: 85 56    sta $56
+5F66: 85 56    sta snake_tail_direction_56
 5F68: A5 17    lda head_x_value_17
 5F6A: 38       sec
 5F6B: E9 21    sbc #$21
@@ -5934,13 +5936,13 @@ save_debug_values_7f4d:
 7F6B: A5 D5    lda $d5
 7F6D: 9D 00 02 sta $0200, x
 7F70: E8       inx
-7F71: A5 51    lda snake_row_51
+7F71: A5 51    lda snake_head_row_51
 7F73: 9D 00 02 sta $0200, x
 7F76: E8       inx
-7F77: A5 52    lda snake_col_52
+7F77: A5 52    lda snake_head_col_52
 7F79: 9D 00 02 sta $0200, x
 7F7C: E8       inx
-7F7D: A5 53    lda nibbler_direction_53
+7F7D: A5 53    lda snake_head_direction_53
 7F7F: 9D 00 02 sta $0200, x
 7F82: E8       inx
 7F83: A5 5A    lda $5a
@@ -5976,23 +5978,23 @@ nibbler_horizontal_movement_a000:
 A000: A5 ED    lda unknown_ed
 A002: D0 03    bne $a007
 A004: 4C 61 A1 jmp $a161
-A007: A5 53    lda nibbler_direction_53
+A007: A5 53    lda snake_head_direction_53
 A009: C9 04    cmp #$04
 A00B: F0 0E    beq $a01b
-A00D: A5 51    lda snake_row_51
+A00D: A5 51    lda snake_head_row_51
 A00F: 18       clc
 A010: 69 02    adc #$02
 A012: 85 33    sta charset_source_pointer_second_plane_33
-A014: A5 51    lda snake_row_51
+A014: A5 51    lda snake_head_row_51
 A016: 85 17    sta head_x_value_17
 A018: 4C 26 A0 jmp $a026
-A01B: A5 51    lda snake_row_51
+A01B: A5 51    lda snake_head_row_51
 A01D: 38       sec
 A01E: E9 02    sbc #$02
 A020: 85 33    sta charset_source_pointer_second_plane_33
-A022: A5 51    lda snake_row_51
+A022: A5 51    lda snake_head_row_51
 A024: 85 17    sta head_x_value_17
-A026: A5 52    lda snake_col_52
+A026: A5 52    lda snake_head_col_52
 A028: 85 18    sta $18
 A02A: 18       clc
 A02B: 69 01    adc #$01
@@ -6018,12 +6020,12 @@ A049: E5 34    sbc $34
 A04B: 18       clc
 A04C: 65 31    adc charset_source_pointer_first_plane_31
 A04E: 85 31    sta charset_source_pointer_first_plane_31
-A050: A5 53    lda nibbler_direction_53
+A050: A5 53    lda snake_head_direction_53
 A052: C9 04    cmp #$04
 A054: F0 1B    beq $a071
 A056: A5 3B    lda move_to_row_3b
 A058: 38       sec
-A059: E5 51    sbc snake_row_51
+A059: E5 51    sbc snake_head_row_51
 A05B: 30 0F    bmi $a06c
 A05D: C9 04    cmp #$04
 A05F: 30 2C    bmi $a08d
@@ -6034,7 +6036,7 @@ A067: 85 1C    sta $1c
 A069: 4C 84 A0 jmp $a084
 A06C: A9 92    lda #$92
 A06E: 4C 10 30 jmp $3010
-A071: A5 51    lda snake_row_51
+A071: A5 51    lda snake_head_row_51
 A073: 38       sec
 A074: E5 3B    sbc move_to_row_3b
 A076: 30 F4    bmi $a06c
@@ -6073,7 +6075,7 @@ A0B2: A9 00    lda #$00
 A0B4: 91 19    sta ($19), y
 A0B6: 88       dey
 A0B7: 10 FB    bpl $a0b4
-A0B9: A5 53    lda nibbler_direction_53
+A0B9: A5 53    lda snake_head_direction_53
 A0BB: C9 04    cmp #$04
 A0BD: F0 10    beq $a0cf
 A0BF: A5 31    lda charset_source_pointer_first_plane_31
@@ -6183,7 +6185,7 @@ A19A: C8       iny
 A19B: B1 17    lda (head_x_value_17), y
 A19D: 85 1F    sta $1f
 A19F: A4 16    ldy $16
-A1A1: A5 53    lda nibbler_direction_53
+A1A1: A5 53    lda snake_head_direction_53
 A1A3: C9 08    cmp #$08
 A1A5: F0 0A    beq dir_left_a1b1
 A1A7: B1 1B    lda ($1b), y
@@ -6218,7 +6220,7 @@ A1D9: C8       iny
 A1DA: B1 19    lda ($19), y
 A1DC: 85 1E    sta $1e
 A1DE: A4 1F    ldy $1f		; copy size is not fixed
-A1E0: A5 53    lda nibbler_direction_53
+A1E0: A5 53    lda snake_head_direction_53
 A1E2: C9 08    cmp #$08
 A1E4: F0 0A    beq dir_left_a1f0
 A1E6: B1 1B    lda ($1b), y
@@ -6247,7 +6249,7 @@ A209: 69 08    adc #$08
 A20B: 85 1E    sta $1e
 A20D: C6 16    dec $16
 A20F: A4 16    ldy $16
-A211: A5 53    lda nibbler_direction_53
+A211: A5 53    lda snake_head_direction_53
 A213: C9 08    cmp #$08
 A215: F0 0A    beq $a221
 A217: B1 31    lda (charset_source_pointer_first_plane_31), y
@@ -6283,7 +6285,7 @@ A24C: 18       clc
 A24D: 69 08    adc #$08
 A24F: 85 1E    sta $1e
 A251: A4 1F    ldy $1f
-A253: A5 53    lda nibbler_direction_53
+A253: A5 53    lda snake_head_direction_53
 A255: C9 08    cmp #$08
 A257: F0 0A    beq $a263
 A259: B1 31    lda (charset_source_pointer_first_plane_31), y
@@ -6308,23 +6310,23 @@ A300: A5 ED    lda unknown_ed
 A302: D0 03    bne $a307
 A304: 4C A1 A4 jmp $a4a1
 
-A307: A5 53    lda nibbler_direction_53
+A307: A5 53    lda snake_head_direction_53
 A309: C9 02    cmp #$02
 A30B: F0 0E    beq $a31b
-A30D: A5 52    lda snake_col_52
+A30D: A5 52    lda snake_head_col_52
 A30F: 18       clc
 A310: 69 02    adc #$02
 A312: 85 34    sta $34
-A314: A5 52    lda snake_col_52
+A314: A5 52    lda snake_head_col_52
 A316: 85 18    sta $18
 A318: 4C 26 A3 jmp $a326
-A31B: A5 52    lda snake_col_52
+A31B: A5 52    lda snake_head_col_52
 A31D: 38       sec
 A31E: E9 02    sbc #$02
 A320: 85 34    sta $34
-A322: A5 52    lda snake_col_52
+A322: A5 52    lda snake_head_col_52
 A324: 85 18    sta $18
-A326: A5 51    lda snake_row_51
+A326: A5 51    lda snake_head_row_51
 A328: 85 17    sta head_x_value_17
 A32A: 18       clc
 A32B: 69 01    adc #$01
@@ -6354,12 +6356,12 @@ A350: A5 31    lda charset_source_pointer_first_plane_31
 A352: 85 33    sta charset_source_pointer_second_plane_33
 A354: A5 32    lda $32
 A356: 85 34    sta $34
-A358: A5 53    lda nibbler_direction_53
+A358: A5 53    lda snake_head_direction_53
 A35A: C9 02    cmp #$02
 A35C: F0 1B    beq $a379
 A35E: A5 3C    lda $3c
 A360: 38       sec
-A361: E5 52    sbc snake_col_52
+A361: E5 52    sbc snake_head_col_52
 A363: 30 0F    bmi $a374
 A365: C9 04    cmp #$04
 A367: 30 3B    bmi $a3a4
@@ -6371,7 +6373,7 @@ A371: 4C 8C A3 jmp $a38c
 A374: A9 92    lda #$92
 A376: 4C 10 30 jmp $3010
 
-A379: A5 52    lda snake_col_52
+A379: A5 52    lda snake_head_col_52
 A37B: 38       sec
 A37C: E5 3C    sbc $3c
 A37E: 30 F4    bmi $a374
@@ -6421,7 +6423,7 @@ A3C9: A9 00    lda #$00
 A3CB: 91 19    sta ($19), y
 A3CD: 88       dey
 A3CE: 10 FB    bpl $a3cb
-A3D0: A5 53    lda nibbler_direction_53
+A3D0: A5 53    lda snake_head_direction_53
 A3D2: C9 02    cmp #$02
 A3D4: F0 10    beq $a3e6
 A3D6: A5 33    lda charset_source_pointer_second_plane_33
@@ -6526,7 +6528,7 @@ A49E: 4C 13 30 jmp $3013
 A4A1: A5 E9    lda frame_index_e9
 A4A3: 0A       asl a
 A4A4: A8       tay
-A4A5: A5 53    lda nibbler_direction_53
+A4A5: A5 53    lda snake_head_direction_53
 A4A7: C9 01    cmp #$01
 A4A9: F0 17    beq dir_down_a4c2
 A4AB: B9 60 65 lda $6560, y
@@ -6571,7 +6573,7 @@ A4F7: C8       iny
 A4F8: B1 17    lda (head_x_value_17), y
 A4FA: 85 1F    sta $1f
 A4FC: A4 16    ldy $16
-A4FE: A5 53    lda nibbler_direction_53
+A4FE: A5 53    lda snake_head_direction_53
 A500: C9 08    cmp #$08
 A502: F0 0A    beq dir_left_a50e
 A504: B1 1B    lda ($1b), y
@@ -6606,7 +6608,7 @@ A536: C8       iny
 A537: B1 19    lda ($19), y
 A539: 85 1E    sta $1e
 A53B: A4 1F    ldy $1f
-A53D: A5 53    lda nibbler_direction_53
+A53D: A5 53    lda snake_head_direction_53
 A53F: C9 08    cmp #$08
 A541: F0 0A    beq dir_left_a54d
 A543: B1 1B    lda ($1b), y
@@ -6634,7 +6636,7 @@ A566: 69 08    adc #$08
 A568: 85 1E    sta $1e
 A56A: C6 16    dec $16
 A56C: A4 16    ldy $16
-A56E: A5 53    lda nibbler_direction_53
+A56E: A5 53    lda snake_head_direction_53
 A570: C9 08    cmp #$08
 A572: F0 0A    beq dir_left_a57e
 A574: B1 31    lda (charset_source_pointer_first_plane_31), y
@@ -6671,7 +6673,7 @@ A5A9: 18       clc
 A5AA: 69 08    adc #$08
 A5AC: 85 1E    sta $1e
 A5AE: A4 1F    ldy $1f
-A5B0: A5 53    lda nibbler_direction_53
+A5B0: A5 53    lda snake_head_direction_53
 A5B2: C9 08    cmp #$08
 A5B4: F0 0A    beq $a5c0
 A5B6: B1 31    lda (charset_source_pointer_first_plane_31), y
@@ -6700,9 +6702,9 @@ A604: 60       rts
 A605: A5 ED    lda unknown_ed
 A607: D0 03    bne $a60c
 A609: 4C E3 A7 jmp $a7e3
-A60C: A5 54    lda $54
+A60C: A5 54    lda snake_tail_row_54
 A60E: 85 17    sta head_x_value_17
-A610: A5 55    lda $55
+A610: A5 55    lda snake_tail_col_55
 A612: 85 18    sta $18
 A614: A9 1B    lda #$1b
 A616: 38       sec
@@ -6725,7 +6727,7 @@ A62E: E5 18    sbc $18
 A630: 18       clc
 A631: 65 19    adc $19
 A633: 85 19    sta $19
-A635: A5 56    lda $56
+A635: A5 56    lda snake_tail_direction_56
 A637: C9 01    cmp #$01
 A639: F0 38    beq $a673
 A63B: C9 02    cmp #$02
@@ -6771,7 +6773,7 @@ A688: C9 4F    cmp #$4f
 A68A: B0 04    bcs $a690
 A68C: A9 30    lda #$30
 A68E: 91 19    sta ($19), y		; [video_address]
-A690: A5 56    lda $56
+A690: A5 56    lda snake_tail_direction_56
 A692: C9 01    cmp #$01
 A694: F0 38    beq $a6ce
 A696: C9 02    cmp #$02
@@ -6819,14 +6821,14 @@ A6E7: C8       iny
 A6E8: B9 C0 03 lda $03c0, y
 A6EB: 29 F0    and #$f0
 A6ED: A8       tay
-A6EE: A5 56    lda $56
+A6EE: A5 56    lda snake_tail_direction_56
 A6F0: C9 01    cmp #$01
 A6F2: F0 2C    beq $a720
 A6F4: C9 02    cmp #$02
 A6F6: F0 1C    beq $a714
 A6F8: C9 04    cmp #$04
 A6FA: F0 0C    beq $a708
-A6FC: A5 54    lda $54
+A6FC: A5 54    lda snake_tail_row_54
 A6FE: 38       sec
 A6FF: E5 16    sbc $16
 A701: E9 03    sbc #$03
@@ -6834,26 +6836,26 @@ A703: 10 38    bpl $a73d
 A705: 4C C5 A7 jmp $a7c5
 A708: A5 16    lda $16
 A70A: 38       sec
-A70B: E5 54    sbc $54
+A70B: E5 54    sbc snake_tail_row_54
 A70D: E9 03    sbc #$03
 A70F: 10 2C    bpl $a73d
 A711: 4C C5 A7 jmp $a7c5
 A714: A5 16    lda $16
 A716: 38       sec
-A717: E5 55    sbc $55
+A717: E5 55    sbc snake_tail_col_55
 A719: E9 03    sbc #$03
 A71B: 10 20    bpl $a73d
 A71D: 4C C5 A7 jmp $a7c5
 A720: 98       tya
 A721: C9 30    cmp #$30
 A723: F0 0C    beq $a731
-A725: A5 55    lda $55
+A725: A5 55    lda snake_tail_col_55
 A727: 38       sec
 A728: E5 16    sbc $16
 A72A: E9 03    sbc #$03
 A72C: 10 0F    bpl $a73d
 A72E: 4C C5 A7 jmp $a7c5
-A731: A5 55    lda $55
+A731: A5 55    lda snake_tail_col_55
 A733: 38       sec
 A734: E5 16    sbc $16
 A736: E9 04    sbc #$04
@@ -6871,11 +6873,11 @@ A74C: B1 17    lda (head_x_value_17), y
 A74E: 18       clc
 A74F: 69 08    adc #$08
 A751: 85 1C    sta $1c
-A753: A5 56    lda $56
+A753: A5 56    lda snake_tail_direction_56
 A755: C9 03    cmp #$03
 A757: 10 03    bpl $a75c
 A759: 4C 5C A7 jmp $a75c
-A75C: A5 56    lda $56
+A75C: A5 56    lda snake_tail_direction_56
 A75E: C9 01    cmp #$01
 A760: F0 1A    beq $a77c
 A762: C9 02    cmp #$02
@@ -6905,7 +6907,7 @@ A78E: A5 18    lda $18
 A790: 69 00    adc #$00
 A792: 85 18    sta $18
 A794: A0 07    ldy #$07
-A796: A5 56    lda $56
+A796: A5 56    lda snake_tail_direction_56
 A798: C9 08    cmp #$08
 A79A: F0 0A    beq $a7a6
 A79C: B1 17    lda (head_x_value_17), y
@@ -6929,6 +6931,7 @@ A7BB: 85 18    sta $18
 A7BD: A4 EE    ldy $ee
 A7BF: B1 17    lda (head_x_value_17), y
 A7C1: A0 00    ldy #$00
+; snake tail chars
 A7C3: 91 19    sta ($19), y		; [video_address]
 A7C5: A5 EE    lda $ee
 A7C7: 18       clc
@@ -6941,7 +6944,7 @@ A7D2: 85 EE    sta $ee
 A7D4: 4C E3 A7 jmp $a7e3
 
 
-A7E3: A5 56    lda $56
+A7E3: A5 56    lda snake_tail_direction_56
 A7E5: C9 01    cmp #$01
 A7E7: F0 17    beq $a800
 A7E9: C9 02    cmp #$02
@@ -7005,7 +7008,7 @@ A859: C8       iny
 A85A: B1 19    lda ($19), y
 A85C: 85 1E    sta $1e
 A85E: A4 1D    ldy $1d
-A860: A5 56    lda $56
+A860: A5 56    lda snake_tail_direction_56
 A862: C9 08    cmp #$08
 A864: F0 0A    beq $a870
 A866: B1 17    lda (head_x_value_17), y
@@ -7038,7 +7041,7 @@ A896: 85 1B    sta $1b
 A898: A9 12    lda #$12
 A89A: 85 1C    sta $1c
 A89C: A4 1E    ldy $1e
-A89E: A5 56    lda $56
+A89E: A5 56    lda snake_tail_direction_56
 A8A0: C9 08    cmp #$08
 A8A2: F0 0A    beq $a8ae
 A8A4: B1 17    lda (head_x_value_17), y
@@ -7068,7 +7071,7 @@ A8CE: 18       clc
 A8CF: 69 08    adc #$08
 A8D1: 85 1C    sta $1c
 A8D3: A4 1D    ldy $1d
-A8D5: A5 56    lda $56
+A8D5: A5 56    lda snake_tail_direction_56
 A8D7: C9 08    cmp #$08
 A8D9: F0 0A    beq $a8e5
 A8DB: B1 31    lda (charset_source_pointer_first_plane_31), y
@@ -7100,7 +7103,7 @@ A909: 85 1B    sta $1b
 A90B: A9 1A    lda #$1a
 A90D: 85 1C    sta $1c
 A90F: A4 1E    ldy $1e
-A911: A5 56    lda $56
+A911: A5 56    lda snake_tail_direction_56
 A913: C9 08    cmp #$08
 A915: F0 0A    beq $a921
 A917: B1 31    lda (charset_source_pointer_first_plane_31), y
@@ -7119,13 +7122,13 @@ A92D: 88       dey
 A92E: 10 F1    bpl $a921
 A930: 60       rts
 
-AA00: A5 52    lda snake_col_52
-AA02: C5 55    cmp $55
+AA00: A5 52    lda snake_head_col_52
+AA02: C5 55    cmp snake_tail_col_55
 AA04: D0 10    bne $aa16
 AA06: A9 04    lda #$04
-AA08: C5 53    cmp nibbler_direction_53
+AA08: C5 53    cmp snake_head_direction_53
 AA0A: D0 0A    bne $aa16
-AA0C: C5 56    cmp $56
+AA0C: C5 56    cmp snake_tail_direction_56
 AA0E: D0 06    bne $aa16
 AA10: A5 57    lda head_ptr_57
 AA12: C5 58    cmp tail_ptr_58
@@ -7139,9 +7142,9 @@ AA21: A9 08    lda #$08
 AA23: 8D 01 21 sta sound_2101
 AA26: A9 00    lda #$00
 AA28: 85 E9    sta frame_index_e9
-AA2A: A5 54    lda $54
+AA2A: A5 54    lda snake_tail_row_54
 AA2C: 85 19    sta $19
-AA2E: A5 55    lda $55
+AA2E: A5 55    lda snake_tail_col_55
 AA30: 18       clc
 AA31: 69 01    adc #$01
 AA33: 85 1A    sta $1a
@@ -7166,11 +7169,11 @@ AA4F: E5 1A    sbc $1a
 AA51: 18       clc
 AA52: 65 10    adc $10
 AA54: 85 10    sta $10
-AA56: A5 51    lda snake_row_51
+AA56: A5 51    lda snake_head_row_51
 AA58: 18       clc
 AA59: 69 01    adc #$01
 AA5B: 85 19    sta $19
-AA5D: A5 52    lda snake_col_52
+AA5D: A5 52    lda snake_head_col_52
 AA5F: 18       clc
 AA60: 69 01    adc #$01
 AA62: 85 1A    sta $1a

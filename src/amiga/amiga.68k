@@ -2565,8 +2565,8 @@ osd_display_head:
 	movem.l	D0-D2,-(a7)
 	moveq	#0,d0
 	moveq	#0,d1
-	move.b	(snake_row_51,a6),d0	| char X
-	move.b	(snake_col_52,a6),d1	| char Y
+	move.b	(snake_head_row_51,a6),d0	| char X
+	move.b	(snake_head_col_52,a6),d1	| char Y
 	addq	#4,d0
 	neg.w	d1
 	add.w	#0x20,d1
@@ -2575,9 +2575,9 @@ osd_display_head:
 	
 	
 	lea		bob_table,a0
-	lea		direction2order_table,a1
+	lea		head_direction2order_table,a1
 	moveq	#0,d7
-	move.b	(nibbler_direction_53,a6),d7
+	move.b	(snake_head_direction_53,a6),d7
 	lsl.b	#3,d7
 	add.w	(2,a1,d7.w),d0		| X offset
 	add.w	(4,a1,d7.w),d1		| Y offset
@@ -2587,8 +2587,49 @@ osd_display_head:
 	add.w	a1,a2
 	jsr		(a2)
 	
-	* TODO add/sub with proper routine
-
+	move.w	(a1,d7.w),d7		| offset
+	move.l	(a0,d7.w),a0		| BOB structure
+	move.l	(a0),a0				| only one clut
+	move.w	(a0)+,d4			| height
+	move.w	(a0)+,d2			| width in bytes
+	add.w	(a0)+,d1			| add offset to Y
+	move.w	#NB_FG_PLANES,d3	| nb planes
+	moveq	#0,d5				| no offset to bitmap, no clipping
+	addq	#2,a0
+	* now a0 contains bitplanes
+	move.l		(NB_FG_PLANES*4,a0),a3		| mask
+	move.l		playfield_drawn_screen_ptr,a1
+	jbsr	blit_planes_any_internal_cookie_cut
+	
+	movem.l	(a7)+,d0-d2
+	*rts
+	
+osd_display_tail:
+	movem.l	D0-D2,-(a7)
+	moveq	#0,d0
+	moveq	#0,d1
+	move.b	(snake_tail_row_54,a6),d0	| char X
+	move.b	(snake_tail_col_55,a6),d1	| char Y
+	addq	#4,d0
+	neg.w	d1
+	add.w	#0x20,d1
+	lsl.w	#3,d1	| times 8
+	lsl.w	#3,d0	| times 8
+	
+	
+	lea		bob_table,a0
+	lea		tail_direction2order_table,a1
+	moveq	#0,d7
+	move.b	(snake_tail_direction_56,a6),d7
+	lsl.b	#3,d7
+	add.w	(2,a1,d7.w),d0		| X offset
+	add.w	(4,a1,d7.w),d1		| Y offset
+	moveq	#0,d6
+	move.b	(frame_index_e9,a6),d6
+	move.w	(6,a1,d7.w),a2
+	add.w	a1,a2
+	jsr		(a2)
+	
 	move.w	(a1,d7.w),d7		| offset
 	move.l	(a0,d7.w),a0		| BOB structure
 	move.l	(a0),a0				| only one clut
@@ -2610,17 +2651,29 @@ osd_display_head:
 	
 * nibbler_direction_53 contains 1,2,4,8
 * convert this offset into offset in bob table
-direction2order_table:
+head_direction2order_table:
 	.word	-1,0,0,0
 	* bob_frame_offset,offset_x,offset_y,is_horizontal       
-	.word	11,-8,-24,add_y_displacement-direction2order_table		| down
-	.word	8,-8,-16,sub_y_displacement-direction2order_table		| up
+	.word	12,-8,-24,add_y_displacement-head_direction2order_table		| down
+	.word	8,-8,-16,sub_y_displacement-head_direction2order_table		| up
 	.word	-1,0,0,0
-	.word	0,-16,-16,add_x_displacement-direction2order_table		| right
+	.word	0,-16,-16,add_x_displacement-head_direction2order_table		| right
 	.word	-1,0,0,0
 	.word	-1,0,0,0
 	.word	-1,0,0,0
-	.word	4,-16,-16,sub_x_displacement-direction2order_table		| left
+	.word	4,-16,-16,sub_x_displacement-head_direction2order_table		| left
+
+tail_direction2order_table:
+	.word	-1,0,0,0
+	* bob_frame_offset,offset_x,offset_y,is_horizontal       
+	.word	16+12,-1,-10,add_y_displacement-tail_direction2order_table		| down
+	.word	16+8,-1,-32,sub_y_displacement-tail_direction2order_table		| up
+	.word	-1,0,0,0
+	.word	16+0,0,-8,add_x_displacement-tail_direction2order_table		| right
+	.word	-1,0,0,0
+	.word	-1,0,0,0
+	.word	-1,0,0,0
+	.word	16+4,-24,-8,sub_x_displacement-tail_direction2order_table		| left
 
 add_y_displacement:
 	add.w	d6,d1
