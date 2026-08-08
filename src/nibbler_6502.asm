@@ -3160,7 +3160,7 @@ time_blink_4feb:
 5125: 85 1A    sta $1a
 5127: A0 03    ldy #$03
 5129: B1 19    lda ($19), y
-512B: 91 17    sta (head_x_value_17), y   ; [video_address]
+512B: 91 17    sta (head_x_value_17), y
 512D: 88       dey
 512E: 10 F9    bpl $5129
 5130: A9 0A    lda #$0a
@@ -6967,6 +6967,7 @@ A80A: 85 33    sta charset_source_pointer_second_plane_33
 A80C: A9 73    lda #$73
 A80E: 85 34    sta $34
 A810: 4C 23 A8 jmp $a823
+; $74E0 is a 8-pointer table on tail data. Game uses frame index to animate
 A813: A9 E0    lda #$e0
 A815: 85 19    sta $19
 A817: A9 74    lda #$74
@@ -7008,6 +7009,7 @@ A859: C8       iny
 A85A: B1 19    lda ($19), y
 A85C: 85 1E    sta $1e
 A85E: A4 1D    ldy $1d
+; change snake tail character data to animate it
 A860: A5 56    lda snake_tail_direction_56
 A862: C9 08    cmp #$08
 A864: F0 0A    beq $a870

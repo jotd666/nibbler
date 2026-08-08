@@ -1,18 +1,19 @@
-- RE wriggling tail
+- RE wriggling tail: using frame_index_e9 for 8 frames
+  => we should build a table of frames matching frame_index_e9 in each direction
+- if direction changes (for head and tail), redraw all tiles around before blitting new head/tail 
+  tail seems to continue straight after it has turned
+- score timer countdown bcd issue (ok during game)
 - when changing directions, some pieces of body remain behind
 - when killed, intercept & remove routine that does the
   color flash / tile update, do it using copper / palette changes
-- reach highscore check highscore screen: write video out
-  of range in 512B
 - eliminate unused cluts for nibbler body
 - RE tail animation
 - optim: remove copy char data when moving nibbler
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
 - rip F sound
-- level 4: sometimes restarts from level 1 in the middle of the level!
+- directly restarts from level 1 when all lives lost
  => breakpoint on game start
-- issue on game over (with high score): write video mem out of range
 - cheat add 10000 to score 
 - A8DD invalid mem access after level 34 expected?
 

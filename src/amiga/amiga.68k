@@ -2598,7 +2598,7 @@ osd_display_head:
 	addq	#2,a0
 	* now a0 contains bitplanes
 
-	move.l	(12*4,a4,d6.w),a3		| BOB structure of mask
+	move.l	(16*4,a4,d6.w),a3		| BOB structure of mask
 	move.l	(a3),a3				| only one clut
 	move.l		(8,a3),a3		| mask (any plane matches with the palette we chose)
 	move.l		playfield_drawn_screen_ptr,a1
@@ -2644,7 +2644,7 @@ osd_display_tail:
 	addq	#2,a0
 	* now a0 contains bitplanes
 	
-	move.l	(12*4,a4,d6.w),a3		| BOB structure of mask
+	move.l	(16*4,a4,d6.w),a3		| BOB structure of mask
 	move.l	(a3),a3				| only one clut
 	move.l		(8,a3),a3		| mask (any plane matches with the palette we chose)
 	
@@ -2661,14 +2661,14 @@ osd_display_tail:
 head_direction2order_table:
 	.word	-1,0,0,0
 	* bob_frame_offset,offset_x,offset_y,is_horizontal       
-	.word	12,-9,-24,add_y_displacement-head_direction2order_table		| down
-	.word	8,-9,-16,sub_y_displacement-head_direction2order_table		| up
+	.word	12,-4,-15,add_y_displacement-head_direction2order_table		| down
+	.word	8,-4,-9,sub_y_displacement-head_direction2order_table		| up
 	.word	-1,0,0,0
-	.word	0,-16,-16,add_x_displacement-head_direction2order_table		| right
+	.word	0,-2,-11,add_x_displacement-head_direction2order_table		| right
 	.word	-1,0,0,0
 	.word	-1,0,0,0
 	.word	-1,0,0,0
-	.word	4,-16,-16,sub_x_displacement-head_direction2order_table		| left
+	.word	4,0,-11,sub_x_displacement-head_direction2order_table		| left
 
 tail_direction2order_table:
 	.word	-1,0,0,0

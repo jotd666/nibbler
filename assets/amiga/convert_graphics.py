@@ -548,7 +548,7 @@ def load_pic(name):
             img.save(part_dir / f"{pathlib.Path(name).stem}_{i}.png")
     return img_list
 
-sprite_images = load_pic("head.png") + load_pic("tail_straight.png") + load_pic("tail_crooked.png") + load_pic("head_mask.png") + load_pic("tail_mask.png")
+sprite_images = load_pic("head.png") + load_pic("tail_straight.png") + load_pic("tail_slightly_crooked.png") + load_pic("tail_crooked.png") + load_pic("head_mask.png") + load_pic("tail_mask.png")
 
 bob_plane_cache = {}
 
@@ -712,10 +712,12 @@ with open(src_dir / "graphics.68k","w") as f:
     for i in range(4,8):
         sprite_names[i] = "tail_straight"
     for i in range(8,12):
-        sprite_names[i] = "tail_crooked"
+        sprite_names[i] = "tail_slightly_crooked"
     for i in range(12,16):
-        sprite_names[i] = "head_mask"
+        sprite_names[i] = "tail_crooked"
     for i in range(16,20):
+        sprite_names[i] = "head_mask"
+    for i in range(20,24):
         sprite_names[i] = "tail_mask"
     dump_bob_layer(sprite_table,f,sprite_names=sprite_names)
 
