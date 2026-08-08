@@ -162,6 +162,7 @@ w\@:
 	.global	osd_video_byte_dirty
 	.global	osd_get_last_known_pc
 	.global	osd_write_2103
+	.global	osd_set_fg_palette
 	.global	osd_write_sound_2100
 	.global	osd_sound_start
 	.global	osd_set_irq_return_address
@@ -2653,8 +2654,21 @@ osd_display_tail:
 	
 	movem.l	(a7)+,d0-d2
 	rts
-	
 
+* < d0: palette to set	
+osd_set_fg_palette:
+	movem.l	d0-d2/a6,-(a7)
+	and.w	#0x7,d0
+	add.w	d0,d0
+	add.w	d0,d0
+	lea		flashing_fg_palettes,a0
+	move.l	(a0,d0.w),a0
+	move.w	#TOTAL_NB_COLORS,d0
+	lea		game_colors,a1
+	bsr		load_palette
+	movem.l	(a7)+,d0-d2/a6
+	rts
+	
 	
 * nibbler_direction_53 contains 1,2,4,8
 * convert this offset into offset in bob table

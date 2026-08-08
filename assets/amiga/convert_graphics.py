@@ -637,14 +637,25 @@ is_bob=False, nb_cluts=FG_NB_CLUTS, mask_color=black, next_cache_id=next_cache_i
 ##is_bob=False, nb_cluts=FG_NB_CLUTS, mask_color=black, next_cache_id=next_cache_id)
 
 
+import random
+random.seed(1)
+
 with open(src_dir / "palette.68k","w") as f:
     f.write(generated_message)
     f.write("bg_tile_palette:\n")
     bitplanelib.palette_dump(bg_tile_palette,f,bitplanelib.PALETTE_FORMAT_ASMGNU)
     f.write("fg_tile_palette:\n")
     bitplanelib.palette_dump(fg_tile_palette,f,bitplanelib.PALETTE_FORMAT_ASMGNU)
-
-
+    # shuffled palettes
+    f.write("flashing_fg_palettes:\n")
+    for i in range(8):
+        f.write(f"\t.long\tflashing_fg_{i}\n")
+    nonblack = fg_tile_palette[1:]
+    for i in range(8):
+        f.write(f"flashing_fg_{i}:\n")
+        f.write(f"\t.word\t0\n")
+        bitplanelib.palette_dump(nonblack,f,bitplanelib.PALETTE_FORMAT_ASMGNU)
+        random.shuffle(nonblack)
 
 with open(src_dir / "graphics.68k","w") as f:
     f.write(generated_message)

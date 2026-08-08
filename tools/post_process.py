@@ -102,6 +102,25 @@ def game_specific(address,lines,i):
         line = change_instruction("jbra\tosd_display_head",lines,i)
     elif address in {0x3472,0x3478,0x347e}:
         line = line.replace("addx.b","abcd")  # score
+    elif address == 0x5E57:
+        line = """\t.ifdef\t__amiga__
+\ttst.b\td0
+\tjne\t0f
+\tjbsr\tosd_display_head
+0:
+\tjbsr\tosd_set_fg_palette   | faster
+\t.else
+"""
+    elif address == 0x5E73:
+        line = "\t.endif\n"+line
+    elif address == 0x4B3B:
+        # reset palette
+        line = """\t.ifdef\t__amiga__
+\tmoveq\t#0,d0
+\tjbsr\tosd_set_fg_palette   | faster
+\t.endif
+"""+line
+
     return line
 
 

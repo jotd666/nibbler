@@ -487,7 +487,7 @@ nmi_continue_320e:
 32B0: F0 03    beq $32b5
 ; not the first level: award bonus
 32B2: 20 DC 38 jsr award_end_of_level_bonus_38dc
-32B5: 20 24 4B jsr $4b24
+32B5: 20 24 4B jsr clear_screen_4b24
 32B8: E6 BC    inc level_number_bc
 32BA: A5 BC    lda level_number_bc
 32BC: C9 64    cmp #$64
@@ -1942,7 +1942,7 @@ dir_left_3cfe:
 4000: 85 00    sta $00
 4002: A5 00    lda $00
 4004: 30 09    bmi $400f
-4006: 20 24 4B jsr $4b24
+4006: 20 24 4B jsr clear_screen_4b24
 4009: 20 EE 35 jsr $35ee
 400C: 20 32 35 jsr $3532
 400F: A5 00    lda $00
@@ -2396,6 +2396,7 @@ draw_fruits_49ab:
 4B13: 10 F4    bpl $4b09
 4B15: 60       rts
 
+clear_screen_4b24:
 4B24: A0 00    ldy #$00
 4B26: 84 10    sty $10
 4B28: A9 04    lda #$04
@@ -2409,6 +2410,7 @@ draw_fruits_49ab:
 4B37: C9 10    cmp #$10
 4B39: 90 F1    bcc $4b2c
 4B3B: 60       rts
+
 4B3C: A9 00    lda #$00
 4B3E: 85 10    sta $10
 4B40: 85 12    sta $12
@@ -2427,7 +2429,7 @@ draw_fruits_49ab:
 4B59: C9 20    cmp #$20
 4B5B: 90 ED    bcc $4b4a
 4B5D: 60       rts
-4B5E: 20 24 4B jsr $4b24
+4B5E: 20 24 4B jsr clear_screen_4b24
 4B61: 68       pla
 4B62: 18       clc
 4B63: 69 08    adc #$08
@@ -3830,6 +3832,7 @@ time_blink_4feb:
 5668: A0 10    ldy #$10
 566A: B9 D7 58 lda $58d7, y
 566D: 85 EF    sta $ef
+; snake died: shrink it
 566F: A5 56    lda snake_tail_direction_56
 5671: C9 01    cmp #$01
 5673: F0 0D    beq $5682
@@ -3995,7 +3998,7 @@ time_blink_4feb:
 57BD: A9 03    lda #$03
 57BF: 85 2C    sta $2c
 57C1: 4C 02 58 jmp $5802
-57C4: 20 24 4B jsr $4b24
+57C4: 20 24 4B jsr clear_screen_4b24
 57C7: A9 08    lda #$08
 57C9: 2D 06 21 and dsw_2106
 57CC: F0 09    beq $57d7
@@ -4024,7 +4027,7 @@ time_blink_4feb:
 57FC: 85 2B    sta $2b
 57FE: A9 03    lda #$03
 5800: 85 2C    sta $2c
-5802: 20 24 4B jsr $4b24
+5802: 20 24 4B jsr clear_screen_4b24
 5805: A5 BC    lda level_number_bc
 5807: 29 1F    and #$1f
 5809: A8       tay
@@ -4155,7 +4158,7 @@ time_blink_4feb:
 5914: B8       clv
 5915: 20 07 4B jsr $4b07
 5918: 20 3C 4B jsr $4b3c
-591B: 20 24 4B jsr $4b24
+591B: 20 24 4B jsr clear_screen_4b24
 591E: A9 00    lda #$00
 5920: 85 F4    sta $f4
 5922: 85 F5    sta nb_credits_f5		; zero number of credits
@@ -4800,11 +4803,13 @@ move_vertically_5ceb:
 5E48: 85 BF    sta $bf
 5E4A: 85 48    sta $48
 5E4C: 60       rts
+
 5E4D: A0 03    ldy #$03
-5E4F: A5 16    lda $16
+5E4F: A5 16    lda $16			; fg clut to apply to screen 0-7
 5E51: C9 04    cmp #$04
 5E53: 30 02    bmi $5e57
 5E55: A0 04    ldy #$04
+; change attribute of all fg screen to create a flash
 5E57: A9 00    lda #$00
 5E59: 85 17    sta head_x_value_17
 5E5B: A8       tay
@@ -4820,6 +4825,7 @@ move_vertically_5ceb:
 5E6D: A5 18    lda $18
 5E6F: C9 10    cmp #$10
 5E71: D0 ED    bne $5e60
+; end full screen change attribute part
 5E73: E6 16    inc $16
 5E75: A5 16    lda $16
 5E77: 29 07    and #$07

@@ -4,8 +4,6 @@
   tail seems to continue straight after it has turned
 - score timer countdown bcd issue (ok during game)
 - when changing directions, some pieces of body remain behind
-- when killed, intercept & remove routine that does the
-  color flash / tile update, do it using copper / palette changes
 - eliminate unused cluts for nibbler body
 - RE tail animation
 - optim: remove copy char data when moving nibbler
