@@ -1,8 +1,12 @@
+- RE wriggling tail
+- when changing directions, some pieces of body remain behind
+- when killed, intercept & remove routine that does the
+  color flash / tile update, do it using copper / palette changes
+- reach highscore check highscore screen: write video out
+  of range in 512B
 - eliminate unused cluts for nibbler body
 - RE tail animation
 - optim: remove copy char data when moving nibbler
-- when killed, intercept & remove routine that does the
-  color flash / tile update, do it using copper / palette changes
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
 - rip F sound
@@ -10,8 +14,6 @@
  => breakpoint on game start
 - issue on game over (with high score): write video mem out of range
 - cheat add 10000 to score 
-- reach highscore check highscore screen: write video out
-  of range in 512B
 - A8DD invalid mem access after level 34 expected?
 
 
