@@ -1154,6 +1154,8 @@ award_end_of_level_bonus_38dc:
 391F: 69 00    adc #$00
 3921: 85 B9    sta $b9
 3923: 4C 41 39 jmp $3941
+
+; add remaining time to score at the end of level
 3926: B9 90 34 lda $3490, y
 3929: F8       sed
 392A: 18       clc

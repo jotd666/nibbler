@@ -2675,14 +2675,14 @@ osd_set_fg_palette:
 head_direction2order_table:
 	.word	-1,0,0,0
 	* bob_frame_offset,offset_x,offset_y,is_horizontal       
-	.word	12,-4,-15,add_y_displacement-head_direction2order_table		| down
-	.word	8,-4,-9,sub_y_displacement-head_direction2order_table		| up
+	.word	12,-4,-16,add_y_displacement-head_direction2order_table		| down
+	.word	8,-4,-7-17,sub_y_displacement-head_direction2order_table		| up
 	.word	-1,0,0,0
-	.word	0,-2,-11,add_x_displacement-head_direction2order_table		| right
+	.word	0,-8,-11,add_x_displacement-head_direction2order_table		| right
 	.word	-1,0,0,0
 	.word	-1,0,0,0
 	.word	-1,0,0,0
-	.word	4,0,-11,sub_x_displacement-head_direction2order_table		| left
+	.word	4,-16,-11,sub_x_displacement-head_direction2order_table		| left
 
 tail_direction2order_table:
 	.word	-1,0,0,0

@@ -100,7 +100,7 @@ def game_specific(address,lines,i):
     elif address in {0xA5CF,0xA272}:
         # hook to display vertical head
         line = change_instruction("jbra\tosd_display_head",lines,i)
-    elif address in {0x3472,0x3478,0x347e}:
+    elif address in {0x3472,0x3478,0x347e,0X3931,0x3937,0x393d}:
         line = line.replace("addx.b","abcd")  # score
     elif address == 0x5E57:
         line = """\t.ifdef\t__amiga__
