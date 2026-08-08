@@ -6720,10 +6720,11 @@ A614: A9 1B    lda #$1b
 A616: 38       sec
 A617: E5 17    sbc head_x_value_17
 A619: 18       clc
+; computes tile address from snake row/col in $19
 A61A: 2A       rol a
 A61B: 2A       rol a
 A61C: 2A       rol a
-A61D: 2A       rol a
+A61D: 2A       rol a		; times 16
 A61E: 85 19    sta $19
 A620: A9 00    lda #$00
 A622: 69 00    adc #$00
@@ -6781,7 +6782,7 @@ A684: C9 49    cmp #$49
 A686: 90 08    bcc $a690
 A688: C9 4F    cmp #$4f
 A68A: B0 04    bcs $a690
-A68C: A9 30    lda #$30
+A68C: A9 30    lda #$30		; erase
 A68E: 91 19    sta ($19), y		; [video_address]
 A690: A5 56    lda snake_tail_direction_56
 A692: C9 01    cmp #$01
