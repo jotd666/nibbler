@@ -107,7 +107,7 @@ crtc_2001 = $2001
 move_to_row_3b = $3b
 
 move_slot_ptr_e2 = $e2
-unknown_ed = $ed
+frame_index_wrapped_ed = $ed
 pixel_speed_59 = $59
 pixel_speed_5f = $5F
 
@@ -131,6 +131,8 @@ snake_head_direction_53 = $53
 snake_tail_row_54 = $54
 snake_tail_col_55 = $55
 snake_tail_direction_56 = $56
+
+current_tail_char_ee = $ee
 
 tail_ptr_58 = $58
 head_ptr_57 = $57
@@ -2885,7 +2887,7 @@ write_credit_string_4c8a:
 4EEC: A9 00    lda #$00
 4EEE: 85 5B    sta $5b
 4EF0: A9 00    lda #$00
-4EF2: 85 ED    sta unknown_ed
+4EF2: 85 ED    sta frame_index_wrapped_ed
 4EF4: A5 E9    lda frame_index_e9
 4EF6: 18       clc
 4EF7: 65 5F    adc pixel_speed_5f
@@ -2895,7 +2897,7 @@ write_credit_string_4c8a:
 4EFF: 29 07    and #$07					; modulus 8
 4F01: 85 E9    sta frame_index_e9		; wrap frame index
 4F03: A9 FF    lda #$ff
-4F05: 85 ED    sta unknown_ed
+4F05: 85 ED    sta frame_index_wrapped_ed
 4F07: 20 F4 5B jsr animate_body_chars_5bf4
 4F0A: A5 47    lda $47
 4F0C: F0 0E    beq $4f1c
@@ -2908,7 +2910,7 @@ write_credit_string_4c8a:
 4F19: 4C 20 4F jmp $4f20
 4F1C: A5 BB    lda time_when_snake_gets_longer_bb
 4F1E: D0 2D    bne $4f4d
-4F20: A5 ED    lda unknown_ed
+4F20: A5 ED    lda frame_index_wrapped_ed
 4F22: F0 29    beq $4f4d
 4F24: A5 56    lda snake_tail_direction_56
 4F26: C9 01    cmp #$01
@@ -2973,7 +2975,7 @@ write_credit_string_4c8a:
 4F9D: 10 04    bpl $4fa3
 4F9F: A9 00    lda #$00
 4FA1: 85 BB    sta time_when_snake_gets_longer_bb
-4FA3: A5 ED    lda unknown_ed
+4FA3: A5 ED    lda frame_index_wrapped_ed
 4FA5: F0 31    beq $4fd8
 4FA7: A5 51    lda snake_head_row_51
 4FA9: 85 31    sta charset_source_pointer_first_plane_31
@@ -4620,7 +4622,7 @@ l_5c20:
 5C8E: 60       rts
 
 animate_head_and_body_5c8f:
-5C8F: A5 ED    lda unknown_ed
+5C8F: A5 ED    lda frame_index_wrapped_ed
 5C91: D0 03    bne $5c96
 5C93: 4C DE 5C jmp $5cde
 5C96: A5 5A    lda $5a
@@ -4785,9 +4787,9 @@ move_vertically_5ceb:
 5E20: 85 5A    sta $5a
 5E22: 85 3D    sta $3d
 5E24: 85 EC    sta $ec
-5E26: 85 EE    sta $ee
+5E26: 85 EE    sta current_tail_char_ee
 5E28: 85 E9    sta frame_index_e9
-5E2A: 85 ED    sta unknown_ed
+5E2A: 85 ED    sta frame_index_wrapped_ed
 5E2C: 85 BB    sta time_when_snake_gets_longer_bb
 5E2E: 85 40    sta tail_oriented_left_40
 5E30: 85 41    sta tail_oriented_right_41
@@ -5008,7 +5010,7 @@ move_vertically_5ceb:
 5FC9: CA       dex
 5FCA: 10 D8    bpl $5fa4
 5FCC: A9 04    lda #$04
-5FCE: 85 EE    sta $ee
+5FCE: 85 EE    sta current_tail_char_ee
 5FD0: 60       rts
 
 boot_7800:
@@ -5962,7 +5964,7 @@ save_debug_values_7f4d:
 7F8F: A5 E9    lda frame_index_e9
 7F91: 9D 00 02 sta $0200, x
 7F94: E8       inx
-7F95: A5 ED    lda unknown_ed
+7F95: A5 ED    lda frame_index_wrapped_ed
 7F97: 9D 00 02 sta $0200, x
 7F9A: E8       inx
 7F9B: A5 48    lda $48
@@ -5983,7 +5985,7 @@ save_debug_values_7f4d:
 7FB9: 60       rts
 
 nibbler_horizontal_movement_a000:
-A000: A5 ED    lda unknown_ed
+A000: A5 ED    lda frame_index_wrapped_ed
 A002: D0 03    bne $a007
 A004: 4C 61 A1 jmp $a161
 A007: A5 53    lda snake_head_direction_53
@@ -6314,7 +6316,7 @@ A272: 60       rts			; end of horizontal movement
 
 * called every frame when head is going up or down
 nibbler_vertical_movement_a300:
-A300: A5 ED    lda unknown_ed
+A300: A5 ED    lda frame_index_wrapped_ed
 A302: D0 03    bne $a307
 A304: 4C A1 A4 jmp $a4a1
 
@@ -6706,8 +6708,8 @@ A5CF: 60       rts		; end of vertical movement
 handle_tail_a600:
 A600: A5 BB    lda time_when_snake_gets_longer_bb
 A602: F0 01    beq $a605
-A604: 60       rts
-A605: A5 ED    lda unknown_ed
+A604: 60       rts		; don't move tail, let snake grow
+A605: A5 ED    lda frame_index_wrapped_ed
 A607: D0 03    bne $a60c
 A609: 4C E3 A7 jmp $a7e3
 A60C: A5 54    lda snake_tail_row_54
@@ -6873,7 +6875,7 @@ A73D: A9 DD    lda #$dd
 A73F: 85 17    sta head_x_value_17
 A741: A9 A7    lda #$a7
 A743: 85 18    sta $18
-A745: A4 EE    ldy $ee
+A745: A4 EE    ldy current_tail_char_ee
 A747: B1 17    lda (head_x_value_17), y
 A749: 85 1B    sta $1b
 A74B: C8       iny
@@ -6936,19 +6938,19 @@ A7B5: A9 D7    lda #$d7
 A7B7: 85 17    sta head_x_value_17
 A7B9: A9 A7    lda #$a7
 A7BB: 85 18    sta $18
-A7BD: A4 EE    ldy $ee
+A7BD: A4 EE    ldy current_tail_char_ee
 A7BF: B1 17    lda (head_x_value_17), y
 A7C1: A0 00    ldy #$00
-; snake tail chars
+; snake tail chars 49 4B 4D
 A7C3: 91 19    sta ($19), y		; [video_address]
-A7C5: A5 EE    lda $ee
+A7C5: A5 EE    lda current_tail_char_ee
 A7C7: 18       clc
-A7C8: 69 02    adc #$02
-A7CA: 85 EE    sta $ee
+A7C8: 69 02    adc #$02		; next tail char
+A7CA: 85 EE    sta current_tail_char_ee
 A7CC: C9 05    cmp #$05
 A7CE: 30 13    bmi $a7e3
-A7D0: A9 00    lda #$00
-A7D2: 85 EE    sta $ee
+A7D0: A9 00    lda #$00		; wrap
+A7D2: 85 EE    sta current_tail_char_ee
 A7D4: 4C E3 A7 jmp $a7e3
 
 
@@ -7000,7 +7002,7 @@ A838: A9 31    lda #charset_source_pointer_first_plane_31
 A83A: 85 19    sta $19
 A83C: A9 A9    lda #$a9
 A83E: 85 1A    sta $1a
-A840: A4 EE    ldy $ee
+A840: A4 EE    ldy current_tail_char_ee
 A842: B1 19    lda ($19), y
 A844: 85 1B    sta $1b
 A846: C8       iny
@@ -7010,7 +7012,7 @@ A84B: A9 37    lda #$37
 A84D: 85 19    sta $19
 A84F: A9 A9    lda #$a9
 A851: 85 1A    sta $1a
-A853: A4 EE    ldy $ee
+A853: A4 EE    ldy current_tail_char_ee
 A855: B1 19    lda ($19), y
 A857: 85 1D    sta $1d
 A859: C8       iny
@@ -7072,7 +7074,7 @@ A8BD: A9 31    lda #charset_source_pointer_first_plane_31
 A8BF: 85 19    sta $19
 A8C1: A9 A9    lda #$a9
 A8C3: 85 1A    sta $1a
-A8C5: A4 EE    ldy $ee
+A8C5: A4 EE    ldy current_tail_char_ee
 A8C7: B1 19    lda ($19), y
 A8C9: 85 1B    sta $1b
 A8CB: C8       iny
@@ -7130,7 +7132,7 @@ A929: A4 16    ldy $16
 A92B: 91 1B    sta ($1b), y
 A92D: 88       dey
 A92E: 10 F1    bpl $a921
-A930: 60       rts
+A930: 60       rts			; end of handle_tail_a600
 
 AA00: A5 52    lda snake_head_col_52
 AA02: C5 55    cmp snake_tail_col_55
@@ -7334,7 +7336,7 @@ AB79: D0 F9    bne $ab74
 AB7B: C6 18    dec $18
 AB7D: D0 F5    bne $ab74
 AB7F: A9 00    lda #$00
-AB81: 85 ED    sta unknown_ed
+AB81: 85 ED    sta frame_index_wrapped_ed
 AB83: A9 01    lda #$01
 AB85: 85 42    sta tail_oriented_down_42
 AB87: 20 00 A6 jsr handle_tail_a600
@@ -7448,7 +7450,7 @@ AC5C: D0 09    bne $ac67
 AC5E: A5 19    lda $19
 AC60: C5 12    cmp $12
 AC62: D0 03    bne $ac67
-AC64: 4C B1 AC jmp $acb1
+AC64: 4C B1 AC jmp display_head_at_start_acb1
 AC67: A0 02    ldy #$02
 AC69: B9 AE AC lda $acae, y
 AC6C: 91 19    sta ($19), y		; [video_address]
@@ -7481,6 +7483,9 @@ AC9E: C6 18    dec $18
 ACA0: D0 F5    bne $ac97
 ACA2: 4C 58 AC jmp $ac58
 
+; display nibbler head, only used when nibbler
+; is drawn behind the yellow grid
+display_head_at_start_acb1:
 ACB1: A0 02    ldy #$02
 ACB3: A9 39    lda #$39
 ACB5: 91 19    sta ($19), y		; [video_address]

@@ -1,11 +1,14 @@
+
+- at start nibbler is not shown (head/tail in blue): rip tiles when nibbler appears
+  then create a char table flag head/tail chars. Enable direct char display only when the
+  game displays nibbler at start, else don't display anything during game
+
 - RE wriggling tail: using frame_index_e9 for 8 frames
   => we should build a table of frames matching frame_index_e9 in each direction
-- if direction changes (for head and tail), redraw all tiles around before blitting new head/tail 
-  tail seems to continue straight after it has turned
-- score timer countdown bcd issue (ok during game)
-- when changing directions, some pieces of body remain behind
+- tail seems to continue straight after it has turned: corner chars 50-53 can help
+  depending on direction, if corner char is following, then draw blank char after (draw 0 first to check)
+  & redraw corner char too
 - eliminate unused cluts for nibbler body
-- RE tail animation
 - optim: remove copy char data when moving nibbler
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?

@@ -98,8 +98,11 @@ def game_specific(address,lines,i):
 \t.else
 """
     elif address in {0xA5CF,0xA272}:
-        # hook to display vertical head
+        # hook to display vertical/horizontal head
         line = change_instruction("jbra\tosd_display_head",lines,i)
+    elif address == 0xA930:
+        # hook to display tail
+        line = change_instruction("jbra\tosd_display_tail",lines,i)
     elif address in {0x3472,0x3478,0x347e,0X3931,0x3937,0x393d}:
         line = line.replace("addx.b","abcd")  # score
     elif address == 0x5E57:

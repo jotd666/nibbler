@@ -173,6 +173,7 @@ w\@:
 	.global	osd_write_sound_2102
 	.global	osd_log_cpu
 	.global osd_display_head
+	.global osd_display_tail
 	
 	.global	is_game_playing
 		
@@ -2606,7 +2607,7 @@ osd_display_head:
 	jbsr	blit_planes_any_internal_cookie_cut
 	
 	movem.l	(a7)+,d0-d2
-	*rts
+	rts
 	
 osd_display_tail:
 	movem.l	D0-D2,-(a7)
@@ -2619,6 +2620,16 @@ osd_display_tail:
 	add.w	#0x20,d1
 	lsl.w	#3,d1	| times 8
 	lsl.w	#3,d0	| times 8
+	
+	* we need to check if we're near a corner. Corners are chars 50-53
+	* if near a corner, we need to clean up a bit.
+	* the original game uses 3 tiles to display the tail, and changes
+	* char data all the time. We cannot do that, we're using BOBs (so
+	* shifting is supported). It works pretty well for the head, but
+	* tail "crashes" into the corner tile before changing direction.
+	*
+	* when using a bob, the "crash" thing (i.e. clipping) must be simulated
+	
 	
 	
 	lea		bob_table,a4
