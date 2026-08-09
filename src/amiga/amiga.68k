@@ -169,6 +169,7 @@ w\@:
 	.global	osd_set_irq_return_address
 	.global	osd_small_wait
 	.global	osd_change_char_data
+	.global osd_set_nibbler_speed
 	.global	osd_set_time_color
 	.global	osd_set_title_color
 	.global	osd_write_sound_2102
@@ -237,14 +238,6 @@ _user:
 	or.l	#0x10,cheat_flags
 2:
 
-	move.l	(A0)+,D0	| FIVELIVES/K
-	beq.b	2f
-	bset	#1,dsw_options+3
-2:
-	move.l	(A0)+,D0	| FAST/K
-	beq.b	2f
-	bset	#0,dsw_options+3
-2:
 
 
 	lea		_custom,a5
@@ -381,8 +374,11 @@ _user:
 	sne		break_at_startup_flag
 	.endif
 
-	move.l	dsw_options,d0
-
+	move.l	speed_cap_option,d0
+	and.w	#7,d0
+	lea		scp_table,a0
+	move.b	(a0,d0.w),d0
+	move.b	d0,speed_cap_value
 
 
 	move.l	start_level_option,d0
@@ -413,7 +409,6 @@ _user:
 	jsr	 _detect_controller_types 
 
 	jra		demo_game
-
 
 	
 * < D0: bcpl string (with leading size byte)
@@ -864,8 +859,17 @@ osd_break:
 	
 
 	
+* < D0 requested speed
 
-
+osd_set_nibbler_speed:
+*	move.b	speed_cap_value,d7
+*	cmp.b	d0,d7
+*	jcc		0f
+*	move.b	d7,d0
+0:
+	move.b	d0,(pixel_speed_59,a6)
+	rts
+	
 osd_write_sound_2100:
 osd_write_sound_2101:
 osd_write_sound_2102:
@@ -1735,10 +1739,18 @@ bg_colors:
 	.word	0x00ff,0x000d,0x009d,0x00f0,0x0b00,0x0cb4,0x0d0d,0x0ffd
 
 osd_small_wait:
+	move.l	d0,-(a7)
 	* empiric
-	.rept	50
-	tst.b	0xbfe001
-	.endr
+	moveq	#0x7,d0
+.bd_loop1:
+	move.w  d0,-(a7)
+    move.w	0xDFF006,d0	| VPOS
+.bd_loop2:
+	cmp.w	0xDFF006,d0
+	beq.s	.bd_loop2
+	move.w	(a7)+,d0
+	dbf	d0,.bd_loop1
+	move.l	(a7)+,d0
 	rts
 	
 osd_set_irq_return_address:
@@ -1797,6 +1809,19 @@ sound_indirection_table:
     .byte    -1   | 63
 	
 
+scp_table:
+	.byte	7
+	.byte	2
+	.byte	3
+	.byte	4
+	.byte	5
+	.byte	6
+	.byte	7
+	
+speed_cap_value:
+	.byte	0
+	.align	2
+	
 osd_video_byte_dirty:
 	movem.l	d0-d7/a0-a3/a5,-(a7)
 	move.l	a0,d7		| save address
@@ -3166,7 +3191,7 @@ cheat_flags:
 		.long	0
 
 		.long	WHDLTAG_CUSTOM2_GET
-dsw_options:
+speed_cap_option:
 		.long	0
 		.long	WHDLTAG_CUSTOM3_GET
 misc_options:

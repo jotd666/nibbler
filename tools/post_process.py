@@ -13,6 +13,7 @@ input_dict = {
 "sound_2100":"write_sound_2100",
 "sound_2101":"sound_start",
 "sound_2102":"write_sound_2102",
+#"pixel_speed_59":("-","set_nibbler_speed")
 }
 
 single_line_to_cc_protect = set()
@@ -71,6 +72,8 @@ def game_specific(address,lines,i):
 """
     elif address == 0x5B0C:
         line += "\t.endif\n"
+    elif address in {0x5b2e,0x5ad5}:
+        line = "\tmoveq\t#7,d0\n\tjbsr\tosd_set_title_color\n"+line
     # free play
     elif address == 0X5920:
         line += "\tmoveq\t#9,d0\n"
@@ -364,25 +367,34 @@ with open(source_dir / "conv.s") as f:
             # protect the sub instructions
             line = "\tPOP_SR\n"+line
 
-        if "GET_ADDRESS" in line:
-            val = line.split()[1].split(",")[0]
+        if line.strip().startswith(("GET_ADDRESS","OP_W_ON_ZP_ADDRESS","OP_R_ON_ZP_ADDRESS")):
+            toks = line.split()
+            rem_next = False
+            if "GET_ADDRESS" in line:
+                val = toks[1].split(",")[0]
+                rem_next = True
+            else:
+                val = toks[1].split(",")[1]
             osd_call = input_dict.get(val)
             if osd_call is not None:
 
                 if osd_call:
-                    if isinstance(osd_call,list):
+                    if isinstance(osd_call,(list,tuple)):
                         # choose depending on read/write
-                        if "a,(" in line:
+                        if " sta " in line:
                             osd_call = osd_call[1]
                         else:
                             osd_call = osd_call[0]
                     if osd_call:
-                        line = change_instruction(f"jbsr\tosd_{osd_call}",lines,i)
+                        if osd_call != "-":
+                            line = change_instruction(f"jbsr\tosd_{osd_call}",lines,i)
+
                     else:
                         line = remove_instruction(lines,i)
                 else:
                     line = remove_instruction(lines,i)
-                lines[i+1] = remove_instruction(lines,i+1)
+                if rem_next:
+                    lines[i+1] = remove_instruction(lines,i+1)
 
         if "[global]" in line:
             label = line.split(":")[0]

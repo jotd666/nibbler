@@ -43,9 +43,9 @@ _config
 	dc.b	"C1:X:infinite time:0;"
 	dc.b	"C1:X:infinite lives:1;"
 	dc.b	"C1:X:cheat keys:4;"
-	dc.b	"C2:X:50 Hz update:0;"
-	dc.b	"C2:X:startup menu:5;"
 
+
+	dc.b	"C2:L:cap speed:none,2,3,4,5,6;"
 	dc.b	"C3:L:difficulty level:easy,hard;"
 	dc.b	"C4:L:lives:3,4,5,6;"
 	dc.b	"C5:L:start level:1,2,3,4,5,6,7,8,9,10,11,"

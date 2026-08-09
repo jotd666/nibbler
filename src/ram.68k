@@ -43,6 +43,7 @@ infinite_lives_flag:
 invincible_flag:
 	.skip	1
 	
+
 current_background_value:
 	.skip	1
 
