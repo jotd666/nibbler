@@ -9,8 +9,8 @@
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
 - rip F sound (when does that occur!!)
-- directly restarts from level 1 when all lives lost
- => breakpoint on game start
+- directly restarts from level 1 when all lives lost: 5000 seems to restart game
+  instead of checking highscore
 - cheat add 10000 to score 
 - A8DD invalid mem access after level 34 expected?
 

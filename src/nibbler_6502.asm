@@ -326,7 +326,7 @@ l_315b:		; [global]
 316F: A9 04    lda #$04
 3171: 2D 05 21 and in1_2105
 3174: F0 03    beq $3179
-3176: 4C DE 59 jmp $59de
+3176: 4C DE 59 jmp game_over_59de
 3179: A5 4D    lda $4d
 317B: F0 0D    beq $318a
 317D: C6 4D    dec $4d
@@ -1942,6 +1942,7 @@ dir_left_3cfe:
 3FAC: F0 F1    beq $3f9f
 3FAE: 4C 06 59 jmp $5906
 
+display_game_over_4000:
 4000: 85 00    sta $00
 4002: A5 00    lda $00
 4004: 30 09    bmi $400f
@@ -2785,6 +2786,7 @@ write_credit_string_4c8a:
 4E1E: A4 EB    ldy $eb
 4E20: 20 9A 4B jsr $4b9a
 4E23: 4C C6 4D jmp $4dc6
+
 4E26: A0 01    ldy #$01
 4E28: A9 01    lda #$01
 4E2A: 39 04 21 and in0_2104, y
@@ -3017,6 +3019,8 @@ time_blink_4feb:
 4FF9: 85 FC    sta game_state_fc
 4FFB: 4C 5F 30 jmp infinite_loop_305f
 
+* check if score is good enough and display highscore if that's the case
+high_score_entry_5000:
 5000: A9 40    lda #$40
 5002: 85 BE    sta $be
 5004: 38       sec
@@ -3233,7 +3237,7 @@ time_blink_4feb:
 51AA: 85 A8    sta $a8
 51AC: 8D 03 21 sta flipscreen_2103
 51AF: A9 06    lda #$06
-51B1: 20 00 40 jsr $4000
+51B1: 20 00 40 jsr display_game_over_4000
 51B4: A9 09    lda #$09
 51B6: 85 31    sta charset_source_pointer_first_plane_31
 51B8: 85 32    sta $32
@@ -3450,7 +3454,7 @@ time_blink_4feb:
 5367: C9 1E    cmp #$1e
 5369: D0 05    bne $5370
 536B: A9 08    lda #$08
-536D: 20 00 40 jsr $4000
+536D: 20 00 40 jsr display_game_over_4000
 5370: A5 31    lda charset_source_pointer_first_plane_31
 5372: C9 16    cmp #$16
 5374: D0 11    bne $5387
@@ -3461,7 +3465,7 @@ time_blink_4feb:
 537E: C9 1C    cmp #$1c
 5380: D0 05    bne $5387
 5382: A9 09    lda #$09
-5384: 20 00 40 jsr $4000
+5384: 20 00 40 jsr display_game_over_4000
 5387: A5 31    lda charset_source_pointer_first_plane_31
 5389: C9 1B    cmp #$1b
 538B: D0 11    bne $539e
@@ -3472,7 +3476,7 @@ time_blink_4feb:
 5395: C9 1E    cmp #$1e
 5397: D0 05    bne $539e
 5399: A9 0A    lda #$0a
-539B: 20 00 40 jsr $4000
+539B: 20 00 40 jsr display_game_over_4000
 539E: A5 31    lda charset_source_pointer_first_plane_31
 53A0: C9 14    cmp #$14
 53A2: D0 11    bne $53b5
@@ -3483,7 +3487,7 @@ time_blink_4feb:
 53AC: C9 1E    cmp #$1e
 53AE: D0 05    bne $53b5
 53B0: A9 0B    lda #$0b
-53B2: 20 00 40 jsr $4000
+53B2: 20 00 40 jsr display_game_over_4000
 53B5: A5 31    lda charset_source_pointer_first_plane_31
 53B7: C9 0F    cmp #$0f
 53B9: D0 11    bne $53cc
@@ -3494,13 +3498,14 @@ time_blink_4feb:
 53C3: C9 1E    cmp #$1e
 53C5: D0 05    bne $53cc
 53C7: A9 0A    lda #$0a
-53C9: 20 00 40 jsr $4000
+53C9: 20 00 40 jsr display_game_over_4000
 53CC: A5 BE    lda $be
 53CE: C9 07    cmp #$07
 53D0: D0 07    bne $53d9
 53D2: A9 41    lda #$41
 53D4: 85 BE    sta $be
 53D6: 4C 1F 50 jmp $501f
+
 53D9: A9 00    lda #$00
 53DB: 85 BE    sta $be
 53DD: 60       rts
@@ -3524,7 +3529,7 @@ time_blink_4feb:
 53FE: 91 37    sta ($37), y
 5400: 60       rts
 5401: A9 07    lda #$07
-5403: 20 00 40 jsr $4000
+5403: 20 00 40 jsr display_game_over_4000
 5406: A9 49    lda #$49
 5408: 85 17    sta head_x_value_17
 540A: A9 06    lda #$06
@@ -3931,7 +3936,7 @@ time_blink_4feb:
 5721: A5 A3    lda time_left_a3
 5723: D0 05    bne $572a
 5725: A9 05    lda #$05
-5727: 20 00 40 jsr $4000
+5727: 20 00 40 jsr display_game_over_4000
 572A: A5 BE    lda $be
 572C: C9 20    cmp #$20
 572E: 30 52    bmi $5782
@@ -3940,13 +3945,13 @@ time_blink_4feb:
 5734: A5 B1    lda p2_lives_b1
 5736: D0 05    bne $573d
 5738: A9 0D    lda #$0d
-573A: 20 00 40 jsr $4000
+573A: 20 00 40 jsr display_game_over_4000
 573D: A5 B0    lda p1_lives_b0
 573F: D0 4C    bne $578d
 5741: A5 B1    lda p2_lives_b1
 5743: F0 10    beq $5755
 5745: A9 02    lda #$02
-5747: 20 00 40 jsr $4000
+5747: 20 00 40 jsr display_game_over_4000
 574A: C6 B1    dec p2_lives_b1
 574C: 20 E9 58 jsr $58e9
 574F: 20 1E 4C jsr $4c1e
@@ -3955,17 +3960,17 @@ time_blink_4feb:
 5757: 29 7F    and #$7f
 5759: 85 A8    sta $a8
 575B: 8D 03 21 sta flipscreen_2103
-575E: 4C DE 59 jmp $59de
+575E: 4C DE 59 jmp game_over_59de
 5761: A5 B0    lda p1_lives_b0
 5763: D0 05    bne $576a
 5765: A9 0C    lda #$0c
-5767: 20 00 40 jsr $4000
+5767: 20 00 40 jsr display_game_over_4000
 576A: A5 B1    lda p2_lives_b1
 576C: D0 56    bne $57c4
 576E: A5 B0    lda p1_lives_b0
 5770: F0 E3    beq $5755
 5772: A9 01    lda #$01
-5774: 20 00 40 jsr $4000
+5774: 20 00 40 jsr display_game_over_4000
 5777: C6 B0    dec p1_lives_b0
 5779: 20 E9 58 jsr $58e9
 577C: 20 1E 4C jsr $4c1e
@@ -3974,7 +3979,7 @@ time_blink_4feb:
 5784: 10 7C    bpl $5802
 5786: A9 00    lda #$00
 5788: 85 B0    sta p1_lives_b0
-578A: 4C DE 59 jmp $59de
+578A: 4C DE 59 jmp game_over_59de
 578D: A5 A8    lda $a8
 578F: 29 7F    and #$7f
 5791: 85 A8    sta $a8
@@ -3994,7 +3999,7 @@ time_blink_4feb:
 57AE: A5 AE    lda $ae
 57B0: 85 BA    sta fruits_left_ba
 57B2: A9 01    lda #$01
-57B4: 20 00 40 jsr $4000
+57B4: 20 00 40 jsr display_game_over_4000
 57B7: C6 B0    dec p1_lives_b0
 57B9: A9 00    lda #$00
 57BB: 85 2B    sta $2b
@@ -4024,7 +4029,7 @@ time_blink_4feb:
 57EF: A5 AF    lda $af
 57F1: 85 BA    sta fruits_left_ba
 57F3: A9 02    lda #$02
-57F5: 20 00 40 jsr $4000
+57F5: 20 00 40 jsr display_game_over_4000
 57F8: C6 B1    dec p2_lives_b1
 57FA: A9 40    lda #$40
 57FC: 85 2B    sta $2b
@@ -4221,6 +4226,7 @@ time_blink_4feb:
 59D9: A9 FF    lda #$ff
 59DB: 85 FC    sta game_state_fc
 59DD: 58       cli
+game_over_59de:
 59DE: A5 A8    lda $a8
 59E0: 29 78    and #$78
 59E2: 85 A8    sta $a8
@@ -4228,7 +4234,7 @@ time_blink_4feb:
 59E7: A5 BE    lda $be
 59E9: C9 10    cmp #$10
 59EB: B0 03    bcs $59f0
-59ED: 4C 66 5A jmp $5a66
+59ED: 4C 66 5A jmp l_5a66
 59F0: A9 00    lda #$00
 59F2: 85 B0    sta p1_lives_b0
 59F4: 85 B1    sta p2_lives_b1
@@ -4286,13 +4292,14 @@ time_blink_4feb:
 5A5C: A4 19    ldy $19
 5A5E: B9 90 34 lda $3490, y
 5A61: 85 0E    sta $0e
-5A63: 20 00 50 jsr $5000
+5A63: 20 00 50 jsr high_score_entry_5000		; [breakpoint]
+l_5a66:
 5A66: A5 A8    lda $a8
 5A68: 29 7F    and #$7f
 5A6A: 85 A8    sta $a8
 5A6C: 8D 03 21 sta flipscreen_2103
 5A6F: A9 00    lda #$00
-5A71: 20 00 40 jsr $4000
+5A71: 20 00 40 jsr display_game_over_4000		; [breakpoint]
 5A74: A9 83    lda #$83
 5A76: 85 17    sta head_x_value_17
 5A78: A9 04    lda #$04
@@ -4327,7 +4334,7 @@ time_blink_4feb:
 5AB3: 29 10    and #$10
 5AB5: D0 F9    bne $5ab0
 5AB7: A9 03    lda #$03
-5AB9: 20 00 40 jsr $4000
+5AB9: 20 00 40 jsr display_game_over_4000
 5ABC: AD 04 21 lda in0_2104
 5ABF: 29 10    and #$10
 5AC1: F0 0A    beq $5acd
@@ -4389,7 +4396,7 @@ color_loop_5aea:
 5B2A: C6 19    dec $19
 5B2C: D0 BC    bne color_loop_5aea
 5B2E: A9 04    lda #$04
-5B30: 20 00 40 jsr $4000
+5B30: 20 00 40 jsr display_game_over_4000
 5B33: A9 0B    lda #$0b
 5B35: 85 18    sta $18
 5B37: A9 01    lda #$01
@@ -4459,7 +4466,7 @@ exit_irq_5b61:
 5BB6: A9 20    lda #$20
 5BB8: 85 BE    sta $be
 5BBA: A9 01    lda #$01
-5BBC: 20 00 40 jsr $4000
+5BBC: 20 00 40 jsr display_game_over_4000
 5BBF: C6 B0    dec p1_lives_b0
 5BC1: A9 02    lda #$02
 5BC3: 85 AB    sta $ab

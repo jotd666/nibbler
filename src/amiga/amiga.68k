@@ -912,8 +912,8 @@ is_game_playing:
 lose_all_lives:
 	move.l	a6,-(a7)
 	GET_MEMORY_START_IN_A6
-	*st.b	(nb_lives_current_player_2d,a6)		| no more lives
-	*bset.b	#2,(player_state_3b,a6)		| died
+	clr.b	(p1_lives_b0,a6)		| no more lives
+	clr.b	(p2_lives_b1,a6)		| no more lives
 	move.l	(a7)+,a6
 	rts
 
