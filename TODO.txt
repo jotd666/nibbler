@@ -1,20 +1,23 @@
-- crash from floppy
-- super slow mode, speed cap mode
-- do the same as for tail in head: redraw a few tiles around depending on the direction
-
 - RE wriggling tail: using frame_index_e9 for 8 frames
   => we should build a table of frames matching frame_index_e9 in each direction
-- eliminate unused cluts for nibbler body
+- highscore load/save
+- crash from floppy
+
+- do the same as for tail in head: redraw a few tiles around depending on the direction
+  maybe do the overshoot erase for one more frame
+- remove yellowish, force white (bg colors)  
+- level 10: speed makes snake parts not erasable as well.
 - set DSW difficulty easy/hard
 - DSW lives 3,4,5,6
-- highscore load/save
 - optim: remove copy char data when moving nibbler
 - after nibble title flash we should reset bg palette
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
-- rip F sound (when does that occur!!)
+- rip F sound (when does that occur?)
 - A8DD invalid mem access after level 34 expected?
 
+- super slow mode, speed cap mode: get hard cap value and change it
+(don't try to cap value when storing)
 
 
 - set dip switch free play

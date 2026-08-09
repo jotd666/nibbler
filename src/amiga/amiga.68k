@@ -2373,7 +2373,6 @@ update_controls:
 	move.b	d0,(in0_2104,a6)
 
 	moveq	#0,d0
-	move.b	#0,0x110
 	tst.b	(0x01,a0)		| "1" key
 	beq.b	0f
 	clr.b	(0x01,a0)      | ack, for some reason this key sticks
@@ -2575,6 +2574,12 @@ osd_read_high_scores:
 	movem.l	(a7)+,d0-d7/a0-a6
 	rts
 	
+	.macro	IS_CORNER_CHAR	reg,ji,lab
+	lsr.b	#2,\reg				| optim
+	cmp.b	#0x14,\reg			| corner chars $50-$53
+	\ji		\lab
+	.endm
+
 * < A6: game memory
 osd_display_head:
 	tst.b	snake_appearing_flag
@@ -2586,6 +2591,8 @@ osd_display_head:
 	moveq	#0,d1
 	move.b	(snake_head_row_51,a6),d0	| char X
 	move.b	(snake_head_col_52,a6),d1	| char Y
+	jbsr	compute_char_address
+	
 	addq	#4,d0
 	neg.w	d1
 	add.w	#0x20,d1
@@ -2623,6 +2630,36 @@ osd_display_head:
 	move.l		playfield_drawn_screen_ptr,a1
 	jbsr	blit_planes_any_internal_cookie_cut
 	
+	move.b	(snake_head_direction_53,a6),d7
+	cmp.b	previous_snake_head_direction,d7
+	jeq		0f
+	add.w	d7,d7
+	lea		delta_address_table,a0
+	lea		delta_rotated_address_table,a1
+	move.w	head_tail_char_address,d5
+	sub.w	(a0,d7.w),d5
+	lea		(a6,d5.w),a0		| before head (to remove overshoot)
+
+	lea		_custom,a5
+	* about to draw something in the vincinity of a blit: wait
+	WAIT_BLIT
+
+	jbsr	osd_video_byte_dirty
+	sub.w	(a1,d7.w),a0		| head is wider, we need to redraw here too
+	jbsr	osd_video_byte_dirty
+
+	
+	move.w	head_tail_char_address,d5
+	sub.w	(a1,d7.w),d5
+	lea		(a6,d5.w),a0		| redraw body tile laterally
+	jbsr	osd_video_byte_dirty
+
+	
+0:
+	
+	* update for next call
+	move.b	(snake_head_direction_53,a6),previous_snake_head_direction
+
 	movem.l	(a7)+,d0-d2
 	rts
 	
@@ -2642,11 +2679,6 @@ compute_char_address:
 	movem.l	(a7)+,d0-d1
 	rts
 	
-	.macro	IS_CORNER_CHAR	reg,ji,lab
-	lsr.b	#2,\reg				| optim
-	cmp.b	#0x14,\reg			| corner chars $50-$53
-	\ji		\lab
-	.endm
 	
 osd_display_tail:
 	tst.b	snake_appearing_flag
@@ -2788,6 +2820,17 @@ delta_address_table:
 	.word	0
 	.word	0
 	.word	0X20		| left
+	
+delta_rotated_address_table:
+	.word	0
+	.word	0x20			| down
+	.word	-0x20			| up
+	.word	0
+	.word	-1		| right
+	.word	0
+	.word	0
+	.word	0
+	.word	1		| left
 	
 * nibbler_direction_53 contains 1,2,4,8
 * convert this offset into offset in bob table
@@ -2952,6 +2995,7 @@ osd_sound_start:
 	* hack: allow to display snake head/tail tiles while the
 	* snake is appearing behind the yellow grid
 	st.b	snake_appearing_flag
+	move.b	#4,previous_snake_head_direction  | right
 0:
 	tst.b	looped_sound_enabled
 	jeq		0f
@@ -3221,7 +3265,9 @@ flip_flop:
 	.byte	0
 snake_appearing_flag:
 	.byte	0
-
+previous_snake_head_direction:
+	.byte	0
+	
 	.align	2
 keyboard_table:
 	ds.b	0x100

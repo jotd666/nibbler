@@ -1406,7 +1406,7 @@ nibbler_movement_39a7:
 3B05: B9 E5 3A lda $3ae5, y
 3B08: 85 4C    sta $4c
 3B0A: A5 59    lda pixel_speed_59
-3B0C: 29 07    and #$07
+3B0C: 29 07    and #$07			; max out at 7??
 3B0E: 85 16    sta $16
 3B10: A5 A5    lda $a5
 3B12: 29 F0    and #$f0
@@ -3977,7 +3977,7 @@ no_highscore_reached_53d9:
 5765: A9 0C    lda #$0c
 5767: 20 00 40 jsr display_game_over_4000
 576A: A5 B1    lda p2_lives_b1
-576C: D0 56    bne $57c4
+576C: D0 56    bne switch_to_player_2_57c4
 576E: A5 B0    lda p1_lives_b0
 5770: F0 E3    beq $5755
 5772: A9 01    lda #$01
@@ -4017,6 +4017,8 @@ no_highscore_reached_53d9:
 57BD: A9 03    lda #$03
 57BF: 85 2C    sta $2c
 57C1: 4C 02 58 jmp $5802
+
+switch_to_player_2_57c4:
 57C4: 20 24 4B jsr clear_screen_4b24
 57C7: A9 08    lda #$08
 57C9: 2D 06 21 and dsw_2106
