@@ -4,25 +4,24 @@
 - RE wriggling tail: using frame_index_e9 for 8 frames
   => we should build a table of frames matching frame_index_e9 in each direction
 - eliminate unused cluts for nibbler body
+- set DSW difficulty easy/hard
+- DSW lives 3,4,5,6
+- highscore load/save
 - optim: remove copy char data when moving nibbler
 - after nibble title flash we should reset bg palette
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
 - rip F sound (when does that occur!!)
-- directly restarts from level 1 when all lives lost: 5000 seems to restart game
-  instead of checking highscore
-- cheat add 10000 to score 
 - A8DD invalid mem access after level 34 expected?
 
 
-- cheat infinite time
 
-- set DSW difficulty easy/hard
-- DSW lives 3,4,5,6
-- highscore load/save
 - set dip switch free play
 - detect not game in play for start up/down
   but maybe not needed
+
+
+-----------------------------
 
 trace interrupt status:
 trace mame.tr,,,{tracelog "P=%02X ",p&4}

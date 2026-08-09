@@ -110,6 +110,7 @@ move_slot_ptr_e2 = $e2
 frame_index_wrapped_ed = $ed
 pixel_speed_59 = $59
 pixel_speed_5f = $5F
+highscore_player_identifier_be = $be
 
 ; 40-43: booleans (inverted logic)
 ; only one can be 0 when oriented that way, others are 1
@@ -140,11 +141,15 @@ p2_lives_b1 = $b1
 p1_lives_b0 = $b0
 level_number_bc = $bc
 
-score_hundred_ten_b2 = $b2
-score_thousands_b3 = $b3
-score_hundred_thousands_b4 = $b4
-score_ten_million_b5 = $b5
+p1_score_hundred_ten_b2 = $b2
+p1_score_thousands_b3 = $b3
+p1_score_hundred_thousands_b4 = $b4
+p1_score_ten_million_b5 = $b5
 
+low_highest_score_hundred_ten_02b4 = $2b4
+low_highest_score_thousands_02b5 = $2b5
+low_highest_score_hundred_thousands_02b6 = $2b6
+low_highest_score_ten_million_02b7 = $2b7
 
 ; wouldn't trust the names of low zero page data, they're often
 ; reused and therefore generic. But sometimes they're properly named.
@@ -248,7 +253,7 @@ irq_continue_3068:
 30E6: 29 F0    and #$f0
 30E8: 85 A6    sta $a6
 30EA: 8D 01 21 sta sound_2101
-30ED: A5 BE    lda $be
+30ED: A5 BE    lda highscore_player_identifier_be
 30EF: C9 10    cmp #$10
 30F1: B0 3F    bcs $3132
 30F3: A5 BD    lda countdown_timer_bd
@@ -264,7 +269,7 @@ irq_continue_3068:
 3107: F0 29    beq $3132
 3109: 30 27    bmi $3132
 310B: A9 10    lda #$10
-310D: 85 BE    sta $be
+310D: 85 BE    sta highscore_player_identifier_be
 310F: 4C 2A 31 jmp $312a
 
 3112: A9 40    lda #$40
@@ -277,7 +282,7 @@ irq_continue_3068:
 3122: C9 02    cmp #$02
 3124: 30 0C    bmi $3132
 3126: A9 20    lda #$20
-3128: 85 BE    sta $be
+3128: 85 BE    sta highscore_player_identifier_be
 312A: A9 FF    lda #$ff
 312C: 85 FC    sta game_state_fc
 312E: 58       cli
@@ -540,7 +545,7 @@ nmi_continue_320e:
 331E: A8       tay
 331F: B9 02 34 lda $3402, y
 3322: 85 A3    sta time_left_a3
-3324: A5 BE    lda $be
+3324: A5 BE    lda highscore_player_identifier_be
 3326: C9 30    cmp #$30
 3328: 30 0B    bmi $3335
 332A: B9 71 33 lda $3371, y
@@ -563,7 +568,7 @@ nmi_continue_320e:
 3350: 85 29    sta $29
 3352: 20 AB 49 jsr draw_fruits_49ab
 3355: 20 00 AA jsr $aa00
-3358: A5 BE    lda $be
+3358: A5 BE    lda highscore_player_identifier_be
 335A: C9 10    cmp #$10
 335C: 90 12    bcc $3370
 335E: A9 10    lda #$10
@@ -582,7 +587,7 @@ fruit_eaten_3422:
 3426: A0 00    ldy #$00
 3428: A9 30    lda #$30
 342A: 91 2D    sta ($2d), y		; [video_address]
-342C: A5 BE    lda $be
+342C: A5 BE    lda highscore_player_identifier_be
 342E: C9 10    cmp #$10
 3430: B0 01    bcs $3433
 3432: 60       rts
@@ -594,7 +599,7 @@ fruit_eaten_3422:
 343F: 08       php
 3440: D8       cld
 3441: A4 BC    ldy level_number_bc
-3443: A5 BE    lda $be
+3443: A5 BE    lda highscore_player_identifier_be
 3445: C9 30    cmp #$30
 3447: 30 1E    bmi add_to_score_3467
 3449: B9 90 34 lda $3490, y
@@ -617,17 +622,17 @@ add_to_score_3467:
 3467: B9 90 34 lda $3490, y
 346A: F8       sed
 346B: 18       clc
-346C: 65 B2    adc score_hundred_ten_b2
-346E: 85 B2    sta score_hundred_ten_b2
-3470: A5 B3    lda score_thousands_b3
+346C: 65 B2    adc p1_score_hundred_ten_b2
+346E: 85 B2    sta p1_score_hundred_ten_b2
+3470: A5 B3    lda p1_score_thousands_b3
 3472: 69 00    adc #$00
-3474: 85 B3    sta score_thousands_b3
-3476: A5 B4    lda score_hundred_thousands_b4
+3474: 85 B3    sta p1_score_thousands_b3
+3476: A5 B4    lda p1_score_hundred_thousands_b4
 3478: 69 00    adc #$00
-347A: 85 B4    sta score_hundred_thousands_b4
-347C: A5 B5    lda score_ten_million_b5
+347A: 85 B4    sta p1_score_hundred_thousands_b4
+347C: A5 B5    lda p1_score_ten_million_b5
 347E: 69 00    adc #$00
-3480: 85 B5    sta score_ten_million_b5
+3480: 85 B5    sta p1_score_ten_million_b5
 3482: D8       cld
 3483: A5 BA    lda fruits_left_ba
 3485: D0 05    bne $348c
@@ -648,17 +653,17 @@ add_to_score_3467:
 3502: B9 90 34 lda $3490, y
 3505: F8       sed
 3506: 18       clc
-3507: 65 B2    adc score_hundred_ten_b2
-3509: 85 B2    sta score_hundred_ten_b2
-350B: A5 B3    lda score_thousands_b3
+3507: 65 B2    adc p1_score_hundred_ten_b2
+3509: 85 B2    sta p1_score_hundred_ten_b2
+350B: A5 B3    lda p1_score_thousands_b3
 350D: 69 00    adc #$00
-350F: 85 B3    sta score_thousands_b3
-3511: A5 B4    lda score_hundred_thousands_b4
+350F: 85 B3    sta p1_score_thousands_b3
+3511: A5 B4    lda p1_score_hundred_thousands_b4
 3513: 69 00    adc #$00
-3515: 85 B4    sta score_hundred_thousands_b4
-3517: A5 B5    lda score_ten_million_b5
+3515: 85 B4    sta p1_score_hundred_thousands_b4
+3517: A5 B5    lda p1_score_ten_million_b5
 3519: 69 00    adc #$00
-351B: 85 B5    sta score_ten_million_b5
+351B: 85 B5    sta p1_score_ten_million_b5
 351D: D8       cld
 351E: C6 BA    dec fruits_left_ba
 3520: A0 00    ldy #$00
@@ -676,19 +681,19 @@ add_to_score_3467:
 3534: 85 CB    sta $cb
 3536: A9 00    lda #$00
 3538: 85 CA    sta $ca
-353A: A5 B2    lda score_hundred_ten_b2
+353A: A5 B2    lda p1_score_hundred_ten_b2
 353C: 20 90 4B jsr split_a_digits_4b90
 353F: 86 C9    stx $c9
 3541: 85 C8    sta $c8
-3543: A5 B3    lda score_thousands_b3
+3543: A5 B3    lda p1_score_thousands_b3
 3545: 20 90 4B jsr split_a_digits_4b90
 3548: 86 C6    stx $c6
 354A: 85 C5    sta $c5
-354C: A5 B4    lda score_hundred_thousands_b4
+354C: A5 B4    lda p1_score_hundred_thousands_b4
 354E: 20 90 4B jsr split_a_digits_4b90
 3551: 86 C4    stx $c4
 3553: 85 C2    sta $c2
-3555: A5 B5    lda score_ten_million_b5
+3555: A5 B5    lda p1_score_ten_million_b5
 3557: 20 90 4B jsr split_a_digits_4b90
 355A: 86 C1    stx $c1
 355C: 85 C0    sta $c0
@@ -714,7 +719,7 @@ add_to_score_3467:
 3583: A9 00    lda #$00
 3585: 85 1A    sta $1a
 3587: 20 6E 4B jsr write_text_4b6e
-358A: A5 BE    lda $be
+358A: A5 BE    lda highscore_player_identifier_be
 358C: C9 10    cmp #$10
 358E: 30 05    bmi $3595
 3590: C9 20    cmp #$20
@@ -763,7 +768,7 @@ add_to_score_3467:
 35E8: 85 1A    sta $1a
 35EA: 20 6E 4B jsr write_text_4b6e
 35ED: 60       rts
-35EE: A5 BE    lda $be
+35EE: A5 BE    lda highscore_player_identifier_be
 35F0: C9 10    cmp #$10
 35F2: 30 19    bmi $360d
 35F4: C9 20    cmp #$20
@@ -818,7 +823,7 @@ add_to_score_3467:
 3659: 85 16    sta $16
 365B: A9 05    lda #$05
 365D: 85 1F    sta $1f
-365F: A5 BE    lda $be
+365F: A5 BE    lda highscore_player_identifier_be
 3661: C9 08    cmp #$08
 3663: F0 04    beq $3669
 3665: C9 30    cmp #$30
@@ -906,7 +911,7 @@ add_to_score_3467:
 36FE: 85 16    sta $16
 3700: A9 05    lda #$05
 3702: 85 1F    sta $1f
-3704: A5 BE    lda $be
+3704: A5 BE    lda highscore_player_identifier_be
 3706: C9 07    cmp #$07
 3708: F0 08    beq $3712
 370A: C9 10    cmp #$10
@@ -1043,7 +1048,7 @@ add_to_score_3467:
 3813: A4 B0    ldy p1_lives_b0
 3815: B9 90 34 lda $3490, y
 3818: 20 00 4C jsr $4c00
-381B: A5 BE    lda $be
+381B: A5 BE    lda highscore_player_identifier_be
 381D: C9 10    cmp #$10
 381F: 30 04    bmi $3825
 3821: C9 20    cmp #$20
@@ -1137,7 +1142,7 @@ award_end_of_level_bonus_38dc:
 38FB: 8D 03 0D sta $0d03
 38FE: C6 A3    dec time_left_a3
 3900: A4 BC    ldy level_number_bc
-3902: A5 BE    lda $be
+3902: A5 BE    lda highscore_player_identifier_be
 3904: C9 30    cmp #$30
 3906: 90 1E    bcc $3926
 3908: B9 90 34 lda $3490, y
@@ -1160,17 +1165,17 @@ award_end_of_level_bonus_38dc:
 3926: B9 90 34 lda $3490, y
 3929: F8       sed
 392A: 18       clc
-392B: 65 B2    adc score_hundred_ten_b2
-392D: 85 B2    sta score_hundred_ten_b2
-392F: A5 B3    lda score_thousands_b3
+392B: 65 B2    adc p1_score_hundred_ten_b2
+392D: 85 B2    sta p1_score_hundred_ten_b2
+392F: A5 B3    lda p1_score_thousands_b3
 3931: 69 00    adc #$00
-3933: 85 B3    sta score_thousands_b3
-3935: A5 B4    lda score_hundred_thousands_b4
+3933: 85 B3    sta p1_score_thousands_b3
+3935: A5 B4    lda p1_score_hundred_thousands_b4
 3937: 69 00    adc #$00
-3939: 85 B4    sta score_hundred_thousands_b4
-393B: A5 B5    lda score_ten_million_b5
+3939: 85 B4    sta p1_score_hundred_thousands_b4
+393B: A5 B5    lda p1_score_ten_million_b5
 393D: 69 00    adc #$00
-393F: 85 B5    sta score_ten_million_b5
+393F: 85 B5    sta p1_score_ten_million_b5
 3941: D8       cld
 3942: 20 32 35 jsr $3532
 3945: 20 72 39 jsr $3972
@@ -1226,7 +1231,7 @@ nibbler_movement_39a7:
 39A7: E6 49    inc $49
 39A9: A9 00    lda #$00
 39AB: 85 31    sta charset_source_pointer_first_plane_31
-39AD: A5 BE    lda $be
+39AD: A5 BE    lda highscore_player_identifier_be
 39AF: C9 10    cmp #$10
 39B1: 90 4C    bcc $39ff
 39B3: A5 53    lda snake_head_direction_53
@@ -1247,7 +1252,7 @@ nibbler_movement_39a7:
 39D4: A9 08    lda #$08
 39D6: 2D 06 21 and dsw_2106
 39D9: F0 0C    beq $39e7
-39DB: A5 BE    lda $be
+39DB: A5 BE    lda highscore_player_identifier_be
 39DD: C9 30    cmp #$30
 39DF: 90 06    bcc $39e7
 39E1: AD 05 21 lda in1_2105
@@ -1984,7 +1989,7 @@ display_game_over_4000:
 404B: 90 6D    bcc $40ba
 404D: C9 FF    cmp #$ff
 404F: D0 01    bne $4052
-4051: 60       rts
+4051: 60       rts		; exit from routine
 4052: C9 F0    cmp #$f0
 4054: D0 10    bne $4066
 4056: A5 01    lda $01
@@ -2008,7 +2013,7 @@ display_game_over_4000:
 4079: D0 F9    bne $4074
 407B: C6 18    dec $18
 407D: D0 F5    bne $4074
-407F: 60       rts
+407F: 60       rts		; exit from routine
 4080: C9 F2    cmp #$f2
 4082: D0 16    bne $409a
 4084: A9 02    lda #$02
@@ -2028,7 +2033,7 @@ display_game_over_4000:
 409E: 4C 07 41 jmp $4107
 40A1: C9 F4    cmp #$f4
 40A3: D0 10    bne $40b5
-40A5: A5 BE    lda $be
+40A5: A5 BE    lda highscore_player_identifier_be
 40A7: C9 07    cmp #$07
 40A9: D0 05    bne $40b0
 40AB: A9 01    lda #$01
@@ -2037,6 +2042,7 @@ display_game_over_4000:
 40B2: 4C BA 40 jmp $40ba
 40B5: A9 A2    lda #$a2
 40B7: 4C 87 3F jmp $3f87
+; writes "NIBBLER RAN OUT OF TIME"
 40BA: 91 03    sta ($03), y		; [video_address]
 40BC: A5 03    lda $03
 40BE: 85 07    sta $07
@@ -2350,7 +2356,7 @@ draw_fruits_49ab:
 49EE: 18       clc
 49EF: 69 08    adc #$08
 49F1: 85 29    sta $29
-49F3: A5 BE    lda $be
+49F3: A5 BE    lda highscore_player_identifier_be
 49F5: C9 30    cmp #$30
 49F7: 30 0B    bmi $4a04
 49F9: A9 40    lda #$40
@@ -2433,11 +2439,12 @@ clear_screen_4b24:
 4B59: C9 20    cmp #$20
 4B5B: 90 ED    bcc $4b4a
 4B5D: 60       rts
+
 4B5E: 20 24 4B jsr clear_screen_4b24
-4B61: 68       pla
+4B61: 68       pla		; pops return address LSB
 4B62: 18       clc
-4B63: 69 08    adc #$08
-4B65: 48       pha
+4B63: 69 08    adc #$08	; changes it
+4B65: 48       pha		; pushes it again
 4B66: 4C 6E 4B jmp write_text_4b6e
 
 4B69: A0 00    ldy #$00
@@ -3019,33 +3026,35 @@ time_blink_4feb:
 4FF9: 85 FC    sta game_state_fc
 4FFB: 4C 5F 30 jmp infinite_loop_305f
 
+
 * check if score is good enough and display highscore if that's the case
 high_score_entry_5000:
 5000: A9 40    lda #$40
-5002: 85 BE    sta $be
+5002: 85 BE    sta highscore_player_identifier_be		; assumes player 1 beat a highscore
 5004: 38       sec
-5005: A5 B2    lda score_hundred_ten_b2
-5007: ED B4 02 sbc $02b4
-500A: A5 B3    lda score_thousands_b3
-500C: ED B5 02 sbc $02b5
-500F: A5 B4    lda score_hundred_thousands_b4
-5011: ED B6 02 sbc $02b6
-5014: A5 B5    lda score_ten_million_b5
-5016: ED B7 02 sbc $02b7
-5019: B0 1E    bcs $5039
+5005: A5 B2    lda p1_score_hundred_ten_b2
+5007: ED B4 02 sbc low_highest_score_hundred_ten_02b4
+500A: A5 B3    lda p1_score_thousands_b3
+500C: ED B5 02 sbc low_highest_score_thousands_02b5
+500F: A5 B4    lda p1_score_hundred_thousands_b4
+5011: ED B6 02 sbc low_highest_score_hundred_thousands_02b6
+5014: A5 B5    lda p1_score_ten_million_b5
+5016: ED B7 02 sbc low_highest_score_ten_million_02b7
+5019: B0 1E    bcs $5039			; branch when high score beaten
 501B: A9 41    lda #$41
-501D: 85 BE    sta $be
+501D: 85 BE    sta highscore_player_identifier_be		; assumes it's player 2
 501F: 38       sec
+; same for player 2
 5020: A5 B6    lda $b6
-5022: ED B4 02 sbc $02b4
+5022: ED B4 02 sbc low_highest_score_hundred_ten_02b4
 5025: A5 B7    lda $b7
-5027: ED B5 02 sbc $02b5
+5027: ED B5 02 sbc low_highest_score_thousands_02b5
 502A: A5 B8    lda $b8
-502C: ED B6 02 sbc $02b6
+502C: ED B6 02 sbc low_highest_score_hundred_thousands_02b6
 502F: A5 B9    lda $b9
-5031: ED B7 02 sbc $02b7
+5031: ED B7 02 sbc low_highest_score_ten_million_02b7
 5034: B0 03    bcs $5039
-5036: 4C D9 53 jmp $53d9
+5036: 4C D9 53 jmp no_highscore_reached_53d9
 5039: A9 09    lda #$09
 503B: 85 16    sta $16
 503D: A9 B0    lda #$b0
@@ -3061,17 +3070,17 @@ high_score_entry_5000:
 5051: 91 19    sta ($19), y
 5053: 88       dey
 5054: 10 F9    bpl $504f
-5056: A5 BE    lda $be
+5056: A5 BE    lda highscore_player_identifier_be
 5058: C9 40    cmp #$40
 505A: D0 16    bne $5072
 505C: 38       sec
-505D: A5 B2    lda score_hundred_ten_b2
+505D: A5 B2    lda p1_score_hundred_ten_b2
 505F: E5 30    sbc $30
-5061: A5 B3    lda score_thousands_b3
+5061: A5 B3    lda p1_score_thousands_b3
 5063: E5 31    sbc charset_source_pointer_first_plane_31
-5065: A5 B4    lda score_hundred_thousands_b4
+5065: A5 B4    lda p1_score_hundred_thousands_b4
 5067: E5 32    sbc $32
-5069: A5 B5    lda score_ten_million_b5
+5069: A5 B5    lda p1_score_ten_million_b5
 506B: E5 33    sbc charset_source_pointer_second_plane_33
 506D: B0 28    bcs $5097
 506F: 4C 85 50 jmp $5085
@@ -3155,7 +3164,7 @@ high_score_entry_5000:
 5107: F0 05    beq $510e
 5109: A9 A4    lda #$a4
 510B: 4C 87 3F jmp $3f87
-510E: A5 BE    lda $be
+510E: A5 BE    lda highscore_player_identifier_be
 5110: C9 40    cmp #$40
 5112: D0 0B    bne $511f
 5114: A9 B2    lda #$b2
@@ -3221,14 +3230,14 @@ high_score_entry_5000:
 5189: C8       iny
 518A: A9 25    lda #$25
 518C: 91 37    sta ($37), y
-518E: A5 BE    lda $be
+518E: A5 BE    lda highscore_player_identifier_be
 5190: C9 40    cmp #$40
 5192: D0 07    bne $519b
 5194: A9 07    lda #$07
-5196: 85 BE    sta $be
+5196: 85 BE    sta highscore_player_identifier_be
 5198: 4C AF 51 jmp $51af
 519B: A9 08    lda #$08
-519D: 85 BE    sta $be
+519D: 85 BE    sta highscore_player_identifier_be
 519F: A9 08    lda #$08
 51A1: 2D 06 21 and dsw_2106
 51A4: F0 09    beq $51af
@@ -3282,11 +3291,11 @@ high_score_entry_5000:
 5211: 8D 0F 0E sta $0e0f
 5214: A0 00    ldy #$00
 5216: A9 C4    lda #$c4
-5218: 91 19    sta ($19), y
+5218: 91 19    sta ($19), y	 	; [video_address]
 521A: C8       iny
 521B: C8       iny
 521C: A9 C3    lda #$c3
-521E: 91 19    sta ($19), y
+521E: 91 19    sta ($19), y	 	; [video_address]
 5220: A5 19    lda $19
 5222: 85 1E    sta $1e
 5224: A5 1A    lda $1a
@@ -3295,7 +3304,7 @@ high_score_entry_5000:
 5229: 85 1F    sta $1f
 522B: A0 01    ldy #$01
 522D: A9 05    lda #$05
-522F: 91 1E    sta ($1e), y
+522F: 91 1E    sta ($1e), y	 	; [video_address]
 5231: A4 1C    ldy $1c
 5233: B9 90 34 lda $3490, y
 5236: 20 90 4B jsr split_a_digits_4b90
@@ -3304,7 +3313,7 @@ high_score_entry_5000:
 523F: A9 08    lda #$08
 5241: 2D 06 21 and dsw_2106
 5244: F0 0C    beq $5252
-5246: A5 BE    lda $be
+5246: A5 BE    lda highscore_player_identifier_be
 5248: C9 07    cmp #$07
 524A: F0 06    beq $5252
 524C: AD 05 21 lda in1_2105
@@ -3357,10 +3366,10 @@ high_score_entry_5000:
 52AB: 85 16    sta $16
 52AD: A0 00    ldy #$00
 52AF: A9 30    lda #$30
-52B1: 91 19    sta ($19), y
+52B1: 91 19    sta ($19), y   ; [video_address]
 52B3: C8       iny
 52B4: C8       iny
-52B5: 91 19    sta ($19), y
+52B5: 91 19    sta ($19), y   ; [video_address]
 52B7: A5 19    lda $19
 52B9: 85 17    sta head_x_value_17
 52BB: A5 1A    lda $1a
@@ -3499,16 +3508,18 @@ high_score_entry_5000:
 53C5: D0 05    bne $53cc
 53C7: A9 0A    lda #$0a
 53C9: 20 00 40 jsr display_game_over_4000
-53CC: A5 BE    lda $be
+53CC: A5 BE    lda highscore_player_identifier_be
 53CE: C9 07    cmp #$07
-53D0: D0 07    bne $53d9
+53D0: D0 07    bne no_highscore_reached_53d9
 53D2: A9 41    lda #$41
-53D4: 85 BE    sta $be
+53D4: 85 BE    sta highscore_player_identifier_be
 53D6: 4C 1F 50 jmp $501f
 
+no_highscore_reached_53d9:
 53D9: A9 00    lda #$00
-53DB: 85 BE    sta $be
+53DB: 85 BE    sta highscore_player_identifier_be
 53DD: 60       rts
+
 53DE: A0 00    ldy #$00
 53E0: A5 31    lda charset_source_pointer_first_plane_31
 53E2: C9 09    cmp #$09
@@ -3676,7 +3687,7 @@ high_score_entry_5000:
 551E: 85 4D    sta $4d
 5520: 85 4E    sta $4e
 5522: 85 4F    sta $4f
-5524: A5 BE    lda $be
+5524: A5 BE    lda highscore_player_identifier_be
 5526: C9 10    cmp #$10
 5528: 90 12    bcc $553c
 552A: A9 80    lda #$80
@@ -3937,7 +3948,7 @@ high_score_entry_5000:
 5723: D0 05    bne $572a
 5725: A9 05    lda #$05
 5727: 20 00 40 jsr display_game_over_4000
-572A: A5 BE    lda $be
+572A: A5 BE    lda highscore_player_identifier_be
 572C: C9 20    cmp #$20
 572E: 30 52    bmi $5782
 5730: C9 30    cmp #$30
@@ -3985,7 +3996,7 @@ high_score_entry_5000:
 5791: 85 A8    sta $a8
 5793: 8D 03 21 sta flipscreen_2103
 5796: A9 20    lda #$20
-5798: 85 BE    sta $be
+5798: 85 BE    sta highscore_player_identifier_be
 579A: A5 59    lda pixel_speed_59
 579C: 85 AB    sta $ab
 579E: A5 BC    lda level_number_bc
@@ -4015,7 +4026,7 @@ high_score_entry_5000:
 57D2: 85 A8    sta $a8
 57D4: 8D 03 21 sta flipscreen_2103
 57D7: A9 30    lda #$30
-57D9: 85 BE    sta $be
+57D9: 85 BE    sta highscore_player_identifier_be
 57DB: A5 59    lda pixel_speed_59
 57DD: 85 AA    sta $aa
 57DF: A5 BC    lda level_number_bc
@@ -4231,7 +4242,7 @@ game_over_59de:
 59E0: 29 78    and #$78
 59E2: 85 A8    sta $a8
 59E4: 8D 03 21 sta flipscreen_2103
-59E7: A5 BE    lda $be
+59E7: A5 BE    lda highscore_player_identifier_be
 59E9: C9 10    cmp #$10
 59EB: B0 03    bcs $59f0
 59ED: 4C 66 5A jmp l_5a66
@@ -4292,14 +4303,14 @@ game_over_59de:
 5A5C: A4 19    ldy $19
 5A5E: B9 90 34 lda $3490, y
 5A61: 85 0E    sta $0e
-5A63: 20 00 50 jsr high_score_entry_5000		; [breakpoint]
+5A63: 20 00 50 jsr high_score_entry_5000
 l_5a66:
 5A66: A5 A8    lda $a8
 5A68: 29 7F    and #$7f
 5A6A: 85 A8    sta $a8
 5A6C: 8D 03 21 sta flipscreen_2103
 5A6F: A9 00    lda #$00
-5A71: 20 00 40 jsr display_game_over_4000		; [breakpoint]
+5A71: 20 00 40 jsr display_game_over_4000
 5A74: A9 83    lda #$83
 5A76: 85 17    sta head_x_value_17
 5A78: A9 04    lda #$04
@@ -4412,7 +4423,7 @@ color_loop_5aea:
 5B4B: 29 10    and #$10
 5B4D: D0 F9    bne $5b48
 5B4F: A9 03    lda #$03
-5B51: 85 BE    sta $be
+5B51: 85 BE    sta highscore_player_identifier_be
 5B53: A9 00    lda #$00
 5B55: 85 BC    sta level_number_bc
 5B57: 20 99 32 jsr $3299
@@ -4429,7 +4440,7 @@ exit_irq_5b61:
 5B67: 29 7F    and #$7f
 5B69: 85 A8    sta $a8
 5B6B: 8D 03 21 sta flipscreen_2103
-5B6E: A5 BE    lda $be
+5B6E: A5 BE    lda highscore_player_identifier_be
 5B70: C9 20    cmp #$20
 5B72: B0 19    bcs $5b8d
 5B74: A9 03    lda #$03
@@ -4459,12 +4470,12 @@ exit_irq_5b61:
 5BA7: 85 BC    sta level_number_bc
 5BA9: 85 AD    sta $ad
 5BAB: A9 30    lda #$30
-5BAD: 85 BE    sta $be
+5BAD: 85 BE    sta highscore_player_identifier_be
 5BAF: 20 EE 5C jsr $5cee
 5BB2: A5 BA    lda fruits_left_ba
 5BB4: 85 AF    sta $af
 5BB6: A9 20    lda #$20
-5BB8: 85 BE    sta $be
+5BB8: 85 BE    sta highscore_player_identifier_be
 5BBA: A9 01    lda #$01
 5BBC: 20 00 40 jsr display_game_over_4000
 5BBF: C6 B0    dec p1_lives_b0
@@ -4473,10 +4484,10 @@ exit_irq_5b61:
 
 start_game_5bc5:
 5BC5: A9 00    lda #$00
-5BC7: 85 B2    sta score_hundred_ten_b2
-5BC9: 85 B3    sta score_thousands_b3
-5BCB: 85 B4    sta score_hundred_thousands_b4
-5BCD: 85 B5    sta score_ten_million_b5
+5BC7: 85 B2    sta p1_score_hundred_ten_b2
+5BC9: 85 B3    sta p1_score_thousands_b3
+5BCB: 85 B4    sta p1_score_hundred_thousands_b4
+5BCD: 85 B5    sta p1_score_ten_million_b5
 5BCF: 85 B6    sta $b6
 5BD1: 85 B7    sta $b7
 5BD3: 85 B8    sta $b8
@@ -4675,7 +4686,7 @@ move_horizontally_5ce8:
 5CE8: 4C 00 A0 jmp nibbler_horizontal_movement_a000
 move_vertically_5ceb:
 5CEB: 4C 00 A3 jmp nibbler_vertical_movement_a300
-5CEE: A5 BE    lda $be
+5CEE: A5 BE    lda highscore_player_identifier_be
 5CF0: C9 30    cmp #$30
 5CF2: 30 13    bmi $5d07
 5CF4: A9 40    lda #$40
@@ -7154,7 +7165,7 @@ AA12: C5 58    cmp tail_ptr_58
 AA14: F0 05    beq $aa1b
 AA16: A9 97    lda #$97
 AA18: 4C 10 30 jmp $3010
-AA1B: A5 BE    lda $be
+AA1B: A5 BE    lda highscore_player_identifier_be
 AA1D: C9 10    cmp #$10
 AA1F: 90 05    bcc $aa26
 AA21: A9 08    lda #$08

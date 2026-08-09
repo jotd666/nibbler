@@ -54,7 +54,7 @@ Y_MAX = 256
 
 SCORE_FILE_SIZE = 0x23   | wrong
 
-LOG_BUFFER_SIZE = 0x2000
+LOG_BUFFER_SIZE = 0x80000
 
 BASE_BPLCON2_VALUE = 0x0064		| sprites above all playfields
 
@@ -160,6 +160,7 @@ w\@:
 	.global osd_enable_interrupts
 	.global osd_disable_interrupts
 	.global	osd_video_byte_dirty
+	.global	osd_cpu_logging_control
 	.global	osd_get_last_known_pc
 	.global	osd_write_2103
 	.global	osd_set_fg_palette
@@ -914,6 +915,7 @@ lose_all_lives:
 	GET_MEMORY_START_IN_A6
 	clr.b	(p1_lives_b0,a6)		| no more lives
 	clr.b	(p2_lives_b1,a6)		| no more lives
+	move.b	#1,(time_left_a3,a6)    | no more time
 	move.l	(a7)+,a6
 	rts
 
@@ -929,10 +931,10 @@ add_10000_points:
 	GET_MEMORY_START_IN_A6
 	movem.w	d0/d7,-(a7)
 	sub.b	d0,d0   | clear X
-	*move.b	(0x33,a6),d0
-	MOVE.b	#0x01,d7
+	move.b	(p1_score_thousands_b3,a6),d0
+	MOVE.b	#0x10,d7
 	abcd	d7,d0
-	*move.b	d0,(0x33,a6)
+	move.b	d0,(p1_score_thousands_b3,a6)
 	movem.w	(a7)+,d0/d7
 	move.l	(a7)+,a6
 	rts
@@ -2346,12 +2348,15 @@ update_controls:
 	move.b	d0,(in0_2104,a6)
 
 	moveq	#0,d0
+	move.b	#0,0x110
 	tst.b	(0x01,a0)		| "1" key
 	beq.b	0f
+	clr.b	(0x01,a0)      | ack, for some reason this key sticks
 	bset	#BIT_START_1P,d0
 0:
-	tst.b	(0x02,a0)		| "1" key
+	tst.b	(0x02,a0)		| "2" key
 	beq.b	0f
+	clr.b	(0x02,a0)      | ack, for some reason this key sticks
 	bset	#BIT_START_2P,d0
 0:
 	
@@ -2367,34 +2372,6 @@ update_controls:
 	rts
 	
 
-osd_read_system:
-	moveq	#0,d0
-	movem.l	a0/d1,-(a7)
-	lea		keyboard_table(pc),a0
-	tst.b	(1,a0)		| "1" key like in MAME
-	beq.b	0f
-	bset	#BIT_START_1P,d0
-0:
-	tst.b	(2,a0)		| "2" key like in MAME
-	beq.b	0f
-	bset	#BIT_START_2P,d0
-0:	
-
-	jbsr		is_game_playing
-	jeq	1f
-	move.l	_joypad_state,d1
-	* game not playing, we can start with joypad
-	btst	#JPB_BTN_UP,d1		| "1" key like in MAME
-	beq.b	0f
-	bset	#BIT_START_1P,d0
-0:
-	btst	#JPB_BTN_DOWN,d1		| "2" key like in MAME
-	beq.b	0f
-	bset	#BIT_START_2P,d0
-0:	
-1:	
-	movem.l	(a7)+,a0/d1
-	rts
 
 	
 * this seems to freeze the game, we don't need it (free play)
@@ -2431,14 +2408,9 @@ handle_keyboard:
     lea keyboard_table(pc),a0
     bclr    #7,d0
     seq (a0,d0.w)       | updates keyboard table
-    jne   2f     | we don't care about key release
+    jne   2f     		| we don't care about key release
 	
-	cmp.b	#55,d0		| "M" key
-	jne		0f
-	eor.b	#1,no_main_tune
-	jeq		0f
-	jbsr	osd_music_stop
-0:
+
     cmp.b   #0x19,d0	| "P" key
     bne.b   0f
 
