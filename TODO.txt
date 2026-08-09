@@ -1,18 +1,14 @@
-
-- at start nibbler is not shown (head/tail in blue): rip tiles when nibbler appears
-  then create a char table flag head/tail chars. Enable direct char display only when the
-  game displays nibbler at start, else don't display anything during game
+- super slow mode, speed cap mode
+- do the same as for tail in head: redraw a few tiles around depending on the direction
 
 - RE wriggling tail: using frame_index_e9 for 8 frames
   => we should build a table of frames matching frame_index_e9 in each direction
-- tail seems to continue straight after it has turned: corner chars 50-53 can help
-  depending on direction, if corner char is following, then draw blank char after (draw 0 first to check)
-  & redraw corner char too
 - eliminate unused cluts for nibbler body
 - optim: remove copy char data when moving nibbler
+- after nibble title flash we should reset bg palette
 - bg: allocate colors manually: white is yellow now
   maybe use copper if possible?
-- rip F sound
+- rip F sound (when does that occur!!)
 - directly restarts from level 1 when all lives lost
  => breakpoint on game start
 - cheat add 10000 to score 

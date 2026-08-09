@@ -518,9 +518,10 @@ for tile_set in fg_tile_set_list:
 fg_tile_palette = sorted(fg_tile_palette)
 
 # kill head/tail tiles
+head_tail_tiles = [0]*256
 for t in list(range(0x31,0x3A))+list(range(0x61,0x6A))+[0x4B,0x49,0x4D]:
     for fg_tile_set in fg_tile_set_list:
-        fg_tile_set[t] = None
+        head_tail_tiles[t] = 1
 
 # load pics for head & tail
 
@@ -639,6 +640,11 @@ is_bob=False, nb_cluts=FG_NB_CLUTS, mask_color=black, next_cache_id=next_cache_i
 
 import random
 random.seed(1)
+
+with open(src_dir / "head_tail_tiles.68k","w") as f:
+    f.write(generated_message)
+    f.write("head_tail_tiles:\n")
+    bitplanelib.dump_asm_bytes(head_tail_tiles,f,mit_format=True)
 
 with open(src_dir / "palette.68k","w") as f:
     f.write(generated_message)

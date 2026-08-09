@@ -22,7 +22,7 @@ AFB_68020 = 1
 
 NO68020 = 1
 
-
+BLANK_FG_CHAR = 0x30
 
 TILE_PLANE_X_SHIFT = 0
 
@@ -103,9 +103,9 @@ BIT_DOWN = 4
 	.macro	WAIT_BLIT
 	.ifndef	RELEASE
 	cmp.l	#_custom,a5
-	jeq		0f
+	jeq		chk\@
 	BREAKPOINT	"custom should be set in A5"
-0:
+chk\@:
 	.endif
 	move.w	#0x8400,(dmacon,a5)		| blitter high priority
 wait\@:
@@ -173,6 +173,7 @@ w\@:
 	.global	osd_write_sound_2102
 	.global	osd_log_cpu
 	.global osd_display_head
+	.global osd_cancel_appearing_state
 	.global osd_display_tail
 	
 	.global	is_game_playing
@@ -359,7 +360,7 @@ _user:
 	st.b	cheat_used
 2:
 	btst	#0,d0
-	sne		invincible_flag
+	sne		infinite_time_flag
 
 	BTST	#1,d0
 	sne		infinite_lives_flag
@@ -639,6 +640,10 @@ _nmi:
 	rts
 	
 do_irq:
+	tst.b	interrupts_on
+	jne		0f
+	rts
+0:
 	moveq	#0,d1
 	moveq	#0,d2
 	jra	irq_3009
@@ -711,19 +716,13 @@ _vblank:
 	bne.b	1f
 	* clear the sync flag a few lines later
 	* to simulate an extra vblank
-	tst.b	interrupts_on
-	jeq		33f
 	jbsr	do_irq
-33:
 	clr.b	d0
 1:
 	move.b	d0,mid_screen_interrupt_count
 	jra		23f	| no need to update sprites we're in the middle of a frame
 2:
-	tst.b	interrupts_on
-	jeq		33f
 	jbsr	do_irq
-33:
 	subq.w	#1,delay_timer
 		
 	tst.b	frameskip
@@ -1907,6 +1906,7 @@ osd_w_videoram_out:
 	.endr	
 	.endm
 
+	
 * < D7: 0-0x400 address
 * < D0: tile code
 * < D1: color code
@@ -1914,9 +1914,15 @@ osd_w_videoram_out:
 * destroys a lot of registers
 
 update_fg_tile:
-	
 	moveq	#0,d2			| mask up to 255
 	move.b	d0,d2			| tile code
+	tst.b	snake_appearing_flag
+	jne		0f				| during snake appearing phase, display all tiles
+	lea		head_tail_tiles,a1
+	tst.b	(a1,d2.w)
+	jeq		0f
+	move.b	#BLANK_FG_CHAR,d2		| blank!
+0:
 	moveq	#0,d3
 	move.b	d1,d3			| CLUT & tile code & flags
 	
@@ -1962,8 +1968,10 @@ update_fg_tile:
 	* double buffering
 	add.w	d0,a4
 	.endif
-
-
+	
+	cmp.b	#BLANK_FG_CHAR,d2
+	jeq		6f
+	
 	lea		fg_character_table,a0
 	.ifdef	NO68020
 	add.w	d2,d2
@@ -2025,7 +2033,14 @@ update_fg_tile:
 5:
 	CLEAR_FG_TILE8_PLANE
 	jra		41b
-
+	* clear
+6:
+	move.w	#NB_FG_PLANES-1,d4
+61:
+	CLEAR_FG_TILE8_PLANE
+	TILE8_FG_NEXT_PLANE
+	dbf		d4,61b
+	rts
 
 * < D7: 0-0x400
 * > D0: 
@@ -2279,9 +2294,10 @@ set_bitplanes:
 osd_debug_hook:
 	rts
 	
-osd_video_control:
+osd_cancel_appearing_state:
+	clr.b	snake_appearing_flag
 	rts
-	
+
 
 * < D1: previous state
 update_controls:
@@ -2564,6 +2580,10 @@ osd_read_high_scores:
 	
 * < A6: game memory
 osd_display_head:
+	tst.b	snake_appearing_flag
+	jeq		0f				| during snake appearing phase, display all tiles
+	rts
+0:
 	movem.l	D0-D2,-(a7)
 	moveq	#0,d0
 	moveq	#0,d1
@@ -2609,22 +2629,61 @@ osd_display_head:
 	movem.l	(a7)+,d0-d2
 	rts
 	
-osd_display_tail:
-	movem.l	D0-D2,-(a7)
-		
+compute_tail_char_address:
+	movem.l	d0-d1,-(a7)
+	* compute machine screen address from row/col (like game does at A60C)
+	neg.w	d0
+	add.w	#0x1B,d0
+	lsl.w	#5,d0
+	neg.w	d1
+	add.w	#0x1F,d1
+	add.w	d1,d0
+	add.w	#0x400,d0		| screen address of first tail char 
+	move.w	d0,tail_char_address
+	movem.l	(a7)+,d0-d1
+	rts
 	
+	.macro	IS_CORNER_CHAR	reg,ji,lab
+	lsr.b	#2,\reg				| optim
+	cmp.b	#0x14,\reg			| corner chars $50-$53
+	\ji		\lab
+	.endm
+	
+osd_display_tail:
+	tst.b	snake_appearing_flag
+	jeq		0f				| during snake appearing phase, display all tiles
+	rts
+0:
+
+	movem.l	D0-D2,-(a7)
+			
 	* compute X/Y for amiga screen from row/col
 	moveq	#0,d0
 	moveq	#0,d1
 	move.b	(snake_tail_row_54,a6),d0	| char X
 	move.b	(snake_tail_col_55,a6),d1	| char Y
+	jbsr	compute_tail_char_address
+
+	moveq	#0,d7
+	move.b	(snake_tail_direction_56,a6),d7
+	add.w	d7,d7
+	move.w	tail_char_address,d5
+
+	* what to add to check adjacent tile?
+	lea		delta_address_table,a0
+	move.w	(a0,d7.w),d6
+	add.w	d6,d5
+	move.b	(a6,d5.w),d2
+	IS_CORNER_CHAR	d2,jeq,osd_display_tail_out
+	add.w	d6,d5
+	move.b	(a6,d5.w),d2
+	IS_CORNER_CHAR	d2,jeq,osd_display_tail_out
+	
 	addq	#4,d0
 	neg.w	d1
 	add.w	#0x20,d1
 	lsl.w	#3,d1	| times 8
 	lsl.w	#3,d0	| times 8
-	
-	
 	
 	
 	lea		bob_table,a4
@@ -2667,31 +2726,39 @@ osd_display_tail:
 	*
 	* when using a bob, the "crash" thing (i.e. clipping) must be simulated
 	
-	* compute machine screen address from row/col (like game does at A60C)
-	moveq	#0,d0
-	moveq	#0,d1
-	move.b	(snake_tail_row_54,a6),d0	| char X
-	move.b	(snake_tail_col_55,a6),d1	| char Y
-	neg.w	d0
-	add.w	#0x1B,d0
-	lsl.w	#5,d0
-	neg.w	d1
-	add.w	#0x1F,d1
-	add.w	d1,d0
-	add.w	#0x400,d0		| screen address of first tail char 
+
 	
 	moveq	#0,d7
 	move.b	(snake_tail_direction_56,a6),d7
 	add.w	d7,d7
+	move.w	tail_char_address,d5
 	* what to add to check adjacent tile?
 	lea		delta_address_table,a0
-	add.w	(a0,d7.w),d0
-	move.b	(a6,d0.w),d1		| character near
-	lsr.b	#2,d1				| optim
-	cmp.b	#0x14,d1			| corner chars $50-$53
-	jne		0f
-	BREAKPOINT	"CORNER"
+	move.w	(a0,d7.w),d5
+	move.w	tail_char_address,d0
+	add.w	d5,d0
+	lea		(a6,d0.w),a0
+	move.b	(a0),d1		| character near
+	IS_CORNER_CHAR	d1,jeq,0f
+	add.w	d5,a0
+	move.b	(a0),d1		| character near (but further)
+	IS_CORNER_CHAR	d1,jne,10f
+	lea		_custom,a5
+	* about to draw something in the vincinity of a blit: wait
+	WAIT_BLIT
+	jbsr	osd_video_byte_dirty
+	add.w	d5,a0
+	jbsr	osd_video_byte_dirty
+	jra		10f
 0:
+	lea		(a6,d0.w),a0
+	lea		_custom,a5
+	* about to draw something in the vincinity of a blit: wait
+	WAIT_BLIT
+	jbsr	osd_video_byte_dirty
+
+10:
+osd_display_tail_out:
 	movem.l	(a7)+,d0-d2
 	rts
 
@@ -2709,6 +2776,8 @@ osd_set_fg_palette:
 	movem.l	(a7)+,d0-d2/a6
 	rts
 	
+tail_char_address:
+	.word	0
 	
 delta_address_table:
 	.word	0
@@ -2876,8 +2945,14 @@ osd_sound_start:
 
 	cmp.w	previous_sound,d0
 	jne		0f
-	cmp.w	#BLOCKED_0C_SND,d0
+	cmp.b	#BLOCKED_0C_SND,d0
 	jeq		10f				| same sound "blocked" => skip
+0:
+	cmp.b	#START_08_SND,d0
+	jne		0f
+	* hack: allow to display snake head/tail tiles while the
+	* snake is appearing behind the yellow grid
+	st.b	snake_appearing_flag
 0:
 	tst.b	looped_sound_enabled
 	jeq		0f
@@ -3145,14 +3220,15 @@ system_vbr:
 
 flip_flop:
 	.byte	0
+snake_appearing_flag:
+	.byte	0
 
 	.align	2
 keyboard_table:
 	ds.b	0x100
 
-interrupt_mode:
-	.word	0
 	
+
 pause_flag:
 	.word	0
 frameskip:
@@ -3204,7 +3280,9 @@ fg_tile_address_table:
 bg_tile_address_table:
 	.skip	0x400*2
 
-
+head_tail_tiles:
+	.include	"head_tail_tiles.68k"
+	
 	.include	"sound_entries.68k"
 
 _keyexit:

@@ -123,7 +123,12 @@ def game_specific(address,lines,i):
 \tjbsr\tosd_set_fg_palette   | faster
 \t.endif
 """+line
-
+    elif address == 0x3192:
+        line = """\ttst.b\tinfinite_time_flag
+\tjne\tl_31a5
+"""+line
+    elif address == 0x5c8f:
+        line = "\tjbsr\tosd_cancel_appearing_state\n"+line
     return line
 
 

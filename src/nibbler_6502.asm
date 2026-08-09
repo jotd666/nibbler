@@ -105,7 +105,7 @@ sound_2102 = $2102
 crtc_2000 = $2000
 crtc_2001 = $2001
 move_to_row_3b = $3b
-
+time_left_a3 = $a3
 move_slot_ptr_e2 = $e2
 frame_index_wrapped_ed = $ed
 pixel_speed_59 = $59
@@ -138,7 +138,6 @@ tail_ptr_58 = $58
 head_ptr_57 = $57
 p2_lives_b1 = $b1
 p1_lives_b0 = $b0
-time_a3 = $a3
 level_number_bc = $bc
 
 score_hundred_ten_b2 = $b2
@@ -340,11 +339,11 @@ l_315b:		; [global]
 318C: 10 17    bpl $31a5
 318E: A9 1E    lda #$1e
 3190: 85 A4    sta $a4
-3192: C6 A3    dec time_a3
+3192: C6 A3    dec time_left_a3
 3194: D0 0F    bne $31a5
 3196: A5 5A    lda $5a
 3198: F0 05    beq $319f
-319A: E6 A3    inc time_a3
+319A: E6 A3    inc time_left_a3
 319C: 4C A5 31 jmp $31a5
 319F: 20 72 39 jsr $3972
 31A2: 20 16 55 jsr $5516
@@ -540,7 +539,7 @@ nmi_continue_320e:
 331C: 29 1F    and #$1f
 331E: A8       tay
 331F: B9 02 34 lda $3402, y
-3322: 85 A3    sta time_a3
+3322: 85 A3    sta time_left_a3
 3324: A5 BE    lda $be
 3326: C9 30    cmp #$30
 3328: 30 0B    bmi $3335
@@ -1136,7 +1135,7 @@ award_end_of_level_bonus_38dc:
 38F5: 8D C3 0C sta $0cc3
 38F8: 8D E3 0C sta $0ce3
 38FB: 8D 03 0D sta $0d03
-38FE: C6 A3    dec time_a3
+38FE: C6 A3    dec time_left_a3
 3900: A4 BC    ldy level_number_bc
 3902: A5 BE    lda $be
 3904: C9 30    cmp #$30
@@ -1176,7 +1175,7 @@ award_end_of_level_bonus_38dc:
 3942: 20 32 35 jsr $3532
 3945: 20 72 39 jsr $3972
 3948: A9 03    lda #$03
-394A: 25 A3    and time_a3
+394A: 25 A3    and time_left_a3
 394C: D0 B0    bne $38fe
 394E: A9 0A    lda #$0a
 3950: 8D 01 21 sta sound_2101
@@ -1193,14 +1192,14 @@ award_end_of_level_bonus_38dc:
 3966: D0 F5    bne $395d
 3968: A9 00    lda #$00
 396A: 8D 01 21 sta sound_2101
-396D: A5 A3    lda time_a3
+396D: A5 A3    lda time_left_a3
 396F: D0 8D    bne $38fe
 3971: 60       rts
 3972: A9 FF    lda #$ff
 3974: 85 C3    sta $c3
 3976: A9 00    lda #$00
 3978: 85 C2    sta $c2
-397A: A4 A3    ldy time_a3
+397A: A4 A3    ldy time_left_a3
 397C: B9 90 34 lda $3490, y
 397F: 20 90 4B jsr split_a_digits_4b90
 3982: 86 C1    stx $c1
@@ -3683,7 +3682,7 @@ time_blink_4feb:
 5535: 8D 01 21 sta sound_2101
 5538: A9 B0    lda #$b0
 553A: 85 4F    sta $4f
-553C: A5 A3    lda time_a3
+553C: A5 A3    lda time_left_a3
 553E: D0 03    bne $5543
 5540: 4C 17 56 jmp $5617
 5543: A9 1B    lda #$1b
@@ -3929,7 +3928,7 @@ time_blink_4feb:
 571A: A9 03    lda #$03
 571C: 85 16    sta $16
 571E: 20 4D 5E jsr $5e4d
-5721: A5 A3    lda time_a3
+5721: A5 A3    lda time_left_a3
 5723: D0 05    bne $572a
 5725: A9 05    lda #$05
 5727: 20 00 40 jsr $4000
@@ -4076,7 +4075,7 @@ time_blink_4feb:
 5857: 29 0F    and #$0f
 5859: A8       tay
 585A: B9 02 34 lda $3402, y
-585D: 85 A3    sta time_a3
+585D: 85 A3    sta time_left_a3
 585F: 20 EE 35 jsr $35ee
 5862: 20 32 35 jsr $3532
 5865: 20 72 39 jsr $3972
