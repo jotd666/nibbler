@@ -2601,7 +2601,9 @@ osd_display_head:
 	movem.l	(a7)+,d0-d2
 	rts
 	
-compute_tail_char_address:
+* < D0/D1 row/col
+* updates "head_tail_char_address" variable
+compute_char_address:
 	movem.l	d0-d1,-(a7)
 	* compute machine screen address from row/col (like game does at A60C)
 	neg.w	d0
@@ -2611,7 +2613,7 @@ compute_tail_char_address:
 	add.w	#0x1F,d1
 	add.w	d1,d0
 	add.w	#0x400,d0		| screen address of first tail char 
-	move.w	d0,tail_char_address
+	move.w	d0,head_tail_char_address
 	movem.l	(a7)+,d0-d1
 	rts
 	
@@ -2628,18 +2630,18 @@ osd_display_tail:
 0:
 
 	movem.l	D0-D2,-(a7)
-			
-	* compute X/Y for amiga screen from row/col
 	moveq	#0,d0
 	moveq	#0,d1
 	move.b	(snake_tail_row_54,a6),d0	| char X
 	move.b	(snake_tail_col_55,a6),d1	| char Y
-	jbsr	compute_tail_char_address
+			
+	* compute X/Y for amiga screen from row/col
+	jbsr	compute_char_address
 
 	moveq	#0,d7
 	move.b	(snake_tail_direction_56,a6),d7
 	add.w	d7,d7
-	move.w	tail_char_address,d5
+	move.w	head_tail_char_address,d5
 
 	* what to add to check adjacent tile?
 	lea		delta_address_table,a0
@@ -2684,7 +2686,7 @@ osd_display_tail:
 	
 	move.l	(16*4,a4,d6.w),a3		| BOB structure of mask
 	move.l	(a3),a3				| only one clut
-	move.l		(8,a3),a3		| mask (any plane matches with the palette we chose)
+	move.l	(8,a3),a3		| mask (any plane matches with the palette we chose)
 	
 	move.l		playfield_drawn_screen_ptr,a1
 	jbsr	blit_planes_any_internal_cookie_cut
@@ -2703,11 +2705,11 @@ osd_display_tail:
 	moveq	#0,d7
 	move.b	(snake_tail_direction_56,a6),d7
 	add.w	d7,d7
-	move.w	tail_char_address,d5
+	move.w	head_tail_char_address,d5
 	* what to add to check adjacent tile?
 	lea		delta_address_table,a0
 	move.w	(a0,d7.w),d5
-	move.w	tail_char_address,d0
+	move.w	head_tail_char_address,d0
 	add.w	d5,d0
 	lea		(a6,d0.w),a0
 	move.b	(a0),d1		| character near
@@ -2748,7 +2750,7 @@ osd_set_fg_palette:
 	movem.l	(a7)+,d0-d2/a6
 	rts
 	
-tail_char_address:
+head_tail_char_address:
 	.word	0
 	
 delta_address_table:

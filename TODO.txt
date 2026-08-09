@@ -1,3 +1,5 @@
+- bfe001 loop is wrong, check in cycle exact
+- crash from floppy
 - super slow mode, speed cap mode
 - do the same as for tail in head: redraw a few tiles around depending on the direction
 
