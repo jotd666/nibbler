@@ -2673,18 +2673,18 @@ osd_display_head:
 	IS_NOT_BODY_CHAR	d0,11f
 100:
 	* body char on the side: it means that we have to re-draw the body tile to make up
-	* for the masking that the head does in a corner
+	* for the masking that the head does in a corner, for a few calls, depending on pixel speed
+	move.b	#8,char_redraw_countdown
+	move.l	a0,dirty_char_address
+	
 	move.b	#0,0x110
 	lea		_custom,a5
 	* about to draw something in the vincinity of a blit: wait
-	WAIT_BLIT
-	move.b	#0,(a0)
-	jbsr	osd_video_byte_dirty	
-	* remove overshoot
+	WAIT_BLIT	
+	* remove overshoot, only needed once
 	move.w	head_tail_char_address,d5
 	sub.w	d6,d5
 	lea		(a6,d5.w),a0
-	*move.b	#1,(a0)
 	jbsr	osd_video_byte_dirty	
 	
 	jra		13f
@@ -2696,13 +2696,29 @@ osd_display_head:
 	IS_NOT_BODY_CHAR	d0,13f
 	jra		100b
 13:
-	
-	move.w	head_tail_char_address,d5
-	lea		(a6,d5.w),a0
-	move.b	(a0),d0
-	move.b	#2,(a0)
+	move.b	char_redraw_countdown,d0
+	jeq		15f
+	* keep updating neighbour body char for a few times
+	sub.b	(pixel_speed_59,a6),d0
+	jpl		14f
+	moveq	#0,d0
+14:
+	move.b	d0,char_redraw_countdown
+	move.l	dirty_char_address,a0
+	lea		_custom,a5
+	* about to draw something in the vincinity of a blit: wait
+	WAIT_BLIT
 	jbsr	osd_video_byte_dirty
-	move.b	d0,(a0)
+15:
+	
+	
+	* TEMP TEMP DEBUG
+*	move.w	head_tail_char_address,d5
+*	lea		(a6,d5.w),a0
+*	move.b	(a0),d0
+*	move.b	#2,(a0)
+*	jbsr	osd_video_byte_dirty
+*	move.b	d0,(a0)
 
 	movem.l	(a7)+,d0-d2
 	rts
@@ -3320,8 +3336,13 @@ snake_appearing_flag:
 	.byte	0
 previous_snake_head_direction:
 	.byte	0
+char_redraw_countdown:
+	.byte	0
 	
 	.align	2
+	
+dirty_char_address:
+	.long	0
 keyboard_table:
 	ds.b	0x100
 
