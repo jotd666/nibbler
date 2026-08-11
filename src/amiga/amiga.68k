@@ -1898,6 +1898,9 @@ osd_w_videoram_out:
 	.macro	COPY_TILE8_PLANE_ROW
 	move.b	d0,(offset,a1)  | buffer
 	.endm
+	.macro	OR_TILE8_PLANE_ROW
+	or.b	d0,(offset,a1)  | buffer
+	.endm
 	
 	.macro	CLEAR_TILE8_PLANE
 	.set	offset,0
@@ -2199,7 +2202,9 @@ update_bg_tile:
 
 	* just copy
 
-
+	tst.b	fg_tile_or_mode
+	jne		6f
+	
 4:
 	move.l	(a2)+,d0		| next plane
 	jeq		5f
@@ -2232,6 +2237,20 @@ update_bg_tile:
 2:
 	rts
 	
+* "or" mode, doesn't clear bits
+6:
+	move.l	(a2)+,d0		| next plane
+	jeq		61f
+	move.l	d0,a0
+	.set	offset,0
+	.rept	8
+	move.b	(a0)+,d0
+	OR_TILE8_PLANE_ROW
+	.set	offset,offset+BG_NB_BYTES_PER_ROW
+	.endr
+61:
+	TILE8_NEXT_PLANE
+	dbf		d4,6b
 
 
 	
@@ -2603,6 +2622,8 @@ osd_read_high_scores:
 out\@:
 	.endm
 	
+* draw head taking a lot of things into account to avoid conflicts between head bob
+* and body tiles, specially during turns
 * < A6: game memory
 osd_display_head:
 	tst.b	snake_appearing_flag
@@ -2655,7 +2676,6 @@ osd_display_head:
 	
 	move.b	(snake_head_direction_53,a6),d7
 	add.w	d7,d7
-	move.b	#0,0x111
 	lea		delta_address_table,a3
 	lea		delta_rotated_address_table,a2
 	* this is the address of the char of the base of head, in the center
@@ -2674,10 +2694,9 @@ osd_display_head:
 100:
 	* body char on the side: it means that we have to re-draw the body tile to make up
 	* for the masking that the head does in a corner, for a few calls, depending on pixel speed
-	move.b	#8,char_redraw_countdown
+	move.b	#16,char_redraw_countdown
 	move.l	a0,dirty_char_address
 	
-	move.b	#0,0x110
 	lea		_custom,a5
 	* about to draw something in the vincinity of a blit: wait
 	WAIT_BLIT	
@@ -2707,8 +2726,10 @@ osd_display_head:
 	move.l	dirty_char_address,a0
 	lea		_custom,a5
 	* about to draw something in the vincinity of a blit: wait
+	st.b	fg_tile_or_mode
 	WAIT_BLIT
 	jbsr	osd_video_byte_dirty
+	clr.b	fg_tile_or_mode
 15:
 	
 	
@@ -3338,7 +3359,8 @@ previous_snake_head_direction:
 	.byte	0
 char_redraw_countdown:
 	.byte	0
-	
+fg_tile_or_mode:
+	.byte	0
 	.align	2
 	
 dirty_char_address:

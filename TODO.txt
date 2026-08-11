@@ -3,11 +3,9 @@
 - highscore load/save: load implemented, save too but save doesn't work
 - crash from floppy
 
-- do the same as for tail in head: redraw a few tiles around depending on the direction
-  maybe do the overshoot erase for one more frame
-  => head up/down, if body tile on the left, update tile, same for right
-  => head left/right, if body tile on the top, update tile, same for bottom
-- remove yellowish, force white (bg colors)  
+- head: much better, last hack maybe, when turning right & down, one pixel line
+  should be compensated in red
+  
 - level 10: speed makes snake parts not erasable as well.
 - set DSW difficulty easy/hard
 - DSW lives 3,4,5,6
