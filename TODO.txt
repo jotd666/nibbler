@@ -1,20 +1,19 @@
+- small wait: remove it, f3 is never used, remove wait from mainloop
+  and do a bigger grain wait
 - RE wriggling tail: using frame_index_e9 for 8 frames
   => we should build a table of frames matching frame_index_e9 in each direction
 - highscore load/save: load implemented, save too but save doesn't work
 - crash from floppy
-
 - head: much better, last hack maybe, when turning right & down, one pixel line
   should be compensated in red
   
-- level 10: speed makes snake parts not erasable as well.
+- level 10: speed makes snake parts not erasable as well: increase mask only on the sides
+  (increase head width too, so offsets must be changed too)
 - set DSW difficulty easy/hard
 - DSW lives 3,4,5,6
 - optim: remove copy char data when moving nibbler
-- after nibble title flash we should reset bg palette
-- bg: allocate colors manually: white is yellow now
-  maybe use copper if possible?
 - rip F sound (when does that occur?)
-- A8DD invalid mem access after level 34 expected?
+- at high levels, game can lockup
 
 - super slow mode, speed cap mode: get hard cap value and change it
 (don't try to cap value when storing)

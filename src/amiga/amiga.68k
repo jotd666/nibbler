@@ -1387,7 +1387,6 @@ quit_to_os:
 platform_init:
 	bsr		store_system
 	
-
 	lea		_custom,a5
 	move.w	#0x7FFF,dmacon(a5)
 	move.w	#0x7FFF,intena(a5)
@@ -1736,24 +1735,31 @@ osd_set_title_color:
 	move.w	D7,(a0)
 	rts
 
-bg_colors:
-	.word	0x00ff,0x000d,0x009d,0x00f0,0x0b00,0x0cb4,0x0d0d,0x0ffd
-
+	
 osd_small_wait:
 	move.l	d0,-(a7)
-	* empiric
-	moveq	#0x7,d0
-.bd_loop1:
-	move.w  d0,-(a7)
-    move.w	0xDFF006,d0	| VPOS
-.bd_loop2:
-	cmp.w	0xDFF006,d0
-	beq.s	.bd_loop2
-	move.w	(a7)+,d0
-	dbf	d0,.bd_loop1
+	move.w	#1,d0
+	jbsr	wait_ticks
+	
 	move.l	(a7)+,d0
 	rts
-	
+
+CIAATALO = 0xBFE401
+CIAATAHI = 0xBFE501
+CIAACRA  = 0xBFEE01
+
+* d0.w = ticks to wait
+wait_ticks:
+    move.b  #0,CIAACRA         | stop, known CRA state
+    move.b  d0,CIAATALO        | low byte
+    lsr.w   #8,d0              |
+    move.b  d0,CIAATAHI        | high byte - timer stopped, loads counter now
+    move.b  #0x19,CIAACRA      | LOAD + ONESHOT + START (%00011001)
+.wait:
+    btst    #0,CIAACRA
+    bne.s   .wait
+    rts
+		
 osd_set_irq_return_address:
 	move.l	a0,return_address
 	rts
@@ -2654,7 +2660,7 @@ osd_display_head:
 	moveq	#0,d6
 	move.b	(frame_index_e9,a6),d6
 	move.w	(6,a1,d7.w),a2
-	add.w	a1,a2
+	add.l	a1,a2
 	jsr		(a2)
 	
 	move.w	(a1,d7.w),d6		| offset
@@ -2808,7 +2814,7 @@ osd_display_tail:
 	moveq	#0,d6
 	move.b	(frame_index_e9,a6),d6
 	move.w	(6,a1,d7.w),a2
-	add.w	a1,a2
+	add.l	a1,a2
 	jsr		(a2)
 	
 	move.w	(a1,d7.w),d6		| offset
@@ -3277,6 +3283,8 @@ beamdelay:
 	dbf	d0,0b
 	rts
 
+bg_colors:
+	.word	0x00ff,0x000d,0x009d,0x00f0,0x0b00,0x0cb4,0x0d0d,0x0ffd
 	
 	MUL_TABLE	FG_NB_BYTES_PER_ROW,NB_LINES
 	MUL_TABLE	BG_NB_BYTES_PER_ROW,NB_LINES
@@ -3347,6 +3355,8 @@ ntsc_flag:
 mid_screen_interrupt_count:
 	.byte	0
 	.align	2
+ticks_per_line:
+	.long	0
 system_vbr:
 	.long	0
 

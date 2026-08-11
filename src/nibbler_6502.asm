@@ -397,6 +397,7 @@ l_315b:		; [global]
 31F3: A9 08    lda #$08
 31F5: 2D 05 21 and in1_2105
 31F8: F0 11    beq $320b
+; this is totally unreached
 31FA: A9 BF    lda #$bf
 31FC: 85 17    sta head_x_value_17
 31FE: A9 04    lda #$04
@@ -405,6 +406,7 @@ l_315b:		; [global]
 3204: A0 00    ldy #$00
 3206: 84 F3    sty fast_counter_f3
 3208: 20 00 4C jsr $4c00
+; end of unreached code
 320B: 4C A7 39 jmp nibbler_movement_39a7
 
 nmi_continue_320e:
@@ -528,7 +530,7 @@ nmi_continue_320e:
 32E8: B9 C3 33 lda $33c3, y
 32EB: 85 FA    sta $fa
 32ED: 20 1E 4C jsr $4c1e
-32F0: 20 EE 5C jsr $5cee
+32F0: 20 EE 5C jsr load_level_5cee
 32F3: A4 BC    ldy level_number_bc
 32F5: A9 04    lda #$04
 32F7: 2D 06 21 and dsw_2106
@@ -4092,7 +4094,11 @@ switch_to_player_2_57c4:
 5848: A5 BC    lda level_number_bc
 584A: C9 20    cmp #$20
 584C: 90 03    bcc $5851
-584E: 20 EE 5C jsr $5cee
+; from level 32, always reset the maze
+; as level start, losing a life doesn't
+; restart with less fruits, it's insanely
+; harder that way!
+584E: 20 EE 5C jsr load_level_5cee
 5851: A9 1E    lda #$1e
 5853: 85 A4    sta $a4
 5855: A5 BC    lda level_number_bc
@@ -4484,7 +4490,7 @@ exit_irq_5b61:
 5BA9: 85 AD    sta $ad
 5BAB: A9 30    lda #$30
 5BAD: 85 BE    sta highscore_player_identifier_be
-5BAF: 20 EE 5C jsr $5cee
+5BAF: 20 EE 5C jsr load_level_5cee
 5BB2: A5 BA    lda fruits_left_ba
 5BB4: 85 AF    sta $af
 5BB6: A9 20    lda #$20
@@ -4699,6 +4705,9 @@ move_horizontally_5ce8:
 5CE8: 4C 00 A0 jmp nibbler_horizontal_movement_a000
 move_vertically_5ceb:
 5CEB: 4C 00 A3 jmp nibbler_vertical_movement_a300
+
+; load next level, or current level on stages >= 32
+load_level_5cee:
 5CEE: A5 BE    lda highscore_player_identifier_be
 5CF0: C9 30    cmp #$30
 5CF2: 30 13    bmi $5d07
