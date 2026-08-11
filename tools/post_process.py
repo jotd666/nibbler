@@ -106,8 +106,9 @@ def game_specific(address,lines,i):
     elif address == 0xA930:
         # hook to display tail
         line = change_instruction("jbra\tosd_display_tail",lines,i)
-    elif address in {0x3472,0x3478,0x347e,0X3931,0x3937,0x393d}:
-        line = line.replace("addx.b","abcd")  # score
+    elif address in {0x3472,0x3478,0x347e,0X3931,0x3937,0x393d,
+    0x350d,0x3513,0x3519,0x3913,0x3919,0x391f,0x3454,0x345a,0x3460}:
+        line = line.replace("addx.b","abcd")  # score, a lot of occurrences
     elif address == 0x5E57:
         line = """\t.ifdef\t__amiga__
 \ttst.b\td0
@@ -132,6 +133,15 @@ def game_specific(address,lines,i):
 """+line
     elif address == 0x5c8f:
         line = "\tjbsr\tosd_cancel_appearing_state\n"+line
+    elif address == 0x5A63:
+        line += """\tOP_R_ON_ZP_ADDRESS    move,highscore_player_identifier_be,d0
+\tjeq\t0f
+* high-score beaten: save it
+\tjbsr\tosd_write_high_scores
+0:
+"""
+    elif address == 0x598E:
+        line += "\tjbsr\tosd_read_high_scores\n"
     return line
 
 

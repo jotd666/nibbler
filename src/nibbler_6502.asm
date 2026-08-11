@@ -111,6 +111,8 @@ frame_index_wrapped_ed = $ed
 pixel_speed_59 = $59
 pixel_speed_5f = $5F
 highscore_player_identifier_be = $be
+high_score_table_start_0290 = $290
+high_score_table_names_start_02d0 = $2d0
 
 ; 40-43: booleans (inverted logic)
 ; only one can be 0 when oriented that way, others are 1
@@ -118,6 +120,10 @@ tail_oriented_left_40 = $40
 tail_oriented_right_41 = $41
 tail_oriented_down_42 = $42
 tail_oriented_up_43 = $43
+
+rom_default_scores_5993 = $5993
+rom_default_names_59bb = $59bb
+
 
 ; row: $1-$19
 snake_head_row_51 = $51
@@ -1003,7 +1009,7 @@ add_to_score_3467:
 37B1: 85 CB    sta $cb
 37B3: A9 00    lda #$00
 37B5: 85 CA    sta $ca
-37B7: AD 90 02 lda $0290
+37B7: AD 90 02 lda high_score_table_start_0290
 37BA: 20 90 4B jsr split_a_digits_4b90
 37BD: 86 C9    stx $c9
 37BF: 85 C8    sta $c8
@@ -3404,10 +3410,10 @@ high_score_entry_5000:
 52F2: 85 16    sta $16
 52F4: A0 00    ldy #$00
 52F6: A9 30    lda #$30
-52F8: 91 19    sta ($19), y
+52F8: 91 19    sta ($19), y  ; [video_address]  erase
 52FA: C8       iny
 52FB: C8       iny
-52FC: 91 19    sta ($19), y
+52FC: 91 19    sta ($19), y  ; [video_address]
 52FE: A5 19    lda $19
 5300: 85 17    sta head_x_value_17
 5302: A5 1A    lda $1a
@@ -4208,28 +4214,33 @@ switch_to_player_2_57c4:
 5957: 20 32 35 jsr $3532
 595A: A9 05    lda #$05
 595C: 85 DF    sta $df
+; copy default high-scores
+; dest = high_score_table_start_0290
 595E: A9 90    lda #$90
 5960: 85 17    sta head_x_value_17
 5962: A9 02    lda #$02
 5964: 85 18    sta $18
+; source = $5993
 5966: A9 93    lda #$93
 5968: 85 19    sta $19
 596A: A9 59    lda #$59
 596C: 85 1A    sta $1a
-596E: A0 28    ldy #$28
+596E: A0 28    ldy #$28		; 4*10 bytes for scores
 5970: B1 19    lda ($19), y
 5972: 91 17    sta (head_x_value_17), y
 5974: 88       dey
 5975: 10 F9    bpl $5970
+; dest = high_score_table_names_start_02d0
 5977: A9 D0    lda #$d0
 5979: 85 17    sta head_x_value_17
 597B: A9 02    lda #$02
 597D: 85 18    sta $18
+; source = $59bb
 597F: A9 BB    lda #$bb
 5981: 85 19    sta $19
 5983: A9 59    lda #$59
 5985: 85 1A    sta $1a
-5987: A0 1E    ldy #$1e
+5987: A0 1E    ldy #$1e		; 3*10 bytes for names
 5989: B1 19    lda ($19), y
 598B: 91 17    sta (head_x_value_17), y
 598D: 88       dey

@@ -1,10 +1,12 @@
 - RE wriggling tail: using frame_index_e9 for 8 frames
   => we should build a table of frames matching frame_index_e9 in each direction
-- highscore load/save
+- highscore load/save: load implemented, save too but save doesn't work
 - crash from floppy
 
 - do the same as for tail in head: redraw a few tiles around depending on the direction
   maybe do the overshoot erase for one more frame
+  => head up/down, if body tile on the left, update tile, same for right
+  => head left/right, if body tile on the top, update tile, same for bottom
 - remove yellowish, force white (bg colors)  
 - level 10: speed makes snake parts not erasable as well.
 - set DSW difficulty easy/hard

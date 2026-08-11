@@ -52,7 +52,9 @@ NTSC_Y_SHIFT = 12
 
 Y_MAX = 256
 
-SCORE_FILE_SIZE = 0x23   | wrong
+SCORE_POINTS_SIZE = 40
+SCORE_NAMES_SIZE = 30
+SCORE_FILE_SIZE = SCORE_POINTS_SIZE+SCORE_NAMES_SIZE
 
 LOG_BUFFER_SIZE = 0x80000
 
@@ -168,6 +170,8 @@ w\@:
 	.global	osd_sound_start
 	.global	osd_set_irq_return_address
 	.global	osd_small_wait
+	.global	osd_write_high_scores
+	.global	osd_read_high_scores
 	.global	osd_change_char_data
 	.global osd_set_nibbler_speed
 	.global	osd_set_time_color
@@ -586,10 +590,7 @@ demo_game:
 	dbf		d0,0b
 	
 	GET_MEMORY_START_IN_A6
-	
-	*lea 	(default_hi_score_tbl_016f,a6),a0
-	*jbsr	osd_read_high_scores
-	
+		
 	.ifndef	RELEASE
 	* install dump and quit handler
 	tst.l	_resload
@@ -1731,7 +1732,7 @@ osd_set_title_color:
 	and.b	#7,d7
 	add.w	d7,d7
 	move.w	(a1,d7.w),d7
-	lea		background_colors+30,a0		| last color is whitish (sorted)
+	lea		background_colors+30,a0		| last color is white (sorted)
 	move.w	D7,(a0)
 	rts
 
@@ -2540,37 +2541,44 @@ toggle_pause:
 osd_read_high_scores:
 	movem.l	d0-d7/a0-a6,-(a7)
 	GET_MEMORY_START_IN_A6
-	*lea		(high_score_table_0294,a6),a1
+	lea		high_score_buffer,a1
 	move.l	_resload,d0
 	beq.b	0f
 	move.l	d0,a2
-	bsr		get_hiscore_name
+	jbsr		get_hiscore_name
 	move.l	a1,-(a7)
  	jsr		resload_GetFileSize(a2)		
 	move.l	(a7)+,a1
 	tst.l	d0
-	beq.b	1f
-	bsr		get_hiscore_name
+	beq.b	2f
+	jbsr		get_hiscore_name
 	jsr		resload_LoadFile(a2)	
 	bra.b	1f
 0:
 	tst.b	highscore_loaded
-	beq.b	1f
-
-	* from DOS: just copy buffer
+	beq.b	2f
+1:
+	* copy buffer in 2 locations
 	lea		high_score_buffer,a1
-	move.w	#SCORE_FILE_SIZE-1,d0
+	move.w	#SCORE_POINTS_SIZE-1,d0
+	lea	(high_score_table_start_0290,a6),a0
 0:
 	move.b	(a1)+,(a0)+
 	dbf		d0,0b
+	move.w	#SCORE_NAMES_SIZE-1,d0
+	lea	(high_score_table_names_start_02d0,a6),a0
+0:
+	move.b	(a1)+,(a0)+
+	dbf		d0,0b
+	
+	
 1:
 	* also update high score on top
 	*lea		(high_score_0007+3,a6),a1
-	*lea		(high_score_table_0294,a6),a0
-	move.b	(a0)+,(a1)
-	move.b	(a0)+,-(a1)
-	move.b	(a0)+,-(a1)
-
+	*move.b	(a0)+,(a1)
+	*move.b	(a0)+,-(a1)
+	*move.b	(a0)+,-(a1)
+2:
 	movem.l	(a7)+,d0-d7/a0-a6
 	rts
 	
@@ -2580,6 +2588,21 @@ osd_read_high_scores:
 	\ji		\lab
 	.endm
 
+	.macro	IS_NOT_BODY_CHAR	reg,ji
+	cmp.b	#0x3D,\reg
+	jcs		\ji
+	cmp.b	#0x41,\reg
+	jcc		\ji
+	.endm
+	
+	.macro	IS_BODY_CHAR	reg,ji
+	cmp.b	#0x3D,\reg
+	jcs		out\@
+	cmp.b	#0x41,\reg
+	jcs		\ji
+out\@:
+	.endm
+	
 * < A6: game memory
 osd_display_head:
 	tst.b	snake_appearing_flag
@@ -2631,34 +2654,55 @@ osd_display_head:
 	jbsr	blit_planes_any_internal_cookie_cut
 	
 	move.b	(snake_head_direction_53,a6),d7
-	cmp.b	previous_snake_head_direction,d7
-	jeq		0f
 	add.w	d7,d7
-	lea		delta_address_table,a0
-	lea		delta_rotated_address_table,a1
+	move.b	#0,0x111
+	lea		delta_address_table,a3
+	lea		delta_rotated_address_table,a2
+	* this is the address of the char of the base of head, in the center
+	* whatever is the orientation
+	*
+	*      **
+	*     *XX*
+	*       ^ here
 	move.w	head_tail_char_address,d5
-	sub.w	(a0,d7.w),d5
-	lea		(a6,d5.w),a0		| before head (to remove overshoot)
-
+	move.w	(a2,d7.w),d4		| side of the head offset
+	move.w	(a3,d7.w),d6		| side of the head offset
+	sub.w	d4,d5				| left side
+	lea		(a6,d5.w),a0
+	move.b	(a0),d0
+	IS_NOT_BODY_CHAR	d0,11f
+100:
+	* body char on the side: it means that we have to re-draw the body tile to make up
+	* for the masking that the head does in a corner
+	move.b	#0,0x110
 	lea		_custom,a5
 	* about to draw something in the vincinity of a blit: wait
 	WAIT_BLIT
-
-	jbsr	osd_video_byte_dirty
-	sub.w	(a1,d7.w),a0		| head is wider, we need to redraw here too
-	jbsr	osd_video_byte_dirty
-
+	move.b	#0,(a0)
+	jbsr	osd_video_byte_dirty	
+	* remove overshoot
+	move.w	head_tail_char_address,d5
+	sub.w	d6,d5
+	lea		(a6,d5.w),a0
+	*move.b	#1,(a0)
+	jbsr	osd_video_byte_dirty	
+	
+	jra		13f
+11:
+	* the other side
+	add.w	d4,a0
+	add.w	d4,a0		| right side
+	move.b	(a0),d0
+	IS_NOT_BODY_CHAR	d0,13f
+	jra		100b
+13:
 	
 	move.w	head_tail_char_address,d5
-	sub.w	(a1,d7.w),d5
-	lea		(a6,d5.w),a0		| redraw body tile laterally
+	lea		(a6,d5.w),a0
+	move.b	(a0),d0
+	move.b	#2,(a0)
 	jbsr	osd_video_byte_dirty
-
-	
-0:
-	
-	* update for next call
-	move.b	(snake_head_direction_53,a6),previous_snake_head_direction
+	move.b	d0,(a0)
 
 	movem.l	(a7)+,d0-d2
 	rts
@@ -2878,19 +2922,23 @@ osd_write_high_scores:
 	bne.b	2f
 	.endif
 	GET_MEMORY_START_IN_A6
-	*lea		(high_score_table_0294,a6),a0
-
-	move.l	_resload,d0
-	bne.b	1f
-	* DOS
-	* first just copy buffer as contiguous 
 	lea		high_score_buffer,a1
-	move.w	#SCORE_FILE_SIZE-1,d0
+
+	* DOS/whdload
+	* first just copy buffer as contiguous 
+	move.w	#SCORE_POINTS_SIZE-1,d0
+	lea	(high_score_table_start_0290,a6),a0
+0:
+	move.b	(a0)+,(a1)+
+	dbf		d0,0b
+	move.w	#SCORE_NAMES_SIZE-1,d0
+	lea	(high_score_table_names_start_02d0,a6),a0
 0:
 	move.b	(a0)+,(a1)+
 	dbf		d0,0b
 	st.b	highscore_needs_saving
-	jra		2f
+	move.l	_resload,d0
+	beq.b	2f		| DOS: stop there
 1:
 	* whdload
 	move.l	a0,a1
@@ -2996,6 +3044,11 @@ osd_sound_start:
 	* snake is appearing behind the yellow grid
 	st.b	snake_appearing_flag
 	move.b	#4,previous_snake_head_direction  | right
+	* reset color
+	move.l	d0,-(a7)
+	moveq	#7,d0
+	jbsr	osd_set_title_color
+	move.l	(a7)+,d0
 0:
 	tst.b	looped_sound_enabled
 	jeq		0f

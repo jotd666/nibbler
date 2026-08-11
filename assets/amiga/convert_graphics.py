@@ -577,6 +577,18 @@ for i,tsd in bg_tile_sheet_dict.items():
     bg_tile_palette.update(tp)
 
 
+bg_replacement_dict = {(255,255,0):(255,255,222),
+}
+apply_color_replacement(bg_tile_set_list,bg_replacement_dict)
+# recompute new fg palette
+bg_tile_palette = set()
+
+for tile_set in bg_tile_set_list:
+    for j,tile in enumerate(tile_set):
+        tp = set()
+        if tile:
+            tp = set(bitplanelib.palette_extract(tile))
+            bg_tile_palette.update(tp)
 
 target_nb_colors = total_nb_colors
 if len(bg_tile_palette)>target_nb_colors:
