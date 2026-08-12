@@ -39,9 +39,11 @@ def game_specific(address,lines,i):
         line = remove_error(line)
     if address == 0x305f:
         # rewrite infinite loop completely
+        # fast_counter_f3 seems not used so we can just perform an infinite loop
+        # (it was tricky to create a very small delay of 1/15000 seconds anyway)
         line = """0:
 \tOP_W_ON_ZP_ADDRESS    addq,fast_counter_f3,#1 |  [$305f: inc fast_counter_f3]
-"""+change_instruction("jbsr\tosd_small_wait",lines,i)+"\tjra\t0b\n"
+"""+change_instruction("jra\t0b\n",lines,i)
         kill_code(lines,i,0x3066)
     # since game escapes irq and infinite loops, and we don't need A,X,Y save in our irq
     # we have to remove all those push and pull operations
@@ -84,7 +86,7 @@ def game_specific(address,lines,i):
     elif address == 0x5bdf:
         line += "\tmove.b\tstart_level_flag,d0\n\tOP_W_ON_ZP_ADDRESS\tmove,level_number_bc,d0\n"
     if "[cpu_loop]" in line:
-        lines[i+2] = change_instruction("jbsr\twait_1_frame",lines,i+2)
+        lines[i+2] = change_instruction("jbsr\tosd_small_wait",lines,i+2)
         lines[i+3] = remove_instruction(lines,i+3)
     elif "[copy_charset_data_loop=1" in line:
         # we disabled all charset copy changes but the diamond 1 tile body
@@ -435,14 +437,7 @@ with open(source_dir / f"{gamename}.68k","w") as fw:
     for g in global_symbols:
         fw.write(f"\t.global\t{g}\n")
 
-    fw.write("""wait_1_frame:
-\tmove.w\t#200,d7
-0:
-\tjbsr\tosd_small_wait
-\tdbf\td7,0b
-\tmoveq\t#0,d7
-\trts
-
+    fw.write("""
     .macro  CHANGE_CHARS  nb_chars,mirror
     move.b\t#\\nb_chars,d6
     move.b\t#\\mirror,d7

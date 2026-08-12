@@ -1738,27 +1738,19 @@ osd_set_title_color:
 	
 osd_small_wait:
 	move.l	d0,-(a7)
-	move.w	#1,d0
-	jbsr	wait_ticks
-	
+	move.w	#50,d0
+.bd_loop1:
+	move.w  d0,-(a7)
+	move.b	0xdff006,d0	| VPOS
+.bd_loop2:
+	cmp.b	0xdff006,d0
+	beq.s	.bd_loop2
+	move.w	(a7)+,d0
+	dbf	d0,.bd_loop1
 	move.l	(a7)+,d0
 	rts
 
-CIAATALO = 0xBFE401
-CIAATAHI = 0xBFE501
-CIAACRA  = 0xBFEE01
 
-* d0.w = ticks to wait
-wait_ticks:
-    move.b  #0,CIAACRA         | stop, known CRA state
-    move.b  d0,CIAATALO        | low byte
-    lsr.w   #8,d0              |
-    move.b  d0,CIAATAHI        | high byte - timer stopped, loads counter now
-    move.b  #0x19,CIAACRA      | LOAD + ONESHOT + START (%00011001)
-.wait:
-    btst    #0,CIAACRA
-    bne.s   .wait
-    rts
 		
 osd_set_irq_return_address:
 	move.l	a0,return_address
