@@ -2243,64 +2243,6 @@ update_bg_tile:
 	dbf		d4,6b
 
 
-	
-* < d0.w: x
-* < d1.w: y
-* < a1: sprite pos table (depending on height)
-* > d0.L: control word
-store_sprite_pos:
-	tst.w	d1
-	jmi	0f
-	cmp.w	#Y_MAX,d1
-	jcc	0f
-
-    move.l  a0,-(a7)
-
-    lea	HW_SpriteXTable(pc),a0
-	
-	.ifdef	NO68020
-    add.w	d0,d0
-    add.w	d0,d0
-    move.l	(a0,d0.w),d0
-	move.w	d1,-(a7)
-    add.w	d1,d1
-    add.w	d1,d1
-    or.l	(a1,d1.w),d0
-	move.w	(a7)+,d1
-	.else
-    move.l	(a0,d0.w*4),d0
-    or.l	(a1,d1.w*4),d0	
-	.endc
-    move.l  (a7)+,a0
-    rts
-0:
-	moveq	#0,d0
-	rts
-	
-
-
-
-HW_SpriteXTable:
-	.set	reptn,0
-	.rept 320
-	.set	x,reptn+0x80
-	.set reptn,reptn+1
-    .byte  0,x>>1,0,x&1
-  .endr
-
-	.macro DEF_HW_SPRITE_Y_TABLE	height
-HW_SpriteYTable_\height:
-  .set	reptn,0
-  .rept 288
-	.set	ys,reptn+0x1c
-	.set	ye,ys+\height
-    .byte  ys&255, 0, ye&255, ((ys>>6)&4)+((ye>>7)&2)
-	.set	reptn,reptn+1
-  .endr
-	.endm
-
-	DEF_HW_SPRITE_Y_TABLE	16
-
 set_background_bitplanes:
 	movem.l	a0-a1/d0-d2,-(a7)
 	move.l	background_screen_ptr,d0
@@ -2351,6 +2293,7 @@ update_controls:
 	tst.b	(0x4D,a0)		| "down" key
 	beq.b	0f
 	bset	#BIT_DOWN,d0
+	bclr	#BIT_UP,d0
 0:
 	tst.b	(0x4F,a0)		| "<-" key
 	beq.b	0f
@@ -2359,6 +2302,7 @@ update_controls:
 	tst.b	(0x4E,a0)		| "->" key
 	beq.b	0f
 	bset	#BIT_RIGHT,d0
+	bclr	#BIT_LEFT,d0
 0:
 
 	* directions + fire
@@ -2903,19 +2847,22 @@ delta_rotated_address_table:
 	.word	0
 	.word	1		| left
 	
+* so the mask is long enough to erase the side of the head at very
+* high speeds (level 10+)
+XTRA_LENGTH = 10
 * nibbler_direction_53 contains 1,2,4,8
 * convert this offset into offset in bob table
 head_direction2order_table:
 	.word	-1,0,0,0
 	* bob_frame_offset,offset_x,offset_y,is_horizontal       
-	.word	12,-4,-16,add_y_displacement-head_direction2order_table		| down
-	.word	8,-4,-7-17,sub_y_displacement-head_direction2order_table		| up
+	.word	12,-4,-XTRA_LENGTH-16,add_y_displacement-head_direction2order_table		| down
+	.word	8,-4,-7-17+XTRA_LENGTH,sub_y_displacement-head_direction2order_table		| up
 	.word	-1,0,0,0
-	.word	0,-8,-11,add_x_displacement-head_direction2order_table		| right
+	.word	0,-XTRA_LENGTH-8,-11,add_x_displacement-head_direction2order_table		| right
 	.word	-1,0,0,0
 	.word	-1,0,0,0
 	.word	-1,0,0,0
-	.word	4,-16,-11,sub_x_displacement-head_direction2order_table		| left
+	.word	4,XTRA_LENGTH-16,-11,sub_x_displacement-head_direction2order_table		| left
 
 tail_direction2order_table:
 	.word	-1,0,0,0
