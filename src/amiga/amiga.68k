@@ -619,7 +619,7 @@ demo_game:
 	move.b	#0x0,(in2_2107,a6)
 
 	* enable interrupts
-	move.w	#0xC038,_custom+intena
+	move.w	#0xC02C,_custom+intena
 
 	jmp		end_of_system_tests_7d26					| pass control to the mpatrol core
 		
@@ -648,9 +648,6 @@ do_irq:
 _vblank:
     movem.l d0-d7/a0-a6,-(a7)
 	lea		_custom,a5
-	move.w	(intreqr,a5),d0
-	btst	#5,d0
-	beq.b		1f
 
 	move.l	_joypad_state(pc),d1
 	move.l	d1,d2
@@ -665,30 +662,21 @@ _vblank:
 	beq.b	0f
 	btst	#JPB_BTN_BLU,d2
 	bne.b	0f
-	bsr		toggle_pause
+	jbsr		toggle_pause
 0:
-	* here music doesn't loop. We have to stop it when it ends
-	move.w	music_tick,d1
-	beq.b	13f
-	bmi.b	13f		| negative: infinite, not interruptible
-	
-	subq	#1,d1
 
-	move.w	d1,music_tick
-	bne.b	13f
-	move.b	music_track_start_number,d1
-	jbsr		osd_music_stop
-
-13:
 	
 	* ack vbl twice (040/pistorm bug)
 	move.w	#0x20,(intreq,a5)
 	move.w	#0x20,(intreq,a5)	
 	jra	3f
-1:
-	* has to be copper: set sync
 
-	* we're going to ack copper & software/level 5 interrupt now
+level1_interrupt:
+    movem.l d0-d7/a0-a6,-(a7)
+	lea		_custom,a5
+	move.w	(intreqr,a5),d0
+
+	* we're going to ack copper & software/level 1 interrupt now
 	* do it twice (040/pistorm bug)
 	move.w	#0x14,(intreq,a5)
 	move.w	#0x14,(intreq,a5)
@@ -699,9 +687,9 @@ _vblank:
 
 	* set base for RAM
 	GET_MEMORY_START_IN_A6
-	* is level 1 interrupt set? that would mean that mid-screen interrupt
+	* is copper interrupt set? that would mean that mid-screen interrupt
 	* is the source of the interrupt
-	btst	#2,d0
+	btst	#4,d0
 	beq.b	2f
 	* mid-screen copper interrupt, must occur once every 7 times
 	* to simulate ~57 Hz on 50 Hz display
@@ -1303,6 +1291,7 @@ store_system:
 	move.w	dmaconr(a6),old_dmacon
 	lea		old_sysvectors,a0
 	move.l	system_vbr(pc),a1
+	move.l	(0x64,a1),(a0)+
 	move.l	(0x68,a1),(a0)+
 	move.l	(0x6c,a1),(a0)+
 	move.l	(0x70,a1),(a0)+
@@ -1319,6 +1308,7 @@ restore_system:
 	move.w	#0x4000,intena(a6)	| ints off
 	lea		old_sysvectors,a0
 	move.l	system_vbr(pc),a1
+	move.l	(a0)+,(0x64,a1)
 	move.l	(a0)+,(0x68,a1)
 	move.l	(a0)+,(0x6c,a1)
 	move.l	(a0)+,(0x70,a1)
@@ -1452,6 +1442,8 @@ platform_init:
 	
 	* install keyboard and vblank/copper handler
 	move.l	system_vbr(pc),a1
+	pea		level1_interrupt(pc)
+	move.l	(a7)+,(0x64,a1)
 	pea		level2_interrupt(pc)
 	move.l	(a7)+,(0x68,a1)
 	pea		_vblank(pc)
@@ -3619,7 +3611,10 @@ time_color:
 	* mid-line wait & extra interrupt
 	.word	0x8001,0xFFFE
 pal_intreq_block_game:
-	.word	 intreq,0x8014  | call copper interrupt in the middle of a frame, also flag so copper interrupt knows that we're going to call copper int
+	* call copper interrupt in the middle of a frame
+	* effectively doubling the interrupt frequency to 100Hz
+	* (but we limit to 60Hz)
+	.word	 intreq,0x8014  
 
 
 	.word	0xF001,0xFFFE	| if we don't add an extra wait, NTSC version locks up
@@ -3629,7 +3624,7 @@ pal_intreq_block_game:
 	* extra wait for PAL (NTSC can't afford this)
 pal_wait:
 	.word	0x0C01,0xFFFE
-	.word	 intreq,0x8010
+	.word	 intreq,0x8004   | triggers level 1
 
 
 
