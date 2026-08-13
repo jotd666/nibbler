@@ -38,7 +38,7 @@ OBJS = $(START_OBJ) sounds.o ram.o graphics.o rom.o vbr.o ReadJoyPad.o ptplayer.
 
 ALL_000 = $(MAIN_000) $(AMIGA_SHELL) $(WHDLOADER) $(AMIGASRC)/graphics.68k $(AMIGASRC)/sounds.68k 
 
-all : $(ALL_000) $(MAIN_020) 
+all : $(ALL_000) $(MAIN_020) $(WHDLOADER_CHIP) 
 all_dev : $(ALL_000) $(WHDLOADER_CHIP) 
 
 
