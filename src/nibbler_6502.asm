@@ -604,7 +604,7 @@ fruit_eaten_3422:
 3438: A9 09    lda #$09
 343A: 8D 01 21 sta sound_2101
 343D: 85 4F    sta $4f
-343F: 08       php
+343F: 08       php		| save P
 3440: D8       cld
 3441: A4 BC    ldy level_number_bc
 3443: A5 BE    lda highscore_player_identifier_be
@@ -647,7 +647,7 @@ add_to_score_3467:
 3487: A9 9D    lda #$9d
 3489: 4C 87 3F jmp $3f87
 348C: C6 BA    dec fruits_left_ba
-348E: 28       plp
+348E: 28       plp		| restore P
 348F: 60       rts
 
 34F6: 08       php

@@ -10,44 +10,33 @@
 
 	.ifdef	MC68020
 * 68020 optimized
-	.macro PUSH_SR
-	move.w	ccr,-(sp)
-	.endm
+
 
 	.macro READ_LE_WORD    srcreg
-	PUSH_SR
 	moveq    #0,d4
 	move.w    (\srcreg),d4
 	rol.w    #8,d4
 * we have to use long else it will
 * extend sign for > 0x7FFF and will compute wrong offset
 	move.l    d4,\srcreg
-	POP_SR
 	.endm
 
 	.else
 * 68000 compliant
-	.macro PUSH_SR
-	move.w	sr,-(sp)
-	.endm
 
 	.macro READ_LE_WORD    srcreg
-	PUSH_SR
 	moveq    #0,d4
 	move.b    (1,\srcreg),d4
-	lsl.w    #8,d4
+	rol.w    #8,d4
 	move.b    (\srcreg),d4
 * we have to use long else it will
 * extend sign for > 0x7FFF and will compute wrong offset
 	move.l    d4,\srcreg
-	POP_SR
 	.endm
 
 	.endif
 
-	.macro POP_SR
-	move.w	(sp)+,ccr
-	.endm
+
 
 	.macro OP_R_ON_ZP_ADDRESS	inst,offset,reg
 	\inst\().b	(a6,\offset\().W),\reg
@@ -128,66 +117,7 @@
 	eor.b	#0x11,ccr
 	.endm
 
-* useful to recall C from X (add then move then bcx)
-	.macro	SET_C_FROM_X
-	PUSH_SR
-	move.w	(sp),d4
-	bset	#0,d4   | set C
-	btst	#4,d4
-	bne.b	0f
-	bclr	#0,d4   | X is clear: clear C
-0:
-	move.w	d4,(sp)
-	POP_SR
-	.endm
 
-* useful to store X from C (store cmp result)
-	.macro	SET_X_FROM_C
-	PUSH_SR
-	move.w	(sp),d4
-	bset	#4,d4   | set X
-	btst	#0,d4
-	bne.b	0f
-	bclr	#4,d4   | C is clear: clear X
-0:
-	move.w	d4,(sp)
-	POP_SR
-	.endm
-
-	.macro	SET_X_FROM_CLEARED_C
-	PUSH_SR
-	move.w	(sp),d4
-	bset	#4,d4   | set X
-	btst	#0,d4
-	beq.b	skip\@
-	bclr	#4,d4   | C is set: clear X
-skip\@:
-	move.w	d4,(sp)
-	POP_SR
-	.endm
-
-
-* N and V flag set on bits 7 and 6 is now supported
-* remove the end of the macro if the game is not using them (no bmi/bvc tests)
-    .macro    BIT    arg
-    move.b    d0,d4
-    and.b    \arg,d4    | zero flag
-    PUSH_SR
-    move.b    \arg,d4
-    move.w    (a7),d5
-    bclr    #3,d5
-    tst.b    d4
-    jpl        pos\@
-    bset    #3,d5    | set N
-pos\@:
-    bclr    #1,d5
-    btst.b    #6,d4
-    jeq        b6\@
-    bset    #1,d5    | set V
-b6\@:
-    move.w    d5,(a7)
-    POP_SR
-    .endm
 
 
     .macro CLR_XC_FLAGS
@@ -210,9 +140,7 @@ b6\@:
     or.b    #0xA,ccr        | bit 1 = V, bit 3 = N
     .endm
 
-	.macro TXS
-	ERROR "TODO: insert txs handling if needed (or remove)"
-	.endm
+
 	.macro SET_I_FLAG
 	jbsr	osd_disable_interrupts
 	.endm
@@ -234,6 +162,7 @@ b6\@:
 	lea	\offset,a0
 	lea		(a6,a0.l),a0
 	.endm
+	
 	.macro	PREP_GET_ADDRESS_X	offset
 	.ifgt	\offset-0x8000
 	lea	\offset,a0
