@@ -1,7 +1,9 @@
-- tail erases up chars (time/highscore): 
+- optim: remove copy char data when moving nibbler
+- don't animate snake body?
+- code optimization
+- head erases up chars (time/highscore): 
   if turning there, detect it? and refresh those too
-- same for credits, but just remove column :)
-- crash from floppy
+
 - head: much better, last hack maybe, when turning right & down, one pixel line
   should be compensated in red
   
@@ -9,7 +11,6 @@
   (increase head width too, so offsets must be changed too)
 - set DSW difficulty easy/hard
 - DSW lives 3,4,5,6
-- optim: remove copy char data when moving nibbler
 
 
 

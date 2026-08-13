@@ -1730,7 +1730,7 @@ osd_set_title_color:
 	
 osd_small_wait:
 	move.l	d0,-(a7)
-	move.w	#50,d0
+	move.w	#40,d0
 .bd_loop1:
 	move.w  d0,-(a7)
 	move.b	0xdff006,d0	| VPOS
