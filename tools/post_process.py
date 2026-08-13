@@ -135,12 +135,9 @@ def game_specific(address,lines,i):
 """+line
     elif address == 0x5c8f:
         line = "\tjbsr\tosd_cancel_appearing_state\n"+line
-    elif address == 0x5A63:
-        line += """\tOP_R_ON_ZP_ADDRESS    move,highscore_player_identifier_be,d0
-\tjeq\t0f
-* high-score beaten: save it
+    elif address == 0x53D4:
+        line += """* high-score beaten: save it
 \tjbsr\tosd_write_high_scores
-0:
 """
     elif address == 0x598E:
         line += "\tjbsr\tosd_read_high_scores\n"

@@ -1,6 +1,6 @@
-- RE wriggling tail: using frame_index_e9 for 8 frames
-  => we should build a table of frames matching frame_index_e9 in each direction
-- highscore load/save: load implemented, save too but save doesn't work
+- tail erases up chars (time/highscore): 
+  if turning there, detect it? and refresh those too
+- same for credits, but just remove column :)
 - crash from floppy
 - head: much better, last hack maybe, when turning right & down, one pixel line
   should be compensated in red
@@ -10,7 +10,7 @@
 - set DSW difficulty easy/hard
 - DSW lives 3,4,5,6
 - optim: remove copy char data when moving nibbler
-- rip F sound (when does that occur?)
+
 
 
 - super slow mode, speed cap mode: get hard cap value and change it
