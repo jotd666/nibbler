@@ -2745,7 +2745,14 @@ osd_display_tail:
 	add.l	a1,a2
 	jsr		(a2)
 	
-	move.w	(a1,d7.w),d6		| offset
+	* handle wriggling
+	lea		tail_cycle_table,a2
+	moveq	#0,d4
+	move.b	(a2,d6.w),d4		| straight/slightly crooked/crooked
+	move.w	(a1,d7.w),d6		| bob offset
+	move.l	(16*4,a4,d6.w),a3	| BOB structure of mask before applying crooking offset
+	add.w	d4,d6				| crook orientation offset
+
 	move.l	(a4,d6.w),a0		| BOB structure
 	move.l	(a0),a0				| only one clut
 	move.w	(a0)+,d4			| height
@@ -2756,7 +2763,6 @@ osd_display_tail:
 	addq	#2,a0
 	* now a0 contains bitplanes
 	
-	move.l	(16*4,a4,d6.w),a3		| BOB structure of mask
 	move.l	(a3),a3				| only one clut
 	move.l	(8,a3),a3		| mask (any plane matches with the palette we chose)
 	
@@ -2846,35 +2852,47 @@ delta_rotated_address_table:
 	.word	0
 	.word	0
 	.word	1		| left
-	
+
+tail_cycle_table:
+	.byte	0*16
+	.byte	1*16
+	.byte	2*16
+	.byte	1*16
+	.byte	0*16
+	.byte	1*16
+	.byte	2*16
+	.byte	1*16
+
 * so the mask is long enough to erase the side of the head at very
 * high speeds (level 10+)
-XTRA_LENGTH = 10
+XTRA_HEAD_LENGTH = 10
+XTRA_TAIL_LENGTH = 8
+
 * nibbler_direction_53 contains 1,2,4,8
 * convert this offset into offset in bob table
 head_direction2order_table:
 	.word	-1,0,0,0
 	* bob_frame_offset,offset_x,offset_y,is_horizontal       
-	.word	12,-4,-XTRA_LENGTH-16,add_y_displacement-head_direction2order_table		| down
-	.word	8,-4,-7-17+XTRA_LENGTH,sub_y_displacement-head_direction2order_table		| up
+	.word	12,-4,-XTRA_HEAD_LENGTH-16,add_y_displacement-head_direction2order_table		| down
+	.word	8,-4,-7-17+XTRA_HEAD_LENGTH,sub_y_displacement-head_direction2order_table		| up
 	.word	-1,0,0,0
-	.word	0,-XTRA_LENGTH-8,-11,add_x_displacement-head_direction2order_table		| right
+	.word	0,-XTRA_HEAD_LENGTH-8,-11,add_x_displacement-head_direction2order_table		| right
 	.word	-1,0,0,0
 	.word	-1,0,0,0
 	.word	-1,0,0,0
-	.word	4,XTRA_LENGTH-16,-11,sub_x_displacement-head_direction2order_table		| left
+	.word	4,XTRA_HEAD_LENGTH-16,-11,sub_x_displacement-head_direction2order_table		| left
 
 tail_direction2order_table:
 	.word	-1,0,0,0
 	* bob_frame_offset,offset_x,offset_y,is_horizontal       
-	.word	16+12,-1,-10,add_y_displacement-tail_direction2order_table		| down
-	.word	16+8,-1,-32,sub_y_displacement-tail_direction2order_table		| up
+	.word	16+12,-1,-10-XTRA_TAIL_LENGTH,add_y_displacement-tail_direction2order_table		| down
+	.word	16+8,-1,-32+XTRA_TAIL_LENGTH,sub_y_displacement-tail_direction2order_table		| up
 	.word	-1,0,0,0
-	.word	16+0,0,-8,add_x_displacement-tail_direction2order_table		| right
+	.word	16+0,-XTRA_TAIL_LENGTH,-8,add_x_displacement-tail_direction2order_table		| right
 	.word	-1,0,0,0
 	.word	-1,0,0,0
 	.word	-1,0,0,0
-	.word	16+4,-24,-8,sub_x_displacement-tail_direction2order_table		| left
+	.word	16+4,-24+XTRA_TAIL_LENGTH,-8,sub_x_displacement-tail_direction2order_table		| left
 
 add_y_displacement:
 	add.w	d6,d1
