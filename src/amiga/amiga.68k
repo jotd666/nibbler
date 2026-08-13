@@ -2602,7 +2602,7 @@ osd_display_head:
 	addq	#2,a0
 	* now a0 contains bitplanes
 
-	move.l	(16*4,a4,d6.w),a3		| BOB structure of mask
+	move.l	(16*6,a4,d6.w),a3		| BOB structure of mask
 	move.l	(a3),a3				| only one clut
 	move.l		(8,a3),a3		| mask (any plane matches with the palette we chose)
 	move.l		playfield_drawn_screen_ptr,a1
@@ -2749,7 +2749,7 @@ osd_display_tail:
 	lea		tail_cycle_table,a2
 	move.b	(a2,d6.w),d6		| straight/slightly crooked/crooked
 	move.w	(a1,d7.w),d4		| bob offset
-	move.l	(16*4,a4,d4.w),a3	| BOB structure of mask before applying crooking offset
+	move.l	(16*6,a4,d4.w),a3	| BOB structure of mask before applying crooking offset
 	add.w	d4,d6				| crook orientation offset
 
 	move.l	(a4,d6.w),a0		| BOB structure
@@ -2853,14 +2853,14 @@ delta_rotated_address_table:
 	.word	1		| left
 
 tail_cycle_table:
-	.byte	0*16
-	.byte	1*16
-	.byte	2*16
-	.byte	1*16
-	.byte	0*16
-	.byte	1*16
-	.byte	2*16
-	.byte	1*16
+	.byte	0*16		| straight
+	.byte	1*16		| slightly crooked
+	.byte	2*16		| crooked
+	.byte	1*16		| slightly crooked
+	.byte	0*16		| straight
+	.byte	3*16		| slightly crooked mirror
+	.byte	4*16		| crooked mirror
+	.byte	3*16		| slightly crooked mirror
 
 * so the mask is long enough to erase the side of the head at very
 * high speeds (level 10+)

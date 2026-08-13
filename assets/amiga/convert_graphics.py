@@ -525,8 +525,10 @@ for t in list(range(0x31,0x3A))+list(range(0x61,0x6A))+[0x4B,0x49,0x4D]:
 
 # load pics for head & tail
 
-def load_pic(name):
+def load_pic(name,flipped=False):
     img_right = Image.open(sheets_path / name)
+    if flipped:
+        img_right =  img_right.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
     x_padded,y_padded = img_right.size
     if x_padded % 16:
         x_padded = ((x_padded//16)+1)*16
@@ -537,6 +539,7 @@ def load_pic(name):
     nimg.paste(img_right)
     img_right = nimg
 
+
     img_list = [img_right]
     img_list.append(img_right.transpose(Image.Transpose.FLIP_LEFT_RIGHT))  # face left
     img_list.append(img_right.transpose(Image.Transpose.ROTATE_90))  # face down
@@ -546,10 +549,22 @@ def load_pic(name):
         part_dir.mkdir(exist_ok=True)
         for i,img in enumerate(img_list):
             img = ImageOps.scale(img,5,resample=Image.Resampling.NEAREST)
-            img.save(part_dir / f"{pathlib.Path(name).stem}_{i}.png")
+            img.save(part_dir / f"{pathlib.Path(name).stem}_{flipped}_{i}.png")
     return img_list
 
-sprite_images = load_pic("head.png") + load_pic("tail_straight.png") + load_pic("tail_slightly_crooked.png") + load_pic("tail_crooked.png") + load_pic("head_mask.png") + load_pic("tail_mask.png")
+sprite_names = {}
+offset = 0
+for name in ["head","tail_straight","tail_slightly_crooked","tail_crooked","tail_slightly_crooked_mirror","tail_crooked_mirror","head_mask","tail_mask"]:
+    for i in range(offset,offset+4):
+        sprite_names[i] = name
+    offset+=4
+
+
+sprite_images = load_pic("head.png") + load_pic("tail_straight.png")
+for f in [False,True]:
+    sprite_images += load_pic("tail_slightly_crooked.png",f) + load_pic("tail_crooked.png",f)
+
+sprite_images += load_pic("head_mask.png") + load_pic("tail_mask.png")
 
 bob_plane_cache = {}
 
@@ -735,19 +750,7 @@ with open(src_dir / "graphics.68k","w") as f:
         dump_asm_bytes(k,f)
 
     f.write("bob_table:\n")
-    sprite_names = {}
-    for i in range(4):
-        sprite_names[i] = "head"
-    for i in range(4,8):
-        sprite_names[i] = "tail_straight"
-    for i in range(8,12):
-        sprite_names[i] = "tail_slightly_crooked"
-    for i in range(12,16):
-        sprite_names[i] = "tail_crooked"
-    for i in range(16,20):
-        sprite_names[i] = "head_mask"
-    for i in range(20,24):
-        sprite_names[i] = "tail_mask"
+
     dump_bob_layer(sprite_table,f,sprite_names=sprite_names)
 
 
