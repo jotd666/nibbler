@@ -1,14 +1,17 @@
 - optim: remove copy char data when moving nibbler
 - don't animate snake body?
-- code optimization
 - head erases up chars (time/highscore): 
   if turning there, detect it? and refresh those too
-
 - head: much better, last hack maybe, when turning right & down, one pixel line
   should be compensated in red
-  
 - level 10: speed makes snake parts not erasable as well: increase mask only on the sides
   (increase head width too, so offsets must be changed too)
+  
+OR:
+
+- try to see if displaying tiles dynamically would work: after each change of characters recompute
+  the amiga version
+
 - set DSW difficulty easy/hard
 - DSW lives 3,4,5,6
 
